@@ -6,7 +6,7 @@ $HELPERS = new BLNOTIFIER_HELPERS;
     margin-top: 5px !important;
 }
 </style>
-<p>Our "Full Scan" is different than most plugins. It doesn't just scan the whole website and give you results like you would expect. Sorry to make things complicated for you. The reason we don't do that, though, is because most hosts do not allow for such a big load all at once. It causes a slew of issues and often times out. Generally speaking, doing a full scan like that is better to be done off-site. Here are a few links to consider:</p>
+<p>Our Multi-Scan is different than most plugins. It doesn't just scan the whole website and give you results like you would expect. Sorry to make things complicated for you. The reason we don't do that, though, is because most hosts do not allow for such a big load all at once. It causes a slew of issues and often times out. Generally speaking, doing a full scan like that is better to be done off-site. Here are a few links to consider:</p>
 <ul>
     <?php
     foreach ( $HELPERS->get_suggested_offsite_checkers() as $name => $url ) {

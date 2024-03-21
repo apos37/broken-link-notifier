@@ -394,7 +394,7 @@ class BLNOTIFIER_OMITS {
             if ( !$tab && $post_type == 'blnotifier-results' ) {
                 $tab = 'scan-results';
             } elseif ( !$tab ) {
-                $tab = 'scan-full';
+                $tab = 'scan-multi';
             }
             $nonce = wp_create_nonce( $this->nonce );
             $handle = 'blnotifier_omits_script';

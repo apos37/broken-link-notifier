@@ -12,7 +12,11 @@ if ( !defined( 'ABSPATH' ) ) {
 /**
  * Initiate the class
  */
-new BLNOTIFIER_RESULTS;
+
+add_action( 'init', function() {
+    (new BLNOTIFIER_RESULTS)->init();
+} );
+
 
 
 /**
@@ -46,14 +50,12 @@ class BLNOTIFIER_RESULTS {
 
 
     /**
-	 * Constructor
-	 */
-	public function __construct() {
+     * Load on init
+     */
+    public function init() {
 
-        // Load on init only
-        add_action( 'init', function() {
-            $this->init();
-        } );
+        // Register the post type
+        $this->register_post_type();
 
         // Add the header to the top of the admin list page
         add_action( 'load-edit.php', [ $this, 'add_header' ] );
@@ -99,17 +101,6 @@ class BLNOTIFIER_RESULTS {
         // Enqueue scripts
         add_action( 'wp_enqueue_scripts', [ $this, 'front_script_enqueuer' ] );
         add_action( 'admin_enqueue_scripts', [ $this, 'back_script_enqueuer' ] );
-
-    } // End __construct()
-
-
-    /**
-     * Load on init
-     */
-    public function init() {
-
-        // Register the post type
-        $this->register_post_type();
 
     } // End init()
 
@@ -822,7 +813,6 @@ class BLNOTIFIER_RESULTS {
             $HELPERS = new BLNOTIFIER_HELPERS;
             $bad_status_codes = $HELPERS->get_bad_status_codes();
             $warning_status_codes = $HELPERS->get_warning_status_codes();
-            // $warning_status_codes = $HELPERS->get_warning_status_codes();
             $notify_status_codes = array_merge( $bad_status_codes, $warning_status_codes );
 
             // Start timing

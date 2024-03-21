@@ -20,7 +20,8 @@ jQuery( $ => {
             data: { 
                 action: 'blnotifier_scan', 
                 nonce: nonce,
-                link: link
+                link: link,
+                postID: blnotifier_scan_single.post_id,
             }
         } )
     }

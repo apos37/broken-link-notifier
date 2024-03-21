@@ -36,7 +36,7 @@ jQuery( $ => {
     } );
 
     // Listen for omitting pages
-    if ( scanType == 'scan-full' || scanType == 'scan-results' ) {
+    if ( scanType == 'scan-multi' || scanType == 'scan-results' ) {
         $( '.omit-page' ).on( 'click', function( e ) {
             e.preventDefault();
             const link = $( this ).data( 'link' );
@@ -45,7 +45,7 @@ jQuery( $ => {
             } else {
                 $( this ).parent().hide();
             }
-            if ( scanType == 'scan-full' ) {
+            if ( scanType == 'scan-multi' ) {
                 const postID = $( this ).data( 'post-id' );
                 $( `#bln-${postID}` ).html( '<em>Omitted</em>' );
             }

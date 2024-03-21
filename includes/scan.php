@@ -77,6 +77,22 @@ class BLNOTIFIER_SCAN {
             // Check status
             $status = $HELPERS->check_link( $link );
 
+            // Add to results
+            $bad_status_codes = $HELPERS->get_bad_status_codes();
+            $warning_status_codes = $HELPERS->get_warning_status_codes();
+            $notify_status_codes = array_merge( $bad_status_codes, $warning_status_codes );
+            if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
+                (new BLNOTIFIER_RESULTS)->add( [
+                    'type'     => $status[ 'type' ],
+                    'code'     => $status[ 'code' ],
+                    'text'     => $status[ 'text' ],
+                    'link'     => $status[ 'link' ],
+                    'source'   => get_the_permalink( $post_id ),
+                    'author'   => get_current_user_id(),
+                    'location' => 'content'
+                ] );
+            }
+
             // Return
             $result[ 'type' ] = 'success';
             $result[ 'status' ] = $status;
@@ -122,9 +138,14 @@ class BLNOTIFIER_SCAN {
         $options_page = 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN;
         $tab = (new BLNOTIFIER_HELPERS)->get_tab();
 
-        if ( ( $screen == $options_page && $tab == 'scan-single' ) || ( $screen == 'edit.php' && isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( $_REQUEST[ '_wpnonce' ], 'blnotifier_blinks' ) && isset( $_GET[ 'blinks' ] ) && sanitize_key( $_GET[ 'blinks' ] ) == 'true' ) ) {
+        if ( ( $screen == $options_page && $tab == 'scan-single' && isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( $_REQUEST[ '_wpnonce' ], 'blnotifier_scan_single' ) && isset( $_REQUEST[ 'scan' ] ) && sanitize_text_field( $_REQUEST[ 'scan' ] ) ) || ( $screen == 'edit.php' && isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( $_REQUEST[ '_wpnonce' ], 'blnotifier_blinks' ) && isset( $_REQUEST[ 'blinks' ] ) && sanitize_key( $_REQUEST[ 'blinks' ] ) == 'true' ) ) {
             if ( !$tab ) {
-                $tab = 'scan-full';
+                $tab = 'scan-multi';
+            }
+            if ( $tab == 'scan-single' ) {
+                $post_id = url_to_postid( filter_var( $_REQUEST[ 'scan' ], FILTER_SANITIZE_URL ) );
+            } else {
+                $post_id = false;
             }
 
             // Nonce
@@ -134,6 +155,7 @@ class BLNOTIFIER_SCAN {
             $handle = 'blnotifier_'.str_replace( '-', '_', $tab ).'_script';
             wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.$tab.'.js', [], BLNOTIFIER_VERSION, true );
             wp_localize_script( $handle, 'blnotifier_'.str_replace( '-', '_', $tab ), [
+                'post_id' => $post_id, 
                 'nonce'   => $nonce,
                 'ajaxurl' => admin_url( 'admin-ajax.php' ) 
             ] );

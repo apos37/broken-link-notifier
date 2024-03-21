@@ -34,9 +34,9 @@ $hooks = [
         'type'  => 'filter'
     ],
     [
-        'hook'  => 'blnotifier_omitted_fullscan_post_types',
+        'hook'  => 'blnotifier_omitted_multiscan_post_types',
         'args'  => '( Array $post_types )',
-        'label' => 'Post types that you do not want to allow for full scan option',
+        'label' => 'Post types that you do not want to allow for Multi-Scan option',
         'type'  => 'filter'
     ],
     [
@@ -83,7 +83,7 @@ $hooks = [
     [    
         'hook'  => 'blnotifier_suggested_offsite_checkers',
         'args'  => '( Array $checkers )',
-        'label' => 'The list of suggested offsite checkers on Full Scan page',
+        'label' => 'The list of suggested offsite checkers on Multi-Scan page',
         'type'  => 'filter'
     ],
     [    
@@ -200,8 +200,8 @@ table.hooks th.type {
     </div>
 
     <div class="scanning-option">
-        <strong>Full Scan</strong> <em>- <a href="<?php echo esc_url( $MENU->get_plugin_page( 'scan-full' ) ); ?>">Check it out!</a></em>
-        <p>Our "Full Scan" is different than most plugins. It doesn't just scan the whole website and give you results like you would expect. The reason we don't do that is because most hosts do not allow for such a big load all at once. It causes a slew of issues and often times out. Generally speaking, doing a full scan like that is better to be done off-site. The way we do it is by loading your WP List Tables for individual post types, checking one set of pages at a time. We also ignore the header and footer during the process since it's unlikely to be an issue.</p>
+        <strong>Multi-Scan</strong> <em>- <a href="<?php echo esc_url( $MENU->get_plugin_page( 'scan-multi' ) ); ?>">Check it out!</a></em>
+        <p>Our Multi-Scan is different than most plugins. It doesn't just scan the whole website and give you results like you would expect. The reason we don't do that is because most hosts do not allow for such a big load all at once. It causes a slew of issues and often times out. Generally speaking, doing a full scan like that is better to be done off-site. The way we do it is by loading your WP List Tables for individual post types, checking one set of pages at a time. We also ignore the header and footer during the process since it's unlikely to be an issue.</p>
     </div>
 
     <div class="scanning-option">
@@ -241,8 +241,8 @@ table.hooks th.type {
     </div>
 
     <div class="faq">
-        <strong>Why does the dev console show more links that what is scanned on the full scan?</strong>
-        <p>The full scan link count does not include links that are filtered out from the pre-check.</p>
+        <strong>Why does the dev console show more links that what is scanned on the Multi-Scan?</strong>
+        <p>The Multi-Scan link count does not include links that are filtered out from the pre-check.</p>
     </div>
 
     <div class="faq">

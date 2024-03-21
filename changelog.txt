@@ -1,3 +1,8 @@
 == changelog.txt ==
+= 1.0.2 = // TODO: BETA
+* Tweak: Addded nonce to Page Scan JS
+* Update: Added Multi-Scan and Page Scan results to results page
+* Tweak: Changed "Full Scan" references to "Multi-Scan"
+
 = 1.0.1 =
 * Created this plugin on March 5, 2024

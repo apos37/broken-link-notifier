@@ -51,7 +51,7 @@ class BLNOTIFIER_MENU {
             'omit-links'  => [ __( 'Omitted Links', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-links&post_type=blnotifier-results' ],
             'omit-pages'  => [ __( 'Omitted Pages', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-pages&post_type=blnotifier-results' ],
             'scan-single' => [ __( 'Page Scan', 'broken-link-notifier' ) ],
-            'scan-full'   => [ __( 'Full Scan', 'broken-link-notifier' ) ],
+            'scan-multi'   => [ __( 'Multi-Scan', 'broken-link-notifier' ) ],
             'settings'    => [ __( 'Settings', 'broken-link-notifier' ) ],
             'help'        => [ __( 'Help', 'broken-link-notifier' ) ],
         ];
@@ -331,7 +331,7 @@ class BLNOTIFIER_MENU {
         register_setting( $this->page_slug, $post_types_option_name, [ $this, 'sanitize_checkboxes' ] );
         add_settings_field(
             $post_types_option_name,
-            'Enable full scan for these post types',
+            'Enable Multi-Scan for these post types',
             [ $this, 'field_checkboxes' ],
             $this->page_slug,
             'general',

@@ -5,7 +5,7 @@ Tags: broken, link, checker, scan, notify
 Requires at least: 5.9.0
 Tested up to: 6.4.3
 Requires PHP: 7.4
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -27,9 +27,9 @@ Most broken link checker plugins are not recommended, because they do a full sca
 2. Activate it.
 3. Go to `Broken Link Notifier > Settings` in your admin menu.
 4. Update your notification method(s) and post types.
-5. Go to `Broken Link Notifier > Omitted Pages`, and add any pages that you don't want to scan, such as pages you know won't have any links on them. This will speed up the full scan option.
+5. Go to `Broken Link Notifier > Omitted Pages`, and add any pages that you don't want to scan, such as pages you know won't have any links on them. This will speed up the multi-scan option.
 5. Page load scans are enabled automatically, so it's recommended that you test it out by deliberately making some broken links on a test page and then visiting the page. The results should show up on the `Broken Link Notifier > Results` page, and notify you if you have enabled email, Discord, or Microsoft Teams notifications. Reloading the page will not submit them twice. For testing, you should delete them from the results so they get reported again.
-6. It is suggested to run a "Full Scan" on each of your public-facing post types to quickly see if there are any broken links before others encounter them. Also to omit some links that will be reported as false positives. You can omit individual links quickly from the results, or you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain. See screenshots for examples.
+6. It is suggested to run a Multi-Scan on each of your public-facing post types to quickly -see if there are any broken links before others encounter them. Also to omit some links that will be reported as false positives. You can omit individual links quickly from the results, or you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain. See screenshots for examples.
 7. If you have any questions, please reach out to me on my [Discord support server](https://discord.gg/3HnzNEJVnR). I am happy to assist you or fix any issues you might have with the plugin.
 
 == Frequently Asked Questions == 
@@ -51,8 +51,8 @@ Yes, you can omit links from being checked for validity by using the "Omit" link
 = When I click on "Find On Page," I cannot find the link. Where is it? =
 Sometimes links are hidden with CSS or inside modals/popups. To find hidden links, go to the page and either open your developer console or view the page source and search for the link. This will show you where it is and which element to look in. Then you can edit the page accordingly. This is more advanced and may require some assistance, so feel free to reach out to me for help.
 
-= Why does the dev console show more links that what is scanned on the full scan? =
-The full scan link count does not include links that are filtered out from the pre-check.
+= Why does the dev console show more links that what is scanned on the Multi-Scan? =
+The Multi-Scan link count does not include links that are filtered out from the pre-check.
 
 = What pre-checks are used to filter out broken links? =
 We skip links that start with `#` (anchor tags and JavaScript) or `?` (query strings), non-http url schemes (such as `mailto:`, `tel:`, `data:`, etc. ), and any links you have omitted.
@@ -66,7 +66,7 @@ There are other plugins such as [Better Search Replace by WP Engine](https://wor
 3. Omitted links
 4. Omitted pages
 5. Detailed single page scan
-6. "Full scan" running scans on multiple pages in WP List Tables
+6. Multi-Scan running scans on multiple pages in WP List Tables
 7. Find broken links easily on front-end with a glowing animation and red border
 8. Settings
 9. Developer hooks on Help tab

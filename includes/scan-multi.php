@@ -1,6 +1,6 @@
 <?php
 /**
- * Full Scan class file.
+ * Multi-Scan class file.
  */
 
 // Exit if accessed directly.
@@ -35,7 +35,7 @@ class BLNOTIFIER_FULL_SCAN {
         add_action( 'page_row_actions', [ $this, 'row_actions' ], 10, 2 );
 
         // Add columns for each post type
-        foreach ( (new BLNOTIFIER_HELPERS)->get_allowed_fullscan_post_types() as $post_type ) {
+        foreach ( (new BLNOTIFIER_HELPERS)->get_allowed_multiscan_post_types() as $post_type ) {
             add_filter( 'manage_'.$post_type.'_posts_columns', [ $this, 'column' ] );
             add_action( 'manage_'.$post_type.'_posts_custom_column', [ $this, 'column_content' ], 10, 2 );
         }
@@ -102,7 +102,7 @@ class BLNOTIFIER_FULL_SCAN {
         $link = get_the_permalink( $post );
 
         // Post types
-        $post_types = (new BLNOTIFIER_HELPERS)->get_allowed_fullscan_post_types();
+        $post_types = (new BLNOTIFIER_HELPERS)->get_allowed_multiscan_post_types();
 
         // Add page scan to all post types
         if ( in_array( $post->post_type, $post_types ) ) {
@@ -156,7 +156,8 @@ class BLNOTIFIER_FULL_SCAN {
             $permalink = get_the_permalink( $post_id );
 
             // Skip not published
-            if ( get_post_status( $post_id ) != 'publish' ) {
+            $post_status = get_post_status( $post_id );
+            if ( $post_status != 'publish' && $post_status != 'private' ) {
                 $results = '<em>Skipping - not published</em>';
 
             // Skip posts page

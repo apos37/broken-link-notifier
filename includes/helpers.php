@@ -94,37 +94,37 @@ class BLNOTIFIER_HELPERS {
 
 
     /**
-     * Get the allowed full scan post types
+     * Get the allowed Multi-Scan post types
      *
      * @return array
      */
-    public function get_allowed_fullscan_post_types() {
+    public function get_allowed_multiscan_post_types() {
         $allowed = get_option( 'blnotifier_post_types' );
         return !empty( $allowed ) ? array_keys( $allowed ) : [ 'post', 'page' ];
-    } // End get_allowed_fullscan_post_types()
+    } // End get_allowed_multiscan_post_types()
 
 
     /**
-     * Get the omitted full scan post types
+     * Get the omitted Multi-Scan post types
      *
      * @return array
      */
-    public function get_omitted_fullscan_post_types() {
+    public function get_omitted_multiscan_post_types() {
         $all = array_keys( $this->get_post_types() );
-        $allowed = $this->get_allowed_fullscan_post_types();
+        $allowed = $this->get_allowed_multiscan_post_types();
         $omitted = array_diff( $all, $allowed );
-        return filter_var_array( apply_filters( 'blnotifier_omitted_fullscan_post_types', $omitted ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
-    } // End get_omitted_fullscan_post_types()
+        return filter_var_array( apply_filters( 'blnotifier_omitted_multiscan_post_types', $omitted ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+    } // End get_omitted_multiscan_post_types()
 
 
     /**
      * Get the omitted post types for page load scans
-     * Same as those that are selected for the full scan, but allows for separate filtering
+     * Same as those that are selected for the Multi-Scan, but allows for separate filtering
      *
      * @return array
      */
     public function get_omitted_pageload_post_types() {
-        $post_types = $this->get_omitted_fullscan_post_types();
+        $post_types = $this->get_omitted_multiscan_post_types();
         return filter_var_array( apply_filters( 'blnotifier_omitted_pageload_post_types', $post_types ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
     } // End get_omitted_pageload_post_types()
 

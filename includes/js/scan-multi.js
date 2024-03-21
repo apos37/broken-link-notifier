@@ -2,7 +2,7 @@ jQuery( $ => {
     // console.log( 'Scan Full JS Loaded...' );
 
     // Nonce
-    var nonce = blnotifier_scan_full.nonce;
+    var nonce = blnotifier_scan_multi.nonce;
 
     // Count posts
     var countPostsDone = 0;
@@ -20,7 +20,7 @@ jQuery( $ => {
         return await $.ajax( {
             type: 'post',
             dataType: 'json',
-            url: blnotifier_scan_full.ajaxurl,
+            url: blnotifier_scan_multi.ajaxurl,
             data: { 
                 action: 'blnotifier_scan', 
                 nonce: nonce,

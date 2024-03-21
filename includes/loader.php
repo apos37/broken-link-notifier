@@ -50,7 +50,7 @@ class BLNOTIFIER_LOADER {
 
         // Requires
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'scan.php';
-        require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'scan-full.php';
+        require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'scan-multi.php';
 
     } // End load_admin_dependencies()
 
