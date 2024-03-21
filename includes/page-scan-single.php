@@ -1,6 +1,8 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly    
+
 // ID
-if ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( $_REQUEST[ '_wpnonce' ], 'blnotifier_scan_single' ) &&
+if ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_scan_single' ) &&
      isset( $_GET[ 'scan' ] ) && sanitize_text_field( $_GET[ 'scan' ] ) ) {
     $s = sanitize_text_field( $_GET[ 'scan' ] );
 } else {
@@ -102,7 +104,7 @@ table.page-scan .link-row .actions {
 
 <div class="url-search-bar">
     <form method="get" action="<?php echo esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( $tab ) ); ?>">
-        <input type="hidden" name="_wpnonce" value="<?php echo wp_create_nonce( 'blnotifier_scan_single' ); ?>">
+        <input type="hidden" name="_wpnonce" value="<?php echo sanitize_key( wp_create_nonce( 'blnotifier_scan_single' ) ); ?>">
         <label for="url-search-input"><h2>Enter a URL or Post ID</h2></label><br>
         <input type="hidden" name="page" value="<?php echo esc_html( BLNOTIFIER_TEXTDOMAIN ); ?>">
         <input type="hidden" name="tab" value="<?php echo esc_attr( $tab ); ?>">

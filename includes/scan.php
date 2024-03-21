@@ -60,7 +60,7 @@ class BLNOTIFIER_SCAN {
      */
     public function ajax() {
         // Verify nonce
-        if ( !wp_verify_nonce( $_REQUEST[ 'nonce' ], $this->nonce ) ) {
+        if ( !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
             exit( 'No naughty business please.' );
         }
     
@@ -106,10 +106,11 @@ class BLNOTIFIER_SCAN {
         }
     
         // Echo the result or redirect
-        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) == 'xmlhttprequest' ) {
+        $http_x_requested_with = sanitize_key( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] );
+        if ( !empty( $http_x_requested_with ) && strtolower( $http_x_requested_with ) == 'xmlhttprequest' ) {
             echo wp_json_encode( $result );
         } else {
-            header( 'Location: '.$_SERVER[ 'HTTP_REFERER' ] );
+            header( 'Location: '.filter_var( $_SERVER[ 'HTTP_REFERER' ], FILTER_SANITIZE_URL ) );
         }
     
         // We're done here
@@ -138,7 +139,7 @@ class BLNOTIFIER_SCAN {
         $options_page = 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN;
         $tab = (new BLNOTIFIER_HELPERS)->get_tab();
 
-        if ( ( $screen == $options_page && $tab == 'scan-single' && isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( $_REQUEST[ '_wpnonce' ], 'blnotifier_scan_single' ) && isset( $_REQUEST[ 'scan' ] ) && sanitize_text_field( $_REQUEST[ 'scan' ] ) ) || ( $screen == 'edit.php' && isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( $_REQUEST[ '_wpnonce' ], 'blnotifier_blinks' ) && isset( $_REQUEST[ 'blinks' ] ) && sanitize_key( $_REQUEST[ 'blinks' ] ) == 'true' ) ) {
+        if ( ( $screen == $options_page && $tab == 'scan-single' && isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_scan_single' ) && isset( $_REQUEST[ 'scan' ] ) && sanitize_text_field( $_REQUEST[ 'scan' ] ) ) || ( $screen == 'edit.php' && isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_blinks' ) && isset( $_REQUEST[ 'blinks' ] ) && sanitize_key( $_REQUEST[ 'blinks' ] ) == 'true' ) ) {
             if ( !$tab ) {
                 $tab = 'scan-multi';
             }

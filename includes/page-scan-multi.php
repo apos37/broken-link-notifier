@@ -1,4 +1,7 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly    
+
+// Initiate
 $HELPERS = new BLNOTIFIER_HELPERS;
 ?>
 <style>
@@ -25,7 +28,7 @@ foreach ( $post_types as $post_type ) {
     $count = $HELPERS->count_posts_by_status( 'publish', $post_type );
     $post_type_name = $HELPERS->get_post_type_name( $post_type );
     ?>
-    <a href="/<?php echo esc_html( BLNOTIFIER_ADMIN_DIR ); ?>/edit.php?post_status=publish&post_type=<?php echo esc_attr( $post_type ); ?>&mode=list&blinks=true&_wpnonce=<?php echo wp_create_nonce( 'blnotifier_blinks' ); ?>" target="_blank" class="scan-button button button-primary" style="margin-right: 10px;">Scan <?php echo esc_html( $post_type_name ); ?>  (<?php echo absint( $count ); ?>)</a>
+    <a href="/<?php echo esc_html( BLNOTIFIER_ADMIN_DIR ); ?>/edit.php?post_status=publish&post_type=<?php echo esc_attr( $post_type ); ?>&mode=list&blinks=true&_wpnonce=<?php echo sanitize_key( wp_create_nonce( 'blnotifier_blinks' ) ); ?>" target="_blank" class="scan-button button button-primary" style="margin-right: 10px;">Scan <?php echo esc_html( $post_type_name ); ?>  (<?php echo absint( $count ); ?>)</a>
     <?php
 }
 ?>

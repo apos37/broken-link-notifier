@@ -1,4 +1,6 @@
 <?php 
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly    
+
 /**
  * An example of how to filter a link before it's checked for validity
  *

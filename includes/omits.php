@@ -58,7 +58,7 @@ class BLNOTIFIER_OMITS {
         foreach ( $this->taxonomies as $taxonomy => $label ) {
 
             // Register
-            $this->register_taxonomy( $taxonomy, $label );
+            $this->register_taxonomy( $taxonomy );
         }
 
         // Add instructions to top of page
@@ -85,25 +85,41 @@ class BLNOTIFIER_OMITS {
 
     /**
      * Register taxonomy
+     *
+     * @param string $taxonomy
+     * @param array $labels
+     * @return void
      */
-    public function register_taxonomy( $taxonomy, $singular ) {
-        // Create names
-        $plural = $singular.'s';
-    
-        // Create the labels
-        $labels = [
-            'name'              => _x( $plural, 'taxonomy general name' ),
-            'singular_name'     => _x( $singular, 'taxonomy singular name' ),
-            'search_items'      => __( 'Search '.$plural ),
-            'all_items'         => __( 'Add to '.$singular ),
-            'edit_item'         => __( 'Edit '.$singular ),
-            'update_item'       => __( 'Update '.$singular ),
-            'add_new_item'      => __( 'Add New '.$singular ),
-            'new_item_name'     => __( 'New '.$singular.' Name' ),
-            'menu_name'         => __( $plural ),
-            'not_found'         => __( 'No '.str_replace( 'omitted ', '', strtolower( $plural ) ).' found.' ),
-        ]; 	
-    
+    public function register_taxonomy( $taxonomy ) {
+        // Labels
+        if ( $taxonomy == 'omit-links' ) {
+            $labels = [
+                'name'              => _x( 'Omitted Links', 'taxonomy general name', 'broken-link-notifier' ),
+                'singular_name'     => _x( 'Omitted Link', 'taxonomy singular name', 'broken-link-notifier' ),
+                'search_items'      => __( 'Search Omitted Links', 'broken-link-notifier' ),
+                'all_items'         => __( 'Add to Omitted Link', 'broken-link-notifier' ),
+                'edit_item'         => __( 'Edit Omitted Link', 'broken-link-notifier' ),
+                'update_item'       => __( 'Update Omitted Link', 'broken-link-notifier' ),
+                'add_new_item'      => __( 'Add New Omitted Link', 'broken-link-notifier' ),
+                'new_item_name'     => __( 'New Omitted Link Name', 'broken-link-notifier' ),
+                'menu_name'         => __( 'Omitted Links', 'broken-link-notifier' ),
+                'not_found'         => __( 'No omitted links found.', 'broken-link-notifier' ),
+            ]; 	
+        } elseif ( $taxonomy == 'omit-pages' ) {
+            $labels = [
+                'name'              => _x( 'Omitted Pages', 'taxonomy general name', 'broken-link-notifier' ),
+                'singular_name'     => _x( 'Omitted Page', 'taxonomy singular name', 'broken-link-notifier' ),
+                'search_items'      => __( 'Search Omitted Pages', 'broken-link-notifier' ),
+                'all_items'         => __( 'Add to Omitted Page', 'broken-link-notifier' ),
+                'edit_item'         => __( 'Edit Omitted Page', 'broken-link-notifier' ),
+                'update_item'       => __( 'Update Omitted Page', 'broken-link-notifier' ),
+                'add_new_item'      => __( 'Add New Omitted Page', 'broken-link-notifier' ),
+                'new_item_name'     => __( 'New Omitted Page Name', 'broken-link-notifier' ),
+                'menu_name'         => __( 'Omitted Pages', 'broken-link-notifier' ),
+                'not_found'         => __( 'No omitted pages found.', 'broken-link-notifier' ),
+            ]; 	
+        }
+
         // Register it as a new taxonomy
         register_taxonomy( $taxonomy, 'blnotifier-results', [
             // 'hierarchical'       => false,
@@ -329,7 +345,7 @@ class BLNOTIFIER_OMITS {
      */
     public function ajax() {
         // Verify nonce
-        if ( !wp_verify_nonce( $_REQUEST[ 'nonce' ], $this->nonce ) ) {
+        if ( !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
             exit( 'No naughty business please.' );
         }
     
@@ -357,11 +373,11 @@ class BLNOTIFIER_OMITS {
         }
     
         // Echo the result or redirect
-        if( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) == 'xmlhttprequest' ) {
+        $http_x_requested_with = sanitize_key( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] );
+        if ( !empty( $http_x_requested_with ) && strtolower( $http_x_requested_with ) == 'xmlhttprequest' ) {
             echo wp_json_encode( $result );
-        }
-        else {
-            header( 'Location: '.$_SERVER[ 'HTTP_REFERER' ] );
+        } else {
+            header( 'Location: '.filter_var( $_SERVER[ 'HTTP_REFERER' ], FILTER_SANITIZE_URL ) );
         }
     
         // We're done here
@@ -390,7 +406,7 @@ class BLNOTIFIER_OMITS {
         $options_page = 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN;
         $tab = (new BLNOTIFIER_HELPERS)->get_tab();
         $post_type = get_post_type();
-        if ( ( $screen == $options_page && $tab == 'scan-single' ) || ( $screen == 'edit.php' && ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( $_REQUEST[ '_wpnonce' ], 'blnotifier_blinks' ) && isset( $_GET[ 'blinks' ] ) && sanitize_key( $_GET[ 'blinks' ] ) == 'true' )  || $post_type == 'blnotifier-results' ) ) {
+        if ( ( $screen == $options_page && $tab == 'scan-single' ) || ( $screen == 'edit.php' && ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_blinks' ) && isset( $_GET[ 'blinks' ] ) && sanitize_key( $_GET[ 'blinks' ] ) == 'true' )  || $post_type == 'blnotifier-results' ) ) {
             if ( !$tab && $post_type == 'blnotifier-results' ) {
                 $tab = 'scan-results';
             } elseif ( !$tab ) {

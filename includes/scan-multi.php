@@ -52,7 +52,7 @@ class BLNOTIFIER_FULL_SCAN {
      * @return boolean
      */
     public function do_stuff() {
-        return ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( $_REQUEST[ '_wpnonce' ], 'blnotifier_blinks' ) && 
+        return ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_blinks' ) && 
                  isset( $_GET[ 'blinks' ] ) && sanitize_key( $_GET[ 'blinks' ] ) === 'true' ) ? true : false;
     } // End do_stuff()
 

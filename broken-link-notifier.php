@@ -52,10 +52,11 @@ if ( version_compare( PHP_VERSION, BLNOTIFIER_MIN_PHP_VERSION, '<=' ) ) {
        'admin_notices',
        static function() {
            echo wp_kses_post(
-           sprintf(
-               '<div class="notice notice-error"><p>%s</p></div>',
-               __( '"'.BLNOTIFIER_NAME.'" requires PHP '.BLNOTIFIER_MIN_PHP_VERSION.' or newer.', 'broken-link-notifier' )
-           )
+                sprintf(
+                    '<div class="notice notice-error"><p>'.__( '"%s" requires PHP %s or newer.', 'broken-link-notifier' ).'</p></div>',
+                    BLNOTIFIER_NAME,
+                    BLNOTIFIER_MIN_PHP_VERSION
+                )
            );
        }
    );

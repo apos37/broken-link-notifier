@@ -1,4 +1,6 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly    
+
 // Get the active tab
 $tab = (new BLNOTIFIER_HELPERS)->get_tab();
 $final_tab = $tab ?? 'results';
@@ -15,7 +17,7 @@ h2 { margin: 3rem 0 1rem 0; }
 <div class="wrap <?php echo esc_attr( BLNOTIFIER_TEXTDOMAIN ); ?>">
 
     <div class="admin—title-cont">
-        <h1><span id="plugin-page-title"><?php echo esc_attr( BLNOTIFIER_NAME ).' '.sanitize_text_field( $submenu_title ); ?></span></h1>
+        <h1><span id="plugin-page-title"><?php echo esc_attr( BLNOTIFIER_NAME ).' '.esc_html( $submenu_title ); ?></span></h1>
     </div>
     <div id="plugin-version">Version <?php echo esc_attr( BLNOTIFIER_VERSION ); ?></div>
 

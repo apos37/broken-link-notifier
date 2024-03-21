@@ -109,29 +109,22 @@ class BLNOTIFIER_RESULTS {
      * Register the post type
      */
     public function register_post_type() {
-        $singular_lc = 'link';
-        $singular = ucwords( $singular_lc );
-        $plural_lc = $singular_lc.'s';
-        $plural = ucwords( $plural_lc );
-        $menu_label = $plural;
-        $name_admin_bar = $plural;
-
         // Set the labels
         $labels = [
-            'name'                  => _x( $plural, 'Post Type General Name', 'broken-link-notifier' ),
-            'singular_name'         => _x( $singular, 'Post Type Singular Name', 'broken-link-notifier' ),
-            'menu_name'             => __( $menu_label, 'broken-link-notifier' ),
-            'name_admin_bar'        => __( $name_admin_bar, 'broken-link-notifier' ),
-            'search_items'          => __( 'Search '.$plural, 'broken-link-notifier' ),
+            'name'                  => _x( 'Links', 'Post Type General Name', 'broken-link-notifier' ),
+            'singular_name'         => _x( 'Link', 'Post Type Singular Name', 'broken-link-notifier' ),
+            'menu_name'             => __( 'Links', 'broken-link-notifier' ),
+            'name_admin_bar'        => __( 'Links', 'broken-link-notifier' ),
+            'search_items'          => __( 'Search links', 'broken-link-notifier' ),
             'not_found'             => __( 'Not found', 'broken-link-notifier' ),
             'not_found_in_trash'    => __( 'Not found in Trash', 'broken-link-notifier' ),
-            'filter_items_list'     => __( 'Filter '.$singular_lc.' list', 'broken-link-notifier' ),
+            'filter_items_list'     => __( 'Filter link list', 'broken-link-notifier' ),
         ];
     
         // Set the CPT args
         $args = [
-            'label'                 => __( $name_admin_bar, 'broken-link-notifier' ),
-            'description'           => __( $plural, 'broken-link-notifier' ),
+            'label'                 => __( 'Links', 'broken-link-notifier' ),
+            'description'           => __( 'Links', 'broken-link-notifier' ),
             'labels'                => $labels,
             'supports'              => [],
             'taxonomies'            => [],
@@ -453,7 +446,7 @@ class BLNOTIFIER_RESULTS {
                     }
                     $source_url = '<strong><a class="source-url" href="'.$source_url.'">'.get_the_title( $source_id ).'</a></strong>';
                 }
-                echo wp_kses_post( $source_url ).'<div class="row-actions">'.implode( ' | ', $actions ).'</div>';
+                echo wp_kses_post( $source_url ).'<div class="row-actions">'.wp_kses_post( implode( ' | ', $actions ) ).'</div>';
             }
         }
 
@@ -796,7 +789,7 @@ class BLNOTIFIER_RESULTS {
      */
     public function ajax() {
         // Verify nonce
-        if ( !wp_verify_nonce( $_REQUEST[ 'nonce' ], $this->nonce ) ) {
+        if ( !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
             exit( 'No naughty business please.' );
         }
     
@@ -900,11 +893,11 @@ class BLNOTIFIER_RESULTS {
         }
     
         // Echo the result or redirect
-        if( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) == 'xmlhttprequest' ) {
+        $http_x_requested_with = sanitize_key( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] );
+        if ( !empty( $http_x_requested_with ) && strtolower( $http_x_requested_with ) == 'xmlhttprequest' ) {
             echo wp_json_encode( $result );
-        }
-        else {
-            header( 'Location: '.$_SERVER[ 'HTTP_REFERER' ] );
+        } else {
+            header( 'Location: '.filter_var( $_SERVER[ 'HTTP_REFERER' ], FILTER_SANITIZE_URL ) );
         }
     
         // We're done here

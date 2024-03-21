@@ -1,3 +1,7 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly    
+?>
+
 <style>
 input[type="text"], input[type="url"], textarea { width: 700px; }
 textarea { height: 200px; }
@@ -21,7 +25,7 @@ textarea { height: 200px; }
 <?php if ( isset( $_REQUEST[ 'settings-updated' ] ) ) { // phpcs:ignore ?>
     <?php if ( !get_option( 'blnotifier_has_updated_settings' ) ) { update_option( 'blnotifier_has_updated_settings', true ); } ?>
     <div id="message" class="updated">
-        <p><strong><?php _e( 'Settings saved.', 'broken-link-notifier' ) ?></strong></p>
+        <p><strong><?php esc_html__( 'Settings saved.', 'broken-link-notifier' ) ?></strong></p>
     </div>
 <?php } ?>
 

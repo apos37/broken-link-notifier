@@ -354,8 +354,8 @@ class BLNOTIFIER_MENU {
     public function field_text( $args ) {
         printf(
             '<input type="text" id="%s" name="%s" value="%s"/><br><p class="description">%s</p>',
-            $args[ 'name' ],
-            $args[ 'name' ],
+            esc_html( $args[ 'name' ] ),
+            esc_html( $args[ 'name' ] ),
             sanitize_text_field( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) ),
             $args[ 'comments' ]
         );
@@ -371,10 +371,10 @@ class BLNOTIFIER_MENU {
     public function field_url( $args ) {
         printf(
             '<input type="url" id="%s" name="%s" value="%s"/><br><p class="description">%s</p>',
-            $args[ 'name' ],
-            $args[ 'name' ],
+            esc_html( $args[ 'name' ] ),
+            esc_html( $args[ 'name' ] ),
             filter_var( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ), FILTER_SANITIZE_URL ),
-            $args[ 'comments' ]
+            esc_html( $args[ 'comments' ] )
         );
     } // End field_url()
 
@@ -405,10 +405,10 @@ class BLNOTIFIER_MENU {
         }
         printf(
             '<input type="checkbox" id="%s" name="%s" value="yes" %s/> <p class="description">%s</p>',
-            $args[ 'name' ],
-            $args[ 'name' ],
-            checked( 1, $value, false ),
-            $args[ 'comments' ]
+            esc_html( $args[ 'name' ] ),
+            esc_html( $args[ 'name' ] ),
+            esc_html( checked( 1, $value, false ) ),
+            esc_html( $args[ 'comments' ] )
         );        
     } // End field_checkbox()
 
@@ -438,12 +438,12 @@ class BLNOTIFIER_MENU {
                 $checked = in_array( $key, $value ) ? 'checked' : '';
                 printf(
                     '<input type="checkbox" id="%s" name="%s[%s]" value="1" %s/> <label for="%s">%s</label><br>',
-                    $args[ 'name' ].'_'.$key,
-                    $args[ 'name' ],
-                    $key,
-                    $checked,
-                    $args[ 'name' ].'_'.$key,
-                    $label
+                    esc_html( $args[ 'name' ].'_'.$key ),
+                    esc_html( $args[ 'name' ] ),
+                    esc_attr( $key ),
+                    esc_html( $checked ),
+                    esc_html( $args[ 'name' ].'_'.$key ),
+                    esc_html( $label )
                 );
             }
         }
@@ -487,13 +487,12 @@ class BLNOTIFIER_MENU {
     public function field_emails( $args ) {
         printf(
             '<input type="text" id="%s" name="%s" value="%s" pattern="%s"/><br><p class="description">%s</p>',
-            $args[ 'name' ],
-            $args[ 'name' ],
+            esc_html( $args[ 'name' ] ),
+            esc_html( $args[ 'name' ] ),
             esc_html( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) ),
             '([a-zA-Z0-9+_.\-]+@[a-zA-Z0-9.\-]+.[a-zA-Z0-9]+)(\s*,\s*([a-zA-Z0-9+_.\-]+@[a-zA-Z0-9.\-]+.[a-zA-Z0-9]+))*',
-            $args[ 'comments' ]
+            esc_html( $args[ 'comments' ] )
         );
-
     } // field_text()
 
 
@@ -506,11 +505,11 @@ class BLNOTIFIER_MENU {
     public function field_number( $args ) {
         printf(
             '<input type="number" id="%s" name="%s" value="%d" min="%d" required/><br><p class="description">%s</p>',
-            $args[ 'name' ],
-            $args[ 'name' ],
+            esc_html( $args[ 'name' ] ),
+            esc_html( $args[ 'name' ] ),
             absint( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) ),
-            $args[ 'min' ],
-            $args[ 'comments' ]
+            absint( $args[ 'min' ] ),
+            esc_html( $args[ 'comments' ] )
         );
     } // End field_number()
 
@@ -524,10 +523,10 @@ class BLNOTIFIER_MENU {
     public function field_textarea( $args ) {
         printf(
             '<textarea class="textarea" id="%s" name="%s"/>%s</textarea><br><p class="description">%s</p>',
-            $args[ 'name' ],
-            $args[ 'name' ],
+            esc_html( $args[ 'name' ] ),
+            esc_html( $args[ 'name' ] ),
             esc_html( get_option( $args[ 'name' ], '' ) ),
-            $args[ 'comments' ]
+            esc_html( $args[ 'comments' ] )
         );
     } // field_text()
 
