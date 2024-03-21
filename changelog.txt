@@ -1,5 +1,5 @@
 == changelog.txt ==
-= 1.0.2 = // TODO: BETA
+= 1.0.2 =
 * Tweak: Addded nonce to Page Scan JS
 * Update: Added Multi-Scan and Page Scan results to results page
 * Tweak: Changed "Full Scan" references to "Multi-Scan"

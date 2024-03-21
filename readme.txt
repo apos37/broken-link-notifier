@@ -72,5 +72,10 @@ There are other plugins such as [Better Search Replace by WP Engine](https://wor
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.0.2 =
+* Tweak: Addded nonce to Page Scan JS
+* Update: Added Multi-Scan and Page Scan results to results page
+* Tweak: Changed "Full Scan" references to "Multi-Scan"
+
 = 1.0.1 =
 * Deployment
