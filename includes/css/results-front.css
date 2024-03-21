@@ -1,0 +1,19 @@
+@keyframes glowingText {
+    0% {
+      background-color: #FFFF00;
+      box-shadow: 0 0 5px #FFFF00;
+    }
+    50% {
+      background-color: #FFFFFF;
+      box-shadow: 0 0 20px #FFFFFF;
+    }
+    100% {
+      background-color: #FFFF00;
+      box-shadow: 0 0 5px #FFFF00;
+    }
+}
+.glowText {
+  animation: glowingText 1300ms infinite;
+  color: #000000 !important;
+  border: 2px dashed #FF0000 !important;
+}

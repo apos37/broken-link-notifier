@@ -1,0 +1,23 @@
+{
+	"name": "Broken Link Notifier",
+	"version": "1.0.1",
+	"download_url": "https://eri-wi.org/eri-plugins/broken-link-notifier-1.0.1.zip",
+	"requires": "5.9",
+	"tested": "6.4.3",
+	"last_updated": "2024-03-05 8:00:00",
+	"upgrade_notice": "A new version is now available!",
+	"author": "Apos37",
+	"author_homepage": "https://apos37.com/",
+	"sections": {
+		"description": "Checks for broken links in the background after the page has loaded, and notifies you"
+	},
+	"icons" : {
+		"1x" : "https://eri-wi.org/eri-plugins/broken-link-checker/icon-128x128.png",
+		"2x" : "https://eri-wi.org/eri-plugins/broken-link-checker/icon-256x256.png"
+    },
+	"banners": {
+		"low": "https://eri-wi.org/eri-plugins/broken-link-checker/banner-772x250.png",
+		"high": "https://eri-wi.org/eri-plugins/broken-link-checker/banner-1544x500.png"
+	},
+	"active_installs": 1
+}
