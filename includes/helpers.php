@@ -89,7 +89,11 @@ class BLNOTIFIER_HELPERS {
      * @return array
      */
     public function get_post_types() {
-        return get_post_types( [ 'show_ui' => true ], 'names' );
+        $post_types = get_post_types( [ 'show_ui' => true ], 'names' );
+        unset( $post_types[ (new BLNOTIFIER_RESULTS)->post_type ] );
+        if ( isset( $post_types[ 'help-docs' ] ) ) { unset( $post_types[ 'help-docs' ] ); }
+        if ( isset( $post_types[ 'help-doc-imports' ] ) ) { unset( $post_types[ 'help-doc-imports' ] ); }
+        return $post_types;
     } // End get_post_types()
 
 

@@ -49,7 +49,7 @@ class BLNOTIFIER_MSTEAMS {
         }
 
         // Get the accent color
-		$color = $this->sanitize_and_validate_color( $args[ 'color' ], '#788F9B' );
+		$color = isset( $args[ 'color' ] ) ? $this->sanitize_and_validate_color( $args[ 'color' ] ) : '#788F9B';
 
         // Title
         if ( isset( $args[ 'title' ] ) && sanitize_text_field( $args[ 'title' ] ) != '' ) {
@@ -218,7 +218,7 @@ class BLNOTIFIER_MSTEAMS {
 	 * @param string $default
 	 * @return string|void
 	 */
-	public function sanitize_and_validate_color( $color, $default ) {
+	public function sanitize_and_validate_color( $color ) {
 		// Check if color exists and if it's still not blank after sanitation
 		if ( $color && ( sanitize_hex_color( $color ) != '' || sanitize_hex_color_no_hash( $color ) != '' ) ) {
 			
@@ -230,10 +230,6 @@ class BLNOTIFIER_MSTEAMS {
 			} else {
 				$color = '#'.sanitize_hex_color_no_hash( $color );
 			}
-
-		// Otherwise return the sanitized default
-		} else {
-			$color = sanitize_hex_color( $default );
 		}
 
 		// Return the color

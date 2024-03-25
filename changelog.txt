@@ -1,4 +1,8 @@
 == changelog.txt ==
+= 1.0.3 = // TODO: BETA
+* Fix: Settings saved notification not echoing
+* Tweak: Removed links post type and help docs post types if installed
+
 = 1.0.2 =
 * Tweak: Addded nonce to Page Scan JS
 * Update: Added Multi-Scan and Page Scan results to results page

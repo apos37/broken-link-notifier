@@ -373,8 +373,7 @@ class BLNOTIFIER_OMITS {
         }
     
         // Echo the result or redirect
-        $http_x_requested_with = sanitize_key( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] );
-        if ( !empty( $http_x_requested_with ) && strtolower( $http_x_requested_with ) == 'xmlhttprequest' ) {
+        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) == 'xmlhttprequest' ) {
             echo wp_json_encode( $result );
         } else {
             header( 'Location: '.filter_var( $_SERVER[ 'HTTP_REFERER' ], FILTER_SANITIZE_URL ) );
