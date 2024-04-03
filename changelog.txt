@@ -1,10 +1,11 @@
 == changelog.txt ==
-= 1.0.3 = // TODO: BETA
+= 1.0.3 =
+* Tweak: Updates recommended by WP repo plugin reviewer
 * Fix: Settings saved notification not echoing
 * Tweak: Removed links post type and help docs post types if installed
 
 = 1.0.2 =
-* Tweak: Addded nonce to Page Scan JS
+* Tweak: Added nonce to Page Scan JS
 * Update: Added Multi-Scan and Page Scan results to results page
 * Tweak: Changed "Full Scan" references to "Multi-Scan"
 

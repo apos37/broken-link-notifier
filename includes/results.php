@@ -332,7 +332,7 @@ class BLNOTIFIER_RESULTS {
                 <option value=""'.esc_html( $HELPERS->is_selected( $s, '' ) ).'>All Status Codes</option>';
 
                 foreach ( $all_codes as $code ) {
-                    echo '<option value="'.absint( $code ).'"'.esc_html( $HELPERS->is_selected( $s, $code ) ).'>'.( $code ).'</option>';
+                    echo '<option value="'.esc_attr( $code ).'"'.esc_html( $HELPERS->is_selected( $s, $code ) ).'>'.esc_attr( $code ).'</option>';
                 }
 
             echo '</select>';

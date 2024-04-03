@@ -3,9 +3,9 @@ Contributors: apos37
 Donate link: https://paypal.com/donate/?business=3XHJUEHGTMK3N
 Tags: broken, link, checker, scan, notify
 Requires at least: 5.9.0
-Tested up to: 6.4.3
+Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -72,8 +72,13 @@ There are other plugins such as [Better Search Replace by WP Engine](https://wor
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.0.3 =
+* Tweak: Updates recommended by WP repo plugin reviewer
+* Fix: Settings saved notification not echoing
+* Tweak: Removed links post type and help docs post types if installed
+
 = 1.0.2 =
-* Fix: Prepare for submission to plugin repository
+* Tweak: Added nonce to Page Scan JS
 * Update: Added Multi-Scan and Page Scan results to results page
 * Tweak: Changed "Full Scan" references to "Multi-Scan"
 
