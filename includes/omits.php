@@ -201,8 +201,8 @@ class BLNOTIFIER_OMITS {
         unset( $columns[ 'posts' ] );
 
         // Change names
-        $columns[ 'name' ] = __( 'URL' );
-        $columns[ 'description' ] = __( 'Notes' );
+        $columns[ 'name' ] = __( 'URL', 'broken-link-notifier' );
+        $columns[ 'description' ] = __( 'Notes', 'broken-link-notifier' );
         return $columns;
     } // End admin_columns_links()
 
@@ -219,9 +219,9 @@ class BLNOTIFIER_OMITS {
         unset( $columns[ 'posts' ] );
 
         // Change names and add title column
-        $columns[ 'name' ] = __( 'URL' );
-        $columns[ 'bln-title' ] = __( 'Post/Page Title' );
-        $columns[ 'description' ] = __( 'Notes' );
+        $columns[ 'name' ] = __( 'URL', 'broken-link-notifier' );
+        $columns[ 'bln-title' ] = __( 'Post/Page Title', 'broken-link-notifier' );
+        $columns[ 'description' ] = __( 'Notes', 'broken-link-notifier' );
         return $columns;
     } // End admin_columns_pages()
 

@@ -356,8 +356,8 @@ class BLNOTIFIER_MENU {
             '<input type="text" id="%s" name="%s" value="%s"/><br><p class="description">%s</p>',
             esc_html( $args[ 'name' ] ),
             esc_html( $args[ 'name' ] ),
-            sanitize_text_field( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) ),
-            $args[ 'comments' ]
+            esc_html( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) ),
+            esc_html( $args[ 'comments' ] )
         );
     } // End field_text()
 
@@ -373,7 +373,7 @@ class BLNOTIFIER_MENU {
             '<input type="url" id="%s" name="%s" value="%s"/><br><p class="description">%s</p>',
             esc_html( $args[ 'name' ] ),
             esc_html( $args[ 'name' ] ),
-            filter_var( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ), FILTER_SANITIZE_URL ),
+            esc_url( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) ),
             esc_html( $args[ 'comments' ] )
         );
     } // End field_url()
@@ -507,8 +507,8 @@ class BLNOTIFIER_MENU {
             '<input type="number" id="%s" name="%s" value="%d" min="%d" required/><br><p class="description">%s</p>',
             esc_html( $args[ 'name' ] ),
             esc_html( $args[ 'name' ] ),
-            absint( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) ),
-            absint( $args[ 'min' ] ),
+            esc_attr( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) ),
+            esc_attr( $args[ 'min' ] ),
             esc_html( $args[ 'comments' ] )
         );
     } // End field_number()

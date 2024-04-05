@@ -1,4 +1,7 @@
 == changelog.txt ==
+= 1.0.3.1 =
+* Tweak: Fix minor issues found by WP repo plugin reviewer
+
 = 1.0.3 =
 * Tweak: Updates recommended by WP repo plugin reviewer
 * Fix: Settings saved notification not echoing

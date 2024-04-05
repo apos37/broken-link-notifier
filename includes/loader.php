@@ -80,7 +80,7 @@ class BLNOTIFIER_LOADER {
     public function plugin_row_meta( $links, $file ) {
         if ( BLNOTIFIER_TEXTDOMAIN.'/'.BLNOTIFIER_TEXTDOMAIN.'.php' == $file ) {
             $row_meta = [
-                'docs' => '<a href="'.esc_url( BLNOTIFIER_AUTHOR_URL.'wordpress-broken-link-notifier/' ).'" target="_blank" aria-label="'.esc_attr__( 'Plugin Website Link', 'admin-help-docs' ).'">'.esc_html__( 'Website', 'broken-link-notifier' ).'</a>',
+                'docs' => '<a href="'.esc_url( BLNOTIFIER_AUTHOR_URL.'wordpress-broken-link-notifier/' ).'" target="_blank" aria-label="'.esc_attr__( 'Plugin Website Link', 'broken-link-notifier' ).'">'.esc_html__( 'Website', 'broken-link-notifier' ).'</a>',
                 'discord' => '<a href="'.esc_url( BLNOTIFIER_DISCORD_SUPPORT_URL ).'" target="_blank" aria-label="'.esc_attr__( 'Plugin Support on Discord', 'broken-link-notifier' ).'">'.esc_html__( 'Discord Support', 'broken-link-notifier' ).'</a>'
             ];
             return array_merge( $links, $row_meta );

@@ -5,7 +5,7 @@ Tags: broken, link, checker, scan, notify
 Requires at least: 5.9.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.3
+Stable tag: 1.0.3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -72,6 +72,9 @@ There are other plugins such as [Better Search Replace by WP Engine](https://wor
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.0.3.1 =
+* Tweak: Fix minor issues found by WP repo plugin reviewer
+
 = 1.0.3 =
 * Tweak: Updates recommended by WP repo plugin reviewer
 * Fix: Settings saved notification not echoing
