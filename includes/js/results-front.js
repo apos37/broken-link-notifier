@@ -1,6 +1,9 @@
 jQuery( $ => {
     // console.log( 'Broken Link Notifier JS Loaded...' );
 
+    // Which elements to check
+    const elements = blnotifier_front_end.elements;
+
     /**
      * Highlight broken link on page
      */
@@ -13,19 +16,22 @@ jQuery( $ => {
     if ( urlParams.has( 'blink' ) ) {
         console.log( 'Looking for highlights; checking for broken links paused.' );
         const blink = urlParams.get( 'blink' );
-        $( 'a' ).each( function( index ) {
-            const link = $( this ).attr( 'href' );
-            if ( link !== undefined && link.includes( blink ) ) {
-                $( this ).addClass( 'glowText' );
-                if ( $( this ).is( ':hidden' ) ) {
-                    var msg = 'It looks like the link is hidden. To find it, try searching for it in your browser\'s Developer console.\n' + link;
-                    console.log( msg );
-                    alert( msg );
-                } else {
-                    console.log( 'The element should glow yellow if it is visible on the page. If you do not see it on the page, then it is hidden somewhere. Check any JavaScript elements, too. You can try searching for it in your browser\'s Developer console.\n' + link );
+        $.each( elements, function( tag, attr ) {
+            $( tag ).each( function( index ) {
+                const link = $( this ).attr( attr );
+                if ( link !== undefined && link.includes( blink ) ) {
+                    $( this ).addClass( 'glowText' );
+                    if ( $( this ).is( ':hidden' ) ) {
+                        var msg = 'It looks like the link is hidden. To find it, try searching for it in your browser\'s Developer console.\n' + link;
+                        console.log( msg );
+                        alert( msg );
+                    } else {
+                        console.log( 'The element should glow yellow if it is visible on the page. If you do not see it on the page, then it is hidden somewhere. Check any JavaScript elements, too. You can try searching for it in your browser\'s Developer console.\n' + link );
+                    }
                 }
-            }
-        } )
+            } )
+        } );
+        
 
     /**
      * Or find broken links on page after load (we don't want to notify if we're looking into it already)
@@ -41,21 +47,24 @@ jQuery( $ => {
         var headerLinks = [];
         var contentLinks = [];
         var footerLinks = [];
-        $( 'a' ).each( function( index ) {
-            const link = $( this ).attr( 'href' );
-            const inAdminBar = $( this ).parents( '#wpadminbar' ).length;
-            const inHeader = $( this ).parents( 'header' ).length;
-            const inFooter = $( this ).parents( 'footer' ).length;
-            if ( link !== undefined && !inAdminBar ) {
-                if ( blnotifier_front_end.scan_header && inHeader ) {
-                    headerLinks.push( link );
-                } else if ( blnotifier_front_end.scan_footer && inFooter ) {
-                    footerLinks.push( link );
-                } else if ( !inHeader && !inFooter ) {
-                    contentLinks.push( link );
+
+        $.each( elements, function( tag, attr ) {
+            $( tag ).each( function( index ) {
+                const link = $( this ).attr( attr );
+                const inAdminBar = $( this ).parents( '#wpadminbar' ).length;
+                const inHeader = $( this ).parents( 'header' ).length;
+                const inFooter = $( this ).parents( 'footer' ).length;
+                if ( link !== undefined && !inAdminBar ) {
+                    if ( blnotifier_front_end.scan_header && inHeader ) {
+                        headerLinks.push( link );
+                    } else if ( blnotifier_front_end.scan_footer && inFooter ) {
+                        footerLinks.push( link );
+                    } else if ( !inHeader && !inFooter ) {
+                        contentLinks.push( link );
+                    }
                 }
-            }
-        } )
+            } )
+        } );
 
         // Console log
         if ( blnotifier_front_end.show_in_console ) {
@@ -109,11 +118,13 @@ jQuery( $ => {
                     if ( urlParams.has( 'blinks' ) && urlParams.get( 'blinks' ) == 'true' ) {
                         $.each( response.notify, function( s_index, section ) {
                             $.each( section, function( a_index, a ) {
-                                $( 'a' ).each( function( el_index ) {
-                                    var href = $( this ).attr( 'href' );
-                                    if ( a.link == href ) {
-                                        $( this ).addClass( 'glowText' );
-                                    }
+                                $.each( elements, function( tag, attr ) {
+                                    $( tag ).each( function( el_index ) {
+                                        var href = $( this ).attr( attr );
+                                        if ( a.link == href ) {
+                                            $( this ).addClass( 'glowText' );
+                                        }
+                                    } );
                                 } );
                             } );
                         } );

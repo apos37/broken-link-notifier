@@ -5,7 +5,7 @@ Tags: broken, link, checker, scan, notify
 Requires at least: 5.9.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.3.1
+Stable tag: 1.0.4.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -42,7 +42,7 @@ If the link works fine and it's still being flagged as broken, then it is either
 = What causes a link to give a warning? =
 Warnings mean the link was found, but they may be unsecure or slow to respond. If you are getting too many warnings due to timeouts, try increasing your timeout in Settings. This will just result in longer wait times, but with more accuracy. You can also disable warnings if you have too many of them.
 
-= What is status `code 666`? =
+= What is status code 666? =
 A status code of `666` is a code we use to force invalid URL `code 0` to be a broken link in case warnings are disabled. It is not an official status code.
 
 = Can I omit links and pages from scans? =
@@ -72,6 +72,15 @@ There are other plugins such as [Better Search Replace by WP Engine](https://wor
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.0.4.1 =
+* Fix: MS Teams integration error with logging
+
+= 1.0.4 =
+* Fix: Undefined variable on help page
+* Update: Added support for checking YouTube video links (props shirtguy72)
+* Update: Added support for iframe links (props shirtguy72)
+* Update: Added support for image source links
+
 = 1.0.3.1 =
 * Tweak: Fix minor issues found by WP repo plugin reviewer
 

@@ -46,7 +46,7 @@ class BLNOTIFIER_HELPERS {
      * @return array
      */
     public function get_bad_status_codes() {
-        $default_codes = [ 666, 308, 404, 408 ];
+        $default_codes = [ 666, 308, 400, 404, 408 ];
         return filter_var_array( apply_filters( 'blnotifier_bad_status_codes', $default_codes ), FILTER_SANITIZE_NUMBER_INT );
     } // End get_bad_status_codes()
 
@@ -161,6 +161,21 @@ class BLNOTIFIER_HELPERS {
         $all_schemes = array_unique( array_merge( $official, $unofficial ) );
         return filter_var_array( apply_filters( 'blnotifier_url_schemes', $all_schemes ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
     } // End get_url_schemes()
+
+
+    /**
+     * Get the html link sources from the html
+     *
+     * @return array
+     */
+    public function get_html_link_sources() {
+        $el = [ 
+            'a'      => 'href',
+            'img'    => 'src',
+            'iframe' => 'src'
+        ];
+        return filter_var_array( apply_filters( 'blnotifier_html_link_sources', $el ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+    } // End get_html_link_sources()
 
 
     /**
@@ -350,37 +365,94 @@ class BLNOTIFIER_HELPERS {
 
 
     /**
+     * Check if a link is on YouTube, if so return ID
+     * Does not check if the video is valid
+     *
+     * @param string $link
+     * @return boolean
+     */
+    public function is_youtube_link( $link ) {
+        // The id
+        $id = false;
+
+        // Get the host
+        $parse = parse_url( $link );
+        if ( isset( $parse[ 'host' ] ) && isset( $parse[ 'path' ] ) ) {
+            $host = $parse[ 'host' ];
+            $path = $parse[ 'path' ];
+
+            // Make sure it's on youtube
+            if ( $host && in_array( $host, [ 'youtube.com', 'www.youtube.com', 'youtu.be' ] ) ) {
+                
+                // '/embed/'
+                if ( strpos( $path, '/embed/' ) !== false ) {
+                    $id = str_replace( '/embed/', '', $path );
+                    if ( strpos( $id, '&' ) !== false ) {
+                        $id = substr( $id, 0, strpos( $id, '&' ) );
+                    }
+
+                // '/v/'
+                } elseif ( strpos( $path, '/v/' ) !== false ) {
+                    $id = str_replace( '/v/', '', $path );
+                    if ( strpos( $id, '&' ) !== false ) {
+                        $id = substr( $id, 0, strpos( $id, '&' ) );
+                    }
+
+                // '/watch'
+                } elseif ( strpos( $path, '/watch' ) !== false && isset( $parse[ 'query' ] ) ) {
+                    parse_str( $parse[ 'query' ], $queries );
+                    if ( isset( $queries[ 'v' ] ) ) {
+                        $id = $queries[ 'v' ];
+                    }
+                }
+            }
+        }
+
+        // If id
+        if ( $id ) {
+
+            // Create a watch url
+            return 'https://www.youtube.com/watch?v='.$id;
+        }
+
+        // We got nothin'
+        return false;
+    } // End is_youtube_link()
+
+
+    /**
      * Extract links from content
      *
      * @param [type] $content
      * @return array
      */
     public function extract_links( $content ) {
-        // Fetch the links
-        $htmlDom = new DOMDocument;
-        @$htmlDom->loadHTML( $content );
-        $links = $htmlDom->getElementsByTagName( 'a' );
-
         // Array that will contain our extracted links.
         $matches = [];
 
-        // Loop through the DOMNodeList.
-        if ( !empty( $links ) ) {
-            foreach ( $links as $link ) {
+        // Get html link sources
+        $html_link_sources = $this->get_html_link_sources();
+        if ( !empty( $html_link_sources ) ) {
 
-                // Get the link in the href attribute.
-                $linkHref = filter_var( $link->getAttribute( 'href' ), FILTER_SANITIZE_URL );
+            // Fetch the DOM once
+            $htmlDom = new DOMDocument;
+            @$htmlDom->loadHTML( $content );
 
-                // Apply filter
-                // $filtered_link = apply_filters( 'blnotifier_link_before_prechecks', $linkHref );
-                // if ( $filtered_link && is_array( $filtered_link ) && isset( $filtered_link[ 'type' ] ) && isset( $filtered_link[ 'code' ] ) && isset( $filtered_link[ 'text' ] ) && isset( $filtered_link[ 'link' ] ) ) {
-                //     $linkHref = sanitize_text_field( $filtered_link[ 'link' ] );
-                // } elseif ( $filtered_link && !is_array( $filtered_link ) ) {
-                //     $linkHref = sanitize_text_field( $filtered_link );
-                // }
+            // Look for each source
+            foreach ( $html_link_sources as $tag => $html_link_source ) {
+                $links = $htmlDom->getElementsByTagName( $tag );
 
-                // Add the link to our array.
-                $matches[] = $linkHref;
+                // Loop through the DOMNodeList.
+                if ( !empty( $links ) ) {
+                    foreach ( $links as $link ) {
+
+                        // Get the link in the href attribute.
+                        $linkHref = filter_var( $link->getAttribute( $html_link_source ), FILTER_SANITIZE_URL );
+
+                        // Add the link to our array.
+                        $matches[] = $linkHref;
+                    }
+                }
             }
         }
 
@@ -407,6 +479,11 @@ class BLNOTIFIER_HELPERS {
             $link = home_url().$url;
         } else {
             $link = $url;
+        }
+
+        // Check if from youtube
+        if ( $watch_url = $this->is_youtube_link( $link ) ) {
+            $link = 'https://www.youtube.com/oembed?format=json&url='.$watch_url;
         }
 
         // The request args

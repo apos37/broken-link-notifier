@@ -3,11 +3,19 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 // Available hooks
 $hooks = [
+    
+    [    
+        'hook'  => 'blnotifier_html_link_sources',
+        'args'  => '( Array $sources )',
+        'label' => 'Filter where the links are found in the content\'s HTML',
+        'desc'  => '<li>Return an <code>Array ( String <em>tag</em> => String <em>attribute</em> )</code></li><li>Default:<br><code>Array (<br>&nbsp;&nbsp;&nbsp;&nbsp;"a" => "href",<br>&nbsp;&nbsp;&nbsp;&nbsp;"img" => "src",<br>&nbsp;&nbsp;&nbsp;&nbsp;"iframe" => "src"<br>)</code></li>',
+        'type'  => 'filter'
+    ],
     [
         'hook'  => 'blnotifier_bad_status_codes',
         'args'  => '( Array $codes )',
         'label' => 'Which codes to signal as bad',
-        'desc'  => '<li>Defaults: [ 666, 308, 404, 408 ]</li>',
+        'desc'  => '<li>Defaults: [ 666, 308, 400, 404, 408 ]</li>',
         'type'  => 'filter'
     ],
     [    
@@ -327,7 +335,7 @@ table.hooks th.type {
         
         foreach ( $hooks as $hook ) {
             ?>
-            <tr class="link-row pending" data-link="<?php echo esc_html( $check_link ); ?>">
+            <tr>
                 <td class="label"><?php echo esc_html( $hook[ 'label' ] ); ?><?php echo wp_kses_post( isset( $hook[ 'desc' ] ) ? '<ul>'.$hook[ 'desc' ].'</ul>' : '' ); ?></td>
                 <td class="hook"><code><?php echo esc_html( $hook[ 'hook' ] ); ?></code></td>
                 <td class="type"><?php echo esc_html( $hook[ 'type' ] ); ?></td>

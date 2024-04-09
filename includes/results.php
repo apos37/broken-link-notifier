@@ -621,7 +621,7 @@ class BLNOTIFIER_RESULTS {
             return $link_id;
         } else {
             $error = $link_id->get_error_message();
-            ddtt_write_log( $error );
+            error_log( $error );
             return $error;
         }
     } // End add()
@@ -741,6 +741,7 @@ class BLNOTIFIER_RESULTS {
                 $MSTEAMS = new BLNOTIFIER_MSTEAMS;
                 $msteams_webhook = get_option( 'blnotifier_msteams' );
                 if ( $msteams_webhook && $MSTEAMS->sanitize_webhook_url( $msteams_webhook ) != '' ) {
+
                     $msteams_args = [
                         'site_name'     => get_bloginfo( 'name' ),
                         'title'         => 'Broken Links Found',
@@ -924,12 +925,13 @@ class BLNOTIFIER_RESULTS {
 
         // Javascript
         $handle = 'front_end_js';
-        wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-front.js', [ 'jquery' ], BLNOTIFIER_VERSION );
+        wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-front.js', [ 'jquery' ], BLNOTIFIER_VERSION ); 
         wp_localize_script( $handle, 'blnotifier_front_end', [
             'show_in_console' => filter_var( get_option( 'blnotifier_show_in_console' ), FILTER_VALIDATE_BOOLEAN ),
             'admin_dir'       => BLNOTIFIER_ADMIN_DIR,
             'scan_header'     => filter_var( get_option( 'blnotifier_scan_header' ), FILTER_VALIDATE_BOOLEAN ),
             'scan_footer'     => filter_var( get_option( 'blnotifier_scan_footer' ), FILTER_VALIDATE_BOOLEAN ),
+            'elements'        => (new BLNOTIFIER_HELPERS)->get_html_link_sources(),
             'nonce'           => $nonce,
             'ajaxurl'         => admin_url( 'admin-ajax.php' )
         ] );
