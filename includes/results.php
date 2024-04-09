@@ -681,17 +681,23 @@ class BLNOTIFIER_RESULTS {
                             }
                         }
                     }
-                    $message .= implode( '<br><br>', $broken_links ).'<br><br><em>- '.BLNOTIFIER_NAME.' Plugin</em>';
 
-                    // Filters
-                    $emails = apply_filters( 'blnotifier_email_emails', $emails, $flagged, $source_url );
-                    $subject = apply_filters( 'blnotifier_email_subject', $subject, $flagged, $source_url );
-                    $message = apply_filters( 'blnotifier_email_message', $message, $flagged, $source_url );
-                    $headers = apply_filters( 'blnotifier_email_headers', $headers, $flagged, $source_url );
+                    // Verify before sending
+                    if ( !empty( $broken_links ) ) {
 
-                    // Try or log
-                    if ( !wp_mail( $emails, $subject, $message, $headers ) ) {
-                        error_log( BLNOTIFIER_NAME.' email could not be sent. Please check for issues with WP Mailer.' );
+                        // Add links and footer
+                        $message .= implode( '<br><br>', $broken_links ).'<br><br><em>- '.BLNOTIFIER_NAME.' Plugin</em>';
+                        
+                        // Filters
+                        $emails = apply_filters( 'blnotifier_email_emails', $emails, $flagged, $source_url );
+                        $subject = apply_filters( 'blnotifier_email_subject', $subject, $flagged, $source_url );
+                        $message = apply_filters( 'blnotifier_email_message', $message, $flagged, $source_url );
+                        $headers = apply_filters( 'blnotifier_email_headers', $headers, $flagged, $source_url );
+
+                        // Try or log
+                        if ( !wp_mail( $emails, $subject, $message, $headers ) ) {
+                            error_log( BLNOTIFIER_NAME.' email could not be sent. Please check for issues with WP Mailer.' );
+                        }
                     }
                 }
             }

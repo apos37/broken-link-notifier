@@ -5,7 +5,7 @@ Tags: broken, link, checker, scan, notify
 Requires at least: 5.9.0
 Tested up to: 6.5
 Requires PHP: 7.4
-Stable tag: 1.0.4.1
+Stable tag: 1.0.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -20,6 +20,7 @@ Most broken link checker plugins are not recommended, because they do a full sca
 * Option to omit links, pages, and post types from scans.
 * Run a detailed scan of a single page on the back-end.
 * Scan multiple pages at a time on the back-end from your WP List Tables.
+* Also checks embedded YouTube videos.
 * Developer hooks available.
 
 == Installation ==
@@ -72,6 +73,9 @@ There are other plugins such as [Better Search Replace by WP Engine](https://wor
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.0.4.2 =
+* Fix: Emailing empty content if already added to results; stopped duplicate emails
+
 = 1.0.4.1 =
 * Fix: MS Teams integration error with logging
 

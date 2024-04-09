@@ -1,4 +1,7 @@
 == changelog.txt ==
+= 1.0.4.2 =
+* Fix: Emailing empty content if already added to results; stopped duplicate emails
+
 = 1.0.4.1 =
 * Fix: MS Teams integration error with logging
 
