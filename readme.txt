@@ -1,27 +1,35 @@
 === Broken Link Notifier ===
 Contributors: apos37
 Donate link: https://paypal.com/donate/?business=3XHJUEHGTMK3N
-Tags: broken, link, checker, scan, notify
+Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
-Tested up to: 6.5
+Tested up to: 6.5.3
 Requires PHP: 7.4
-Stable tag: 1.0.4.2
+Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
 Get notifications when a visitor loads a page with broken links
 
 == Description ==
-Most broken link checker plugins are not recommended, because they do a full scan of the entire site and can cause performance and timeout issues. Therefore it is recommended to use an offsite service for full site scans. However, this plugin can be used as an additional tool to let you know when someone loads a page with a broken link on it.
+The "Broken Link Notifier" WordPress plugin is a vigilant guardian for your website's links, monitoring and alerting you to broken or dead links as users visit your site. This ensures a seamless user experience and helps prevent search engine ranking penalties. Unlike other broken link checker plugins that can cause performance and timeout issues with full site scans, this plugin focuses on notification, making it a great complement to offsite services that handle full site scans.
 
-= Features =
-* No performance lag - scanning runs in the background after the page loads.
-* Get notified of broken links via email, Discord, and/or Microsoft Teams.
-* Option to omit links, pages, and post types from scans.
-* Run a detailed scan of a single page on the back-end.
-* Scan multiple pages at a time on the back-end from your WP List Tables.
-* Also checks embedded YouTube videos.
-* Developer hooks available.
+This plugin:
+
+* Scans content when users visit a page after the page fully loads, preventing performance lag
+* Identifies broken links, including 404 errors, timeouts, images, and embedded YouTube videos
+* Notifies you via dashboard notifications, email, Discord, and/or Microsoft Teams
+* Provides a list of broken links for easy review and correction
+
+With "Broken Link Notifier", you can:
+
+* Ensure accurate and functional links for your users
+* Prevent search engines from indexing broken links
+* Maintain a professional and trustworthy website image
+* Save time and effort in manual link checking
+* Scan multiple pages at a time on the back-end from your WP List Tables
+
+This plugin is a must-have for website owners, developers, and SEO enthusiasts who want to guarantee a smooth and error-free browsing experience for their audience!
 
 == Installation ==
 1. Install the plugin from your website's plugin directory, or upload the plugin to your plugins folder. 
@@ -73,6 +81,13 @@ There are other plugins such as [Better Search Replace by WP Engine](https://wor
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.0.5 =
+* Update: Added a re-scan verification when loading results page as some false-positives occur with poor connections
+* Tweak: Updated plugin tags
+* Update: Added other plugins to bottom of help page
+* Update: Added an option in settings to include/exclude image src links
+* Tweak: Changed default timeout to 5 seconds
+
 = 1.0.4.2 =
 * Fix: Emailing empty content if already added to results; stopped duplicate emails
 

@@ -184,6 +184,9 @@ table.hooks th.type {
     margin: 0 !important;
     background: transparent;
 }
+section .plugin-card div {
+    margin-bottom: 0;
+}
 </style>
 
 <section>
@@ -367,4 +370,13 @@ table.hooks th.type {
         <?php
     }
     ?>
+</section>
+
+<section>
+<br><br>
+    <h3>Try My Other Plugins</h3>
+    <?php echo wp_kses_post( $HELPERS->plugin_card( 'admin-help-docs' ) ); ?>
+    <?php echo wp_kses_post( $HELPERS->plugin_card( 'gf-discord' ) ); ?>
+    <?php echo wp_kses_post( $HELPERS->plugin_card( 'gf-msteams' ) ); ?>
+    <?php echo wp_kses_post( $HELPERS->plugin_card( 'dev-debug-tools' ) ); ?>
 </section>

@@ -51,7 +51,7 @@ class BLNOTIFIER_MENU {
             'omit-links'  => [ __( 'Omitted Links', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-links&post_type=blnotifier-results' ],
             'omit-pages'  => [ __( 'Omitted Pages', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-pages&post_type=blnotifier-results' ],
             'scan-single' => [ __( 'Page Scan', 'broken-link-notifier' ) ],
-            'scan-multi'   => [ __( 'Multi-Scan', 'broken-link-notifier' ) ],
+            'scan-multi'  => [ __( 'Multi-Scan', 'broken-link-notifier' ) ],
             'settings'    => [ __( 'Settings', 'broken-link-notifier' ) ],
             'help'        => [ __( 'Help', 'broken-link-notifier' ) ],
         ];
@@ -269,7 +269,7 @@ class BLNOTIFIER_MENU {
             [
                 'class'    => $timeout_option_name,
                 'name'     => $timeout_option_name,
-                'default'  => 10,
+                'default'  => 5,
                 'min'      => 5,
                 'comments' => 'How long to try to connect to a link\'s server before quitting'
             ]
@@ -282,6 +282,12 @@ class BLNOTIFIER_MENU {
                 'label'    => 'Enable warnings',
                 'default'  => true,
                 'comments' => 'Includes warnings in all scans'
+            ],
+            [ 
+                'name'     => 'include_images', 
+                'label'    => 'Check for broken images',
+                'default'  => true,
+                'comments' => 'Includes image src links in all scans'
             ],
             [ 
                 'name'     => 'ssl_verify', 

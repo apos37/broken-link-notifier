@@ -38,7 +38,8 @@ class BLNOTIFIER_RESULTS {
      * @var string
      */
     // private $back_end_ajax_key = 'blnotifier_ignore';
-    private $ajax_key = 'blnotifier_blinks';
+    private $ajax_key_blinks = 'blnotifier_blinks';
+    private $ajax_key_rescan = 'blnotifier_rescan';
 
 
     /**
@@ -46,7 +47,8 @@ class BLNOTIFIER_RESULTS {
      *
      * @var string
      */
-    private $nonce = 'blnotifier_blinks_found';
+    private $nonce_blinks = 'blnotifier_blinks_found';
+    private $nonce_rescan = 'blnotifier_rescan';
 
 
     /**
@@ -95,8 +97,10 @@ class BLNOTIFIER_RESULTS {
         add_action( 'wp_mail_failed', [ $this, 'on_email_error' ] );
 
         // Ajax
-        add_action( 'wp_ajax_'.$this->ajax_key, [ $this, 'ajax' ] );
-        add_action( 'wp_ajax_nopriv_'.$this->ajax_key, [ $this, 'ajax' ] );
+        add_action( 'wp_ajax_'.$this->ajax_key_blinks, [ $this, 'ajax_blinks' ] );
+        add_action( 'wp_ajax_nopriv_'.$this->ajax_key_blinks, [ $this, 'ajax_blinks' ] );
+        add_action( 'wp_ajax_'.$this->ajax_key_rescan, [ $this, 'ajax_rescan' ] );
+        add_action( 'wp_ajax_nopriv_'.$this->ajax_key_rescan, [ $this, 'ajax_rescan' ] );
         
         // Enqueue scripts
         add_action( 'wp_enqueue_scripts', [ $this, 'front_script_enqueuer' ] );
@@ -140,7 +144,7 @@ class BLNOTIFIER_RESULTS {
             'query_var'             => $this->post_type,
             'capability_type'       => 'post',
             'capabilities'          => [
-                'create_posts'      => false, 
+                'create_posts'      => 'do_not_allow',
             ],
             'map_meta_cap'          => true, 
             'show_in_rest'          => true,
@@ -187,6 +191,10 @@ class BLNOTIFIER_RESULTS {
                     background: yellow;
                     color: black;
                 }
+                .bln-type.good {
+                    background: green;
+                    color: white;
+                }
                 .source-url {
                     font-weight: 600;
                 }
@@ -204,6 +212,7 @@ class BLNOTIFIER_RESULTS {
                 tr.omitted {
                     opacity: 0.5;
                 }
+
                 </style>';
                 echo '<div class="admin—title-cont">
                     <h1><span id="plugin-page-title">'.esc_attr( BLNOTIFIER_NAME ).' — Results</span></h1>
@@ -391,6 +400,7 @@ class BLNOTIFIER_RESULTS {
             'bln_source_pt' => __( 'Source Post Type', 'broken-link-notifier' ),
             'bln_date'      => __( 'Date', 'broken-link-notifier' ),
             'bln_author'    => __( 'User', 'broken-link-notifier' ),
+            'bln_verify'    => __( 'Verify', 'broken-link-notifier' ),
         ];
     } // End admin_columns()
 
@@ -484,6 +494,14 @@ class BLNOTIFIER_RESULTS {
                 $display_name = 'Guest';
             }
             echo esc_html( $display_name );
+        }
+
+        // Verify
+        if ( 'bln_verify' === $column ) {
+            $link = get_the_title( $post_id );
+            $post = get_post( $post_id );
+            $code = $post->code;
+            echo '<span id="bln-verify-'.esc_attr( $post_id ).'" class="bln-verify" data-post-id="'.esc_attr( $post_id ).'" data-link="'.esc_html( $link ).'" data-code="'.esc_attr( $code ).'">Pending</span>';
         }
     } // End admin_column_content()
     
@@ -686,7 +704,7 @@ class BLNOTIFIER_RESULTS {
                     if ( !empty( $broken_links ) ) {
 
                         // Add links and footer
-                        $message .= implode( '<br><br>', $broken_links ).'<br><br><em>- '.BLNOTIFIER_NAME.' Plugin</em>';
+                        $message .= implode( '<br><br>', $broken_links ).'<br><br><hr><br>'.get_bloginfo( 'name' ).'<br><em>'.BLNOTIFIER_NAME.' Plugin<br></em>';
                         
                         // Filters
                         $emails = apply_filters( 'blnotifier_email_emails', $emails, $flagged, $source_url );
@@ -794,9 +812,9 @@ class BLNOTIFIER_RESULTS {
      *
      * @return void
      */
-    public function ajax() {
+    public function ajax_blinks() {
         // Verify nonce
-        if ( !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
+        if ( !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_blinks ) ) {
             exit( 'No naughty business please.' );
         }
     
@@ -908,7 +926,74 @@ class BLNOTIFIER_RESULTS {
     
         // We're done here
         die();
-    } // End ajax()
+    } // End ajax_blinks()
+
+
+    /**
+     * Ajax call for back end
+     *
+     * @return void
+     */
+    public function ajax_rescan() {
+        // Verify nonce
+        if ( !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_rescan ) ) {
+            exit( 'No naughty business please.' );
+        }
+    
+        // Get the ID
+        $link = sanitize_text_field( $_REQUEST[ 'link' ] );
+        $post_id = isset( $_REQUEST[ 'postID' ] ) ? absint( $_REQUEST[ 'postID' ] ) : false;
+        $code = isset( $_REQUEST[ 'code' ] ) ? absint( $_REQUEST[ 'code' ] ) : false;
+
+        // Make sure we have a source URL
+        if ( $link ) {
+
+            // Initiate helpers
+            $HELPERS = new BLNOTIFIER_HELPERS;
+
+            // Check status
+            $status = $HELPERS->check_link( $link );
+
+            // If it's good now, remove the old post
+            if ( $status[ 'type' ] == 'good' ) {
+                $this->remove( $link );
+
+            // If it's still not good, but doesn't have the same code, update it
+            } else if ( $code !== $status[ 'code' ] ) {
+                $this->remove( $link );
+                $this->add( [
+                    'type'     => $status[ 'type' ],
+                    'code'     => $status[ 'code' ],
+                    'text'     => $status[ 'text' ],
+                    'link'     => $status[ 'link' ],
+                    'source'   => get_the_permalink( $post_id ),
+                    'author'   => get_current_user_id(),
+                    'location' => 'content'
+                ] );
+            }
+
+            // Return
+            $result[ 'type' ] = 'success';
+            $result[ 'status' ] = $status;
+            $result[ 'link' ] = $link;
+            $result[ 'post_id' ] = $post_id;
+
+        // Nope
+        } else {
+            $result[ 'type' ] = 'error';
+            $result[ 'msg' ] = 'No link found';
+        }
+    
+        // Echo the result or redirect
+        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) == 'xmlhttprequest' ) {
+            echo wp_json_encode( $result );
+        } else {
+            header( 'Location: '.filter_var( $_SERVER[ 'HTTP_REFERER' ], FILTER_SANITIZE_URL ) );
+        }
+    
+        // We're done here
+        die();
+    } // End ajax_rescan()
 
 
     /**
@@ -927,7 +1012,7 @@ class BLNOTIFIER_RESULTS {
         wp_enqueue_style( 'front_end_css', BLNOTIFIER_PLUGIN_CSS_PATH.'results-front.css' );
 
         // Nonce
-        $nonce = wp_create_nonce( $this->nonce );
+        $nonce = wp_create_nonce( $this->nonce_blinks );
 
         // Javascript
         $handle = 'front_end_js';
@@ -955,8 +1040,13 @@ class BLNOTIFIER_RESULTS {
     public function back_script_enqueuer( $screen ) {
         $post_type = get_post_type();
         if ( $screen == 'edit.php' && $post_type == 'blnotifier-results' ) {
+            $nonce = wp_create_nonce( $this->nonce_rescan );
             $handle = 'blnotifier_results_back_end_script';
             wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-back.js', [ 'jquery' ], BLNOTIFIER_VERSION );
+            wp_localize_script( $handle, 'blnotifier_back_end', [
+                'nonce'           => $nonce,
+                'ajaxurl'         => admin_url( 'admin-ajax.php' )
+            ] );
             wp_enqueue_script( $handle );
             wp_enqueue_script( 'jquery' );
         }

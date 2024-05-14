@@ -1,4 +1,11 @@
 == changelog.txt ==
+= 1.0.5 =
+* Update: Added a re-scan verification when loading results page as some false-positives occur with poor connections
+* Tweak: Updated plugin tags
+* Update: Added other plugins to bottom of help page
+* Update: Added an option in settings to include/exclude image src links
+* Tweak: Changed default timeout to 5 seconds
+
 = 1.0.4.2 =
 * Fix: Emailing empty content if already added to results; stopped duplicate emails
 
