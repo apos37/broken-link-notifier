@@ -5,7 +5,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
 Tested up to: 6.5.3
 Requires PHP: 7.4
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -46,7 +46,7 @@ This plugin is a must-have for website owners, developers, and SEO enthusiasts w
 Join my [Discord support server](https://discord.gg/3HnzNEJVnR)
 
 = Why do some links show as broken when they are not? =
-If the link works fine and it's still being flagged as broken, then it is either redirecting to another page or there is an issue with the page's response headers and there's nothing we can do about it. If it is a redirect on your own site due to permalink modification, then it's better to fix the link instead of unnecessarily redirecting. You may use the Omit option to omit false positives from future scans as well. If you are seeing a pattern with a multiple links from the same domain, you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain.
+If the link works fine and it's still being flagged as broken, then it is likely either redirecting to another page or there is an issue with the page's response headers, and there's nothing we can do about it. If it is a redirect on your own site due to permalink modification, then it's better to fix the link instead of unnecessarily redirecting. You may use the Omit option to omit false positives from future scans as well. If you are seeing a pattern with multiple links from the same domain, you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain.
 
 = What causes a link to give a warning? =
 Warnings mean the link was found, but they may be unsecure or slow to respond. If you are getting too many warnings due to timeouts, try increasing your timeout in Settings. This will just result in longer wait times, but with more accuracy. You can also disable warnings if you have too many of them.
@@ -69,6 +69,31 @@ We skip links that start with `#` (anchor tags and JavaScript) or `?` (query str
 = What can I do if I have the same broken link on a lot of pages? =
 There are other plugins such as [Better Search Replace by WP Engine](https://wordpress.org/plugins/better-search-replace/) that will quickly replace URLs on your entire site at once.
 
+= Are there hooks available for Developers? =
+Yes, there are plenty. The following hooks are available:
+* `blnotifier_html_link_sources` ( Array $sources ) — Filter where the links are found in the content's HTML
+* `blnotifier_bad_status_codes` ( Array $codes ) — Filter which status codes to signal as bad
+* `blnotifier_warning_status_codes` ( Array $codes ) — Filter which status codes to signal as warning only
+* `blnotifier_omitted_links` ( Array $links ) — Filter your omitted links
+* `blnotifier_omitted_pages` ( Array $pages ) — Filter your omitted pages
+* `blnotifier_omitted_pageload_post_types` ( Array $post_types ) — Filter the post types that you don't want to scan on page load
+* `blnotifier_omitted_multiscan_post_types` ( Array $post_types ) — Filter the post types that you don't want to allow for Multi-Scan option
+* `blnotifier_link_before_prechecks` ( String|Array|False $link ) — Filter the link before checking anything
+* `blnotifier_status` ( Array $status ) — Filter the status that is returned when checking a link for validity after all pre-checks are done
+* `blnotifier_http_request_args` ( Array $args, String $link ) — Filter the http request args
+* `blnotifier_remove_source_qs` ( Array $query_strings ) — Filter the query strings to remove from source url on page load scans
+* `blnotifier_url_schemes` ( Array $schemes ) — Filter the URL Schemes skipped during pre-checks
+* `blnotifier_capability` ( String $capability ) — Change the user capability for viewing the plugin reports and settings on the back-end
+* `blnotifier_suggested_offsite_checkers` ( Array $checkers ) — Filter the list of suggested offsite checkers on Multi-Scan page
+* `blnotifier_notify` ( Array $flagged, Int $flagged_count, Array $all_links, String $source_url ) — Action hook that fires when notifying you of new broken links and warning links that are found on page load
+* `blnotifier_email_emails` ( String|Array $emails, Array $flagged, String $source_url ) — Filter the emails that the email notifications are sent to
+* `blnotifier_email_subject` ( String $subject, Array $flagged, String $source_url ) — Filter the subject that the email notifications are sent with
+* `blnotifier_email_message` ( String $message, Array $flagged, String $source_url ) — Filter the message that the email notifications are sent with
+* `blnotifier_email_headers` ( Array $headers, Array $flagged, String $source_url ) — Filter the headers used in the email notifications
+* `blnotifier_discord_args` ( Array $args, Array $flagged, String $source_url ) — Filter the Discord webhook args
+* `blnotifier_msteams_args` ( Array $args, Array $flagged, String $source_url ) — Filter the Microsoft Teams webhook args
+* `blnotifier_strings_to_replace` ( Array $strings_to_replace ) — Filter the strings to replace on the link
+
 == Screenshots ==
 1. Page load scan results on back-end
 2. Page load scan results on front-end in dev console
@@ -81,6 +106,11 @@ There are other plugins such as [Better Search Replace by WP Engine](https://wor
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.0.6 =
+* Fix: wp_mail_failed logging error
+* Update: Added a string replace for `"×" => "x"`, which is being converted in images with sizes (ie _100x66.png)
+* Update: Added a new filter `blnotifier_strings_to_replace` for replacing simple characters
+
 = 1.0.5 =
 * Update: Added a re-scan verification when loading results page as some false-positives occur with poor connections
 * Tweak: Updated plugin tags

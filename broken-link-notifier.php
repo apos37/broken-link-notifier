@@ -3,7 +3,7 @@
  * Plugin Name:         Broken Link Notifier
  * Plugin URI:          https://github.com/apos37/broken-link-notifier
  * Description:         Get notified when someone loads a page with a broken link
- * Version:             1.0.5
+ * Version:             1.0.6
  * Requires at least:   5.9.0
  * Tested up to:        6.5.3
  * Requires PHP:        7.4
@@ -26,7 +26,7 @@ if ( !defined( 'ABSPATH' ) ) {
 
 define( 'BLNOTIFIER_NAME', 'Broken Link Notifier' );
 define( 'BLNOTIFIER_TEXTDOMAIN', 'broken-link-notifier' );
-define( 'BLNOTIFIER_VERSION', '1.0.5' );
+define( 'BLNOTIFIER_VERSION', '1.0.6' );
 define( 'BLNOTIFIER_MIN_PHP_VERSION', '7.4' );
 define( 'BLNOTIFIER_AUTHOR_NAME', 'Apos37' );
 define( 'BLNOTIFIER_AUTHOR_URL', 'https://apos37.com/' );

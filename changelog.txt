@@ -1,4 +1,10 @@
 == changelog.txt ==
+= 1.0.6 =
+* Update: Added available hooks to readme.txt file
+* Fix: wp_mail_failed logging error
+* Update: Added a string replace for `"×" => "x"`, which is being converted in images with sizes (ie _100x66.png)
+* Update: Added a new filter `blnotifier_strings_to_replace` for replacing simple characters
+
 = 1.0.5 =
 * Update: Added a re-scan verification when loading results page as some false-positives occur with poor connections
 * Tweak: Updated plugin tags

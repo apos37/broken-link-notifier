@@ -183,6 +183,31 @@ class BLNOTIFIER_HELPERS {
 
 
     /**
+     * Strings to replace on the link
+     *
+     * @param string $link
+     * @param boolean $reverse
+     * @return string
+     */
+    public function str_replace_on_link( $link, $reverse = false ) {
+        $strings_to_replace = [
+            '×' => 'x'
+        ];
+        $strings_to_replace = filter_var_array( apply_filters( 'blnotifier_strings_to_replace', $strings_to_replace ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+        if ( !$reverse ) {
+            foreach ( $strings_to_replace as $search => $replace ) {
+                $link = str_replace( $search, $replace, $link );
+            }
+        } else {
+            foreach ( $strings_to_replace as $search => $replace ) {
+                $link = str_replace( $replace, $search, $link );
+            }
+        }
+        return $link;
+    } // End str_replace_on_link()
+
+
+    /**
      * Get current URL with query string
      *
      * @param boolean $params
@@ -945,6 +970,9 @@ class BLNOTIFIER_HELPERS {
     public function check_link( $link ) {
         // Filter the link
         $link = apply_filters( 'blnotifier_link_before_prechecks', $link );
+
+        // String replace
+        $link = $this->str_replace_on_link( $link );
 
         // Assuming the link is okay
         $status = [

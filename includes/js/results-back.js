@@ -67,7 +67,7 @@ jQuery( $ => {
                 statusCode = data.status.code;
             } else {
                 statusType = 'error';
-                statusText = 'Please try again.';
+                statusText = data.msg;
                 statusCode = 'ERR_FAILED';
             }
 
@@ -82,7 +82,11 @@ jQuery( $ => {
                 $( `#post-${postID} .title .row-actions` ).remove();
                 $( `#post-${postID} .bln_source .row-actions` ).remove();
             } else if ( code != statusCode ) {
-                text = `Link is still bad, but showing a different code. Old code was ${code}; new code is ${statusCode}.`;
+                if ( statusCode == 'ERR_FAILED' ) {
+                    text = `Failed to remove link. ${statusText}`;
+                } else {
+                    text = `Link is still bad, but showing a different code. Old code was ${code}; new code is ${statusCode}.`;
+                }
                 $( `#post-${postID} .bln-type` ).addClass( statusType ).text( statusType );
                 var codeLink = 'Code: ' + statusCode;
                 if ( statusCode != 0 && statusCode != 666 ) {

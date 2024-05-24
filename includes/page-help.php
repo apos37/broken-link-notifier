@@ -143,6 +143,13 @@ $hooks = [
         'label' => 'Filter the Microsoft Teams webhook args',
         'desc'  => '<li>Return an <code>Array ( String <em>site_name</em>, String <em>title</em>, String <em>msg</em>, String <em>img_url</em>, String <em>title</em>, String <em>title_url</em>, String <em>desc</em>, String <em>img_url</em>, String <em>source_url</em>, Array <em>facts</em> )</code></li><li><em>facts</em> includes the broken links</li>',
         'type'  => 'filter'
+    ],
+    [    
+        'hook'  => 'blnotifier_strings_to_replace',
+        'args'  => '( Array $strings_to_replace )',
+        'label' => 'Filter the strings to replace on the link',
+        'desc'  => '<li>Default:<br><code>Array (<br>&nbsp;&nbsp;&nbsp;&nbsp;"×" => "x"<br>)</code></li>',
+        'type'  => 'filter'
     ]
 ];
 

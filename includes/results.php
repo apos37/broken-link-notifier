@@ -803,7 +803,7 @@ class BLNOTIFIER_RESULTS {
      * @return void
      */
     public function on_email_error( $wp_error ) {
-        error_log( $wp_error );
+        error_log( $wp_error->get_error_message() );
     } // End on_email_error()
 
 
@@ -956,11 +956,29 @@ class BLNOTIFIER_RESULTS {
 
             // If it's good now, remove the old post
             if ( $status[ 'type' ] == 'good' ) {
-                $this->remove( $link );
+                $remove = $this->remove( $HELPERS->str_replace_on_link( $link ) );
+                if ( $remove ) {
+                    $result[ 'type' ] = 'success';
+                    $result[ 'status' ] = $status;
+                    $result[ 'link' ] = $link;
+                    $result[ 'post_id' ] = $post_id;
+                } else {
+                    $result[ 'type' ] = 'error';
+                    $result[ 'msg' ] = 'Could not remove link.';
+                }
 
             // If it's still not good, but doesn't have the same code, update it
             } else if ( $code !== $status[ 'code' ] ) {
-                $this->remove( $link );
+                $remove = $this->remove( $HELPERS->str_replace_on_link( $link ) );
+                if ( $remove ) {
+                    $result[ 'type' ] = 'success';
+                    $result[ 'status' ] = $status;
+                    $result[ 'link' ] = $link;
+                    $result[ 'post_id' ] = $post_id;
+                } else {
+                    $result[ 'type' ] = 'error';
+                    $result[ 'msg' ] = 'Could not remove link.';
+                }
                 $this->add( [
                     'type'     => $status[ 'type' ],
                     'code'     => $status[ 'code' ],
@@ -972,16 +990,10 @@ class BLNOTIFIER_RESULTS {
                 ] );
             }
 
-            // Return
-            $result[ 'type' ] = 'success';
-            $result[ 'status' ] = $status;
-            $result[ 'link' ] = $link;
-            $result[ 'post_id' ] = $post_id;
-
         // Nope
         } else {
             $result[ 'type' ] = 'error';
-            $result[ 'msg' ] = 'No link found';
+            $result[ 'msg' ] = 'No link found.';
         }
     
         // Echo the result or redirect
