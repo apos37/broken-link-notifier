@@ -1,4 +1,8 @@
 == changelog.txt ==
+= 1.0.7 =
+* Fix: Results page rescan not working on some links
+* Fix: Offsite checker links broken XD
+
 = 1.0.6 =
 * Update: Added available hooks to readme.txt file
 * Fix: wp_mail_failed logging error

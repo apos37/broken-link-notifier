@@ -61,7 +61,7 @@ jQuery( $ => {
             var statusType;
             var statusText;
             var statusCode;
-            if ( data.type == 'success' ) {
+            if ( data && data.type == 'success' ) {
                 statusType = data.status.type;
                 statusText = data.status.text;
                 statusCode = data.status.code;

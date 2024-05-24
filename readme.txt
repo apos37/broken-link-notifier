@@ -5,7 +5,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
 Tested up to: 6.5.3
 Requires PHP: 7.4
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -106,6 +106,10 @@ Yes, there are plenty. The following hooks are available:
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.0.7 =
+* Fix: Results page rescan not working on some links
+* Fix: Offsite checker links broken XD
+
 = 1.0.6 =
 * Fix: wp_mail_failed logging error
 * Update: Added a string replace for `"×" => "x"`, which is being converted in images with sizes (ie _100x66.png)

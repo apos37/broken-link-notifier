@@ -968,7 +968,7 @@ class BLNOTIFIER_RESULTS {
                 }
 
             // If it's still not good, but doesn't have the same code, update it
-            } else if ( $code !== $status[ 'code' ] ) {
+            } elseif ( $code !== $status[ 'code' ] ) {
                 $remove = $this->remove( $HELPERS->str_replace_on_link( $link ) );
                 if ( $remove ) {
                     $result[ 'type' ] = 'success';
@@ -988,6 +988,11 @@ class BLNOTIFIER_RESULTS {
                     'author'   => get_current_user_id(),
                     'location' => 'content'
                 ] );
+            } else {
+                $result[ 'type' ] = 'success';
+                $result[ 'status' ] = $status;
+                $result[ 'link' ] = $link;
+                $result[ 'post_id' ] = $post_id;
             }
 
         // Nope

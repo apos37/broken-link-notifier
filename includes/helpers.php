@@ -260,9 +260,9 @@ class BLNOTIFIER_HELPERS {
      */
     public function get_suggested_offsite_checkers() {
         $links = [ 
-            'Dead Link Checker' => 'https: //www.deadlinkchecker.com/website-dead-link-checker.asp',
-            'Dr Link Check'     => 'https: //www.drlinkcheck.com/',
-            'Sitechecker'       => 'https: //sitechecker.pro/broken-links/',
+            'Dead Link Checker' => 'https://www.deadlinkchecker.com/website-dead-link-checker.asp',
+            'Dr Link Check'     => 'https://www.drlinkcheck.com/',
+            'Sitechecker'       => 'https://sitechecker.pro/broken-links/',
         ];
         return filter_var_array( apply_filters( 'blnotifier_suggested_offsite_checkers', $links ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
     } // End get_suggested_offsite_checkers()
