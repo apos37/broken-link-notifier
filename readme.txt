@@ -5,7 +5,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
 Tested up to: 6.5.3
 Requires PHP: 7.4
-Stable tag: 1.0.7
+Stable tag: 1.0.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -94,6 +94,9 @@ Yes, there are plenty. The following hooks are available:
 * `blnotifier_msteams_args` ( Array $args, Array $flagged, String $source_url ) — Filter the Microsoft Teams webhook args
 * `blnotifier_strings_to_replace` ( Array $strings_to_replace ) — Filter the strings to replace on the link
 
+== Demo ==
+https://youtu.be/B2FwRrDJLGs
+
 == Screenshots ==
 1. Page load scan results on back-end
 2. Page load scan results on front-end in dev console
@@ -106,6 +109,9 @@ Yes, there are plenty. The following hooks are available:
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.0.8 =
+* Update: Added demo to readme.txt
+
 = 1.0.7 =
 * Fix: Results page rescan not working on some links
 * Fix: Offsite checker links broken XD

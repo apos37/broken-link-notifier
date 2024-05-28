@@ -1,4 +1,7 @@
 == changelog.txt ==
+= 1.0.8 =
+* Update: Added demo to readme.txt
+
 = 1.0.7 =
 * Fix: Results page rescan not working on some links
 * Fix: Offsite checker links broken XD
