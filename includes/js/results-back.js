@@ -87,7 +87,7 @@ jQuery( $ => {
                 } else {
                     text = `Link is still bad, but showing a different code. Old code was ${code}; new code is ${statusCode}.`;
                 }
-                $( `#post-${postID} .bln-type` ).addClass( statusType ).text( statusType );
+                $( `#post-${postID} .bln-type` ).attr( 'class', `bln-type ${statusType}`).text( statusType );
                 var codeLink = 'Code: ' + statusCode;
                 if ( statusCode != 0 && statusCode != 666 ) {
                     codeLink = `<a href="https://http.dev/${statusCode}" target="_blank">Code: ${statusCode}</a>`;

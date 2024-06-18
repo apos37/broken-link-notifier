@@ -750,36 +750,59 @@ class BLNOTIFIER_HELPERS {
     public function extract_links( $content ) {
         // Array that will contain our extracted links.
         $matches = [];
-
+    
         // Get html link sources
         $html_link_sources = $this->get_html_link_sources();
         if ( !empty( $html_link_sources ) ) {
-
+    
             // Fetch the DOM once
             $htmlDom = new DOMDocument;
-            @$htmlDom->loadHTML( $content );
-
+    
+            // Specify the encoding with an XML declaration
+            $utf8_content = '<?xml encoding="UTF-8">' . $content;
+    
+            // Suppress warnings and load the content with proper encoding
+            @$htmlDom->loadHTML( $utf8_content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+    
+            // Remove the XML encoding declaration node if present
+            foreach ( $htmlDom->childNodes as $item ) {
+                if ( $item->nodeType == XML_PI_NODE ) {
+                    $htmlDom->removeChild( $item );
+                }
+            }
+    
             // Look for each source
             foreach ( $html_link_sources as $tag => $html_link_source ) {
                 $links = $htmlDom->getElementsByTagName( $tag );
-
+    
                 // Loop through the DOMNodeList.
                 if ( !empty( $links ) ) {
                     foreach ( $links as $link ) {
-
+    
                         // Get the link in the href attribute.
-                        $linkHref = filter_var( $link->getAttribute( $html_link_source ), FILTER_SANITIZE_URL );
-
+                        $linkHref = $this->sanitize_link( $link->getAttribute( $html_link_source ) );
+    
                         // Add the link to our array.
                         $matches[] = $linkHref;
                     }
                 }
             }
         }
-
+    
         // Return
         return $matches;
     } // End extract_links()
+
+
+    /**
+     * Sanitize the link
+     *
+     * @param string $link
+     * @return string
+     */
+    public function sanitize_link( $link ) {
+        return htmlspecialchars( $link, ENT_QUOTES | ENT_HTML401 | ENT_SUBSTITUTE, 'UTF-8', false );
+    } // End sanitize_link()
 
 
     /**
@@ -818,7 +841,7 @@ class BLNOTIFIER_HELPERS {
         ], $url );
 
         // Check the link
-        $response = wp_safe_remote_get( $link, $http_request_args );
+        $response = wp_remote_get( $link, $http_request_args );
         if ( !is_wp_error( $response ) ) {
             $code = wp_remote_retrieve_response_code( $response );    
             $error = 'Unknown';
@@ -828,7 +851,7 @@ class BLNOTIFIER_HELPERS {
         }
 
         // Let's make invalid URL 0 codes broken
-        if ( $code === 0 && $error == 'A valid URL was not provided.' ) {
+        if ( $code === 0 && ( $error == 'A valid URL was not provided.' || strpos( $error, 'cURL error 6: Could not resolve host' ) !== false ) ) {
             $code = 666;
         }
 

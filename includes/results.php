@@ -820,9 +820,9 @@ class BLNOTIFIER_RESULTS {
     
         // Get the ID
         $source_url = filter_var( $_REQUEST[ 'source_url' ], FILTER_SANITIZE_URL );
-        $header_links = isset( $_REQUEST[ 'header_links' ] ) ? filter_var_array( $_REQUEST[ 'header_links' ], FILTER_SANITIZE_FULL_SPECIAL_CHARS ) : [];
-        $content_links = isset( $_REQUEST[ 'content_links' ] ) ? filter_var_array( $_REQUEST[ 'content_links' ], FILTER_SANITIZE_FULL_SPECIAL_CHARS ) : [];
-        $footer_links = isset( $_REQUEST[ 'footer_links' ] ) ? filter_var_array( $_REQUEST[ 'footer_links' ], FILTER_SANITIZE_FULL_SPECIAL_CHARS ) : [];
+        $header_links = isset( $_REQUEST[ 'header_links' ] ) ? $_REQUEST[ 'header_links' ] : [];
+        $content_links = isset( $_REQUEST[ 'content_links' ] ) ? $_REQUEST[ 'content_links' ] : [];
+        $footer_links = isset( $_REQUEST[ 'footer_links' ] ) ? $_REQUEST[ 'footer_links' ] : [];
 
         // Make sure we have a source URL
         if ( $source_url ) {
@@ -843,8 +843,9 @@ class BLNOTIFIER_RESULTS {
 
             // Header links
             if ( !empty( $header_links ) ) {
-                foreach ( $header_links as $header_link ) {
+                foreach ( $header_links as &$header_link ) {
                     $count_links++;
+                    $header_link = $HELPERS->sanitize_link( $header_link );
                     $status = $HELPERS->check_link( $header_link );
                     if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
                         $count_notify++;
@@ -855,8 +856,9 @@ class BLNOTIFIER_RESULTS {
 
             // Content links
             if ( !empty( $content_links ) ) {
-                foreach ( $content_links as $content_link ) {
+                foreach ( $content_links as &$content_link ) {
                     $count_links++;
+                    $content_link = $HELPERS->sanitize_link( $content_link );
                     $status = $HELPERS->check_link( $content_link );
                     if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
                         $count_notify++;
@@ -867,8 +869,9 @@ class BLNOTIFIER_RESULTS {
 
             // Footer links
             if ( !empty( $footer_links ) ) {
-                foreach ( $footer_links as $footer_link ) {
+                foreach ( $footer_links as &$footer_link ) {
                     $count_links++;
+                    $footer_link = $HELPERS->sanitize_link( $footer_link );
                     $status = $HELPERS->check_link( $footer_link );
                     if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
                         $count_notify++;

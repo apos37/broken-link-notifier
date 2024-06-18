@@ -63,16 +63,16 @@ class BLNOTIFIER_SCAN {
         if ( !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
             exit( 'No naughty business please.' );
         }
+
+        // Initiate helpers
+        $HELPERS = new BLNOTIFIER_HELPERS;
     
         // Get the ID
-        $link = sanitize_text_field( $_REQUEST[ 'link' ] );
+        $link = $HELPERS->sanitize_link( $_REQUEST[ 'link' ] );
         $post_id = isset( $_REQUEST[ 'postID' ] ) ? absint( $_REQUEST[ 'postID' ] ) : false;
 
         // Make sure we have a source URL
         if ( $link ) {
-
-            // Initiate helpers
-            $HELPERS = new BLNOTIFIER_HELPERS;
 
             // Check status
             $status = $HELPERS->check_link( $link );

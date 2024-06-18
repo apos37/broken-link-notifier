@@ -1,11 +1,10 @@
 === Broken Link Notifier ===
 Contributors: apos37
-Donate link: https://paypal.com/donate/?business=3XHJUEHGTMK3N
 Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
-Tested up to: 6.5.3
+Tested up to: 6.5.4
 Requires PHP: 7.4
-Stable tag: 1.0.8
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -38,7 +37,7 @@ This plugin is a must-have for website owners, developers, and SEO enthusiasts w
 4. Update your notification method(s) and post types.
 5. Go to `Broken Link Notifier > Omitted Pages`, and add any pages that you don't want to scan, such as pages you know won't have any links on them. This will speed up the multi-scan option.
 5. Page load scans are enabled automatically, so it's recommended that you test it out by deliberately making some broken links on a test page and then visiting the page. The results should show up on the `Broken Link Notifier > Results` page, and notify you if you have enabled email, Discord, or Microsoft Teams notifications. Reloading the page will not submit them twice. For testing, you should delete them from the results so they get reported again.
-6. It is suggested to run a Multi-Scan on each of your public-facing post types to quickly -see if there are any broken links before others encounter them. Also to omit some links that will be reported as false positives. You can omit individual links quickly from the results, or you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain. See screenshots for examples.
+6. It is suggested to run a Multi-Scan on each of your public-facing post types to quickly see if there are any broken links before others encounter them. Also to omit some links that will be reported as false positives. You can omit individual links quickly from the results, or you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain. See screenshots for examples.
 7. If you have any questions, please reach out to me on my [Discord support server](https://discord.gg/3HnzNEJVnR). I am happy to assist you or fix any issues you might have with the plugin.
 
 == Frequently Asked Questions == 
@@ -109,6 +108,13 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.1.0 =
+* Fix: YouTube links showing broken
+
+= 1.0.9 =
+* Fix: Umlauts in links showing broken (props ralf d)
+* Tweak: Removed donate link, nobody donates anyway, working on premium version instead
+
 = 1.0.8 =
 * Update: Added demo to readme.txt
 
