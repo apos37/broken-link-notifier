@@ -73,8 +73,8 @@ jQuery( $ => {
 
             // Text and actions
             var text;
-            if ( statusType == 'good' ) {
-                text = '<em>Link is good, removing from list...</em>';
+            if ( statusType == 'good' || statusType == 'omitted' ) {
+                text = '<em>Link is ' + statusType + ', removing from list...</em>';
                 $( `#post-${postID}` ).addClass( 'omitted' );
                 $( `#post-${postID} .bln-type` ).addClass( statusType ).text( statusType );
                 $( `#post-${postID} .bln_type code` ).html( 'Code: ' + statusCode );

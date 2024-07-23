@@ -302,7 +302,8 @@ class BLNOTIFIER_OMITS {
                 $omit_urls[] = $omit->name;
             }
         }
-        return filter_var_array( apply_filters( 'blnotifier_omitted_'.$type, $omit_urls ), FILTER_SANITIZE_URL );
+        $filtered_urls = apply_filters( 'blnotifier_omitted_' . $type, $omit_urls );
+        return array_map( 'sanitize_text_field', $filtered_urls );
     } // End get()
 
 

@@ -1040,6 +1040,7 @@ class BLNOTIFIER_HELPERS {
         // Skip if omitted
         } elseif ( (new BLNOTIFIER_OMITS)->is_omitted( $link, 'links' ) ) {
             $status[ 'text' ] = 'Omitted';
+            $status[ 'type' ] = 'omitted';
             return $status;
         
         // If the link is blank

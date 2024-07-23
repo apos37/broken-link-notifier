@@ -651,8 +651,11 @@ class BLNOTIFIER_RESULTS {
      * @param string $link
      * @return boolean
      */
-    public function remove( $link ) {
-        if ( $link_id = post_exists( $link, '', '', $this->post_type ) ) {
+    public function remove( $link, $link_id = false ) {
+        if ( !$link_id ) {
+            $link_id = post_exists( $link, '', '', $this->post_type );
+        }
+        if ( $link_id ) {
             if ( wp_delete_post( $link_id ) ) {
                 return true;
             }
@@ -958,8 +961,8 @@ class BLNOTIFIER_RESULTS {
             $status = $HELPERS->check_link( $link );
 
             // If it's good now, remove the old post
-            if ( $status[ 'type' ] == 'good' ) {
-                $remove = $this->remove( $HELPERS->str_replace_on_link( $link ) );
+            if ( $status[ 'type' ] == 'good' || $status[ 'type' ] == 'omitted' ) {
+                $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $post_id );
                 if ( $remove ) {
                     $result[ 'type' ] = 'success';
                     $result[ 'status' ] = $status;
@@ -967,30 +970,32 @@ class BLNOTIFIER_RESULTS {
                     $result[ 'post_id' ] = $post_id;
                 } else {
                     $result[ 'type' ] = 'error';
-                    $result[ 'msg' ] = 'Could not remove link.';
+                    $result[ 'msg' ] = 'Could not remove '.$status[ 'type' ].' link. Please try again.';
                 }
 
             // If it's still not good, but doesn't have the same code, update it
             } elseif ( $code !== $status[ 'code' ] ) {
-                $remove = $this->remove( $HELPERS->str_replace_on_link( $link ) );
+                $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $post_id );
                 if ( $remove ) {
                     $result[ 'type' ] = 'success';
                     $result[ 'status' ] = $status;
                     $result[ 'link' ] = $link;
                     $result[ 'post_id' ] = $post_id;
+
+                    // Re-add it with new code
+                    $this->add( [
+                        'type'     => $status[ 'type' ],
+                        'code'     => $status[ 'code' ],
+                        'text'     => $status[ 'text' ],
+                        'link'     => $status[ 'link' ],
+                        'source'   => get_the_permalink( $post_id ),
+                        'author'   => get_current_user_id(),
+                        'location' => 'content'
+                    ] );
                 } else {
                     $result[ 'type' ] = 'error';
-                    $result[ 'msg' ] = 'Could not remove link.';
+                    $result[ 'msg' ] = 'Could not update link with new code. Please try again.';
                 }
-                $this->add( [
-                    'type'     => $status[ 'type' ],
-                    'code'     => $status[ 'code' ],
-                    'text'     => $status[ 'text' ],
-                    'link'     => $status[ 'link' ],
-                    'source'   => get_the_permalink( $post_id ),
-                    'author'   => get_current_user_id(),
-                    'location' => 'content'
-                ] );
             } else {
                 $result[ 'type' ] = 'success';
                 $result[ 'status' ] = $status;

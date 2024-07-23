@@ -2,9 +2,9 @@
 Contributors: apos37
 Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
-Tested up to: 6.5.4
+Tested up to: 6.6.1
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -108,6 +108,10 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.1.1 =
+* Update: Auto-delete omitted links on Results page
+* Fix: Some links not being deleted due to special characters
+
 = 1.1.0 =
 * Fix: YouTube links showing broken
 
