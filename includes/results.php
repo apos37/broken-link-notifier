@@ -450,7 +450,7 @@ class BLNOTIFIER_RESULTS {
                     }
                     $nonce = wp_create_nonce( 'blnotifier_scan_single' );
                     $actions[] = '<span class="scan"><a class="scan-page" href="'.(new BLNOTIFIER_MENU)->get_plugin_page( 'scan-single' ).'&scan='.$source_url.'&_wpnonce='.$nonce.'" target="_blank">Scan Page</a></span>';
-                    $actions[] = '<span class="edit"><a href="/'.BLNOTIFIER_ADMIN_DIR.'/post.php?post='.$source_id.'&action=edit">Edit</a></span>';
+                    $actions[] = '<span class="edit"><a href="'.admin_url( 'post.php' ).'?post='.$source_id.'&action=edit">Edit</a></span>';
                     if ( is_plugin_active( 'cornerstone/cornerstone.php' ) ) {
                         $actions[] = '<span class="edit-in-cornerstone"><a href="'.home_url( '/cornerstone/edit/'.$source_id ).'">Edit in Cornerstone</a></span>';
                     }
@@ -1034,14 +1034,14 @@ class BLNOTIFIER_RESULTS {
         }
 
         // CSS
-        wp_enqueue_style( 'front_end_css', BLNOTIFIER_PLUGIN_CSS_PATH.'results-front.css' );
+        wp_enqueue_style( 'front_end_css', BLNOTIFIER_PLUGIN_CSS_PATH.'results-front.css', [], BLNOTIFIER_VERSION );
 
         // Nonce
         $nonce = wp_create_nonce( $this->nonce_blinks );
 
         // Javascript
         $handle = 'front_end_js';
-        wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-front.js', [ 'jquery' ], BLNOTIFIER_VERSION ); 
+        wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-front.js', [ 'jquery' ], BLNOTIFIER_VERSION, true ); 
         wp_localize_script( $handle, 'blnotifier_front_end', [
             'show_in_console' => filter_var( get_option( 'blnotifier_show_in_console' ), FILTER_VALIDATE_BOOLEAN ),
             'admin_dir'       => BLNOTIFIER_ADMIN_DIR,
@@ -1067,7 +1067,7 @@ class BLNOTIFIER_RESULTS {
         if ( $screen == 'edit.php' && $post_type == 'blnotifier-results' ) {
             $nonce = wp_create_nonce( $this->nonce_rescan );
             $handle = 'blnotifier_results_back_end_script';
-            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-back.js', [ 'jquery' ], BLNOTIFIER_VERSION );
+            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-back.js', [ 'jquery' ], BLNOTIFIER_VERSION, true );
             wp_localize_script( $handle, 'blnotifier_back_end', [
                 'nonce'           => $nonce,
                 'ajaxurl'         => admin_url( 'admin-ajax.php' )

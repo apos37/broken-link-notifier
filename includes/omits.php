@@ -414,7 +414,7 @@ class BLNOTIFIER_OMITS {
             }
             $nonce = wp_create_nonce( $this->nonce );
             $handle = 'blnotifier_omits_script';
-            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'omits.js', [ 'jquery' ], BLNOTIFIER_VERSION );
+            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'omits.js', [ 'jquery' ], BLNOTIFIER_VERSION, true );
             wp_localize_script( $handle, 'blnotifier_omit', [
                 'scan_type' => $tab,
                 'nonce'     => $nonce,

@@ -53,6 +53,7 @@ class BLNOTIFIER_MENU {
             'scan-single' => [ __( 'Page Scan', 'broken-link-notifier' ) ],
             'scan-multi'  => [ __( 'Multi-Scan', 'broken-link-notifier' ) ],
             'settings'    => [ __( 'Settings', 'broken-link-notifier' ) ],
+            'link-search' => [ __( 'Link Search', 'broken-link-notifier' ) ],
             'help'        => [ __( 'Help', 'broken-link-notifier' ) ],
         ];
 
@@ -582,7 +583,7 @@ class BLNOTIFIER_MENU {
         $tab = (new BLNOTIFIER_HELPERS)->get_tab();
         if ( ( $screen == $options_page && $tab == 'settings' ) ) {
             $handle = 'blnotifier_settings_script';
-            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'settings.js', [ 'jquery' ], BLNOTIFIER_VERSION );
+            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'settings.js', [ 'jquery' ], BLNOTIFIER_VERSION, true );
             wp_enqueue_script( $handle );
             wp_enqueue_script( 'jquery' );
         }

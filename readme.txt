@@ -2,9 +2,9 @@
 Contributors: apos37
 Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
-Tested up to: 6.6.1
+Tested up to: 6.6.2
 Requires PHP: 7.4
-Stable tag: 1.1.1
+Stable tag: 1.1.3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -108,6 +108,15 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.1.3.1 =
+* Fix: Add full path to "Edit" link to support multisite
+
+= 1.1.3 =
+* Update: Added a link search page
+
+= 1.1.2 =
+* Fix: Warnings from Plugin Checker
+
 = 1.1.1 =
 * Update: Auto-delete omitted links on Results page
 * Fix: Some links not being deleted due to special characters

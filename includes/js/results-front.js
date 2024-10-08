@@ -17,16 +17,16 @@ jQuery( $ => {
         console.log( 'Looking for highlights; checking for broken links paused.' );
         const blink = urlParams.get( 'blink' );
         $.each( elements, function( tag, attr ) {
-            $( tag ).each( function( index ) {
+            $( tag ).not( '#wpadminbar ' + tag ).each( function( index ) {
                 const link = $( this ).attr( attr );
                 if ( link !== undefined && link.includes( blink ) ) {
                     $( this ).addClass( 'glowText' );
                     if ( $( this ).is( ':hidden' ) ) {
-                        var msg = 'It looks like the link is hidden. To find it, try searching for it in your browser\'s Developer console.\n' + link;
+                        var msg = 'It looks like one or more of the links are hidden. To find them, try searching for it in your browser\'s Developer console.';
                         console.log( msg );
                         alert( msg );
                     } else {
-                        console.log( 'The element should glow yellow if it is visible on the page. If you do not see it on the page, then it is hidden somewhere. Check any JavaScript elements, too. You can try searching for it in your browser\'s Developer console.\n' + link );
+                        console.log( 'The element should glow yellow if it is visible on the page. If you do not see it on the page, then it is hidden somewhere. Check any JavaScript elements, too. You can try searching for it in your browser\'s Developer console.' );
                     }
                 }
             } )

@@ -278,7 +278,7 @@ class BLNOTIFIER_HELPERS {
             'posts_per_page'    => -1,
             'post_status'       => 'publish',
             'post_type'         => 'blnotifier-results',
-            'meta_query' => [
+            'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                 [
                     'key'   => 'type',
                     'value' => 'broken',
@@ -556,7 +556,7 @@ class BLNOTIFIER_HELPERS {
                     </div>
                     <div class="plugin-card-bottom">
                         <div class="vers column-rating">
-                            <div class="star-rating"><span class="screen-reader-text"><?php echo abs( $rating ); ?> rating based on <?php echo absint( $returned_object->num_ratings ); ?> ratings</span>
+                            <div class="star-rating"><span class="screen-reader-text"><?php echo esc_attr( abs( $rating ) ); ?> star rating based on <?php echo absint( $returned_object->num_ratings ); ?> ratings</span>
                                 <?php echo wp_kses_post( $this->convert_to_stars( abs( $rating ) ) ); ?>
                             </div>					
                             <span class="num-ratings" aria-hidden="true">(<?php echo absint( $returned_object->num_ratings ); ?>)</span>
@@ -697,7 +697,7 @@ class BLNOTIFIER_HELPERS {
         $id = false;
 
         // Get the host
-        $parse = parse_url( $link );
+        $parse = wp_parse_url( $link );
         if ( isset( $parse[ 'host' ] ) && isset( $parse[ 'path' ] ) ) {
             $host = $parse[ 'host' ];
             $path = $parse[ 'path' ];
