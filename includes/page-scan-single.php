@@ -167,7 +167,7 @@ if ( $s != '' ) {
                 // Edit buttons
                 $buttons = [
                     '<a class="button button-secondary view" href="'.$permalink.'" target="_blank">View</a>',
-                    '<a class="button button-secondary edit" href="/'.BLNOTIFIER_ADMIN_DIR.'/post.php?post='.$post_id.'&action=edit">Edit</a>',
+                    '<a class="button button-secondary edit" href="'.add_query_arg( [ 'post' => $post_id, 'action' => 'edit' ], admin_url( 'post.php' ) ).'">Edit</a>',
                 ];
                 if ( is_plugin_active( 'cornerstone/cornerstone.php' ) ) {
                     $buttons[] = '<a class="button button-secondary edit-in-cornerstone" href="'.home_url( '/cornerstone/edit/'.$post_id ).'">Edit in Cornerstone</a>';

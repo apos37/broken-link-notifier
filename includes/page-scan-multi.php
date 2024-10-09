@@ -27,8 +27,15 @@ $post_types = !empty( $post_types ) ? array_keys( $post_types ) : [ 'post', 'pag
 foreach ( $post_types as $post_type ) {
     $count = $HELPERS->count_posts_by_status( 'publish', $post_type );
     $post_type_name = $HELPERS->get_post_type_name( $post_type );
+    $url = add_query_arg( [
+        'post_status' => 'publish',
+        'post_type'   => $post_type,
+        'mode'        => 'list',
+        'blinks'      => 'true',
+        '_wpnonce'    => wp_create_nonce( 'blnotifier_blinks' )
+    ], admin_url( 'edit.php' ) );
     ?>
-    <a href="/<?php echo esc_html( BLNOTIFIER_ADMIN_DIR ); ?>/edit.php?post_status=publish&post_type=<?php echo esc_attr( $post_type ); ?>&mode=list&blinks=true&_wpnonce=<?php echo sanitize_key( wp_create_nonce( 'blnotifier_blinks' ) ); ?>" target="_blank" class="scan-button button button-primary" style="margin-right: 10px;">Scan <?php echo esc_html( $post_type_name ); ?>  (<?php echo absint( $count ); ?>)</a>
+    <a href="<?php echo esc_url( $url ); ?>" target="_blank" class="scan-button button button-primary" style="margin-right: 10px;">Scan <?php echo esc_html( $post_type_name ); ?>  (<?php echo absint( $count ); ?>)</a>
     <?php
 }
 ?>
