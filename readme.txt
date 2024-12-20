@@ -2,9 +2,9 @@
 Contributors: apos37
 Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
-Tested up to: 6.6.2
+Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 1.1.3.2
+Stable tag: 1.1.3.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -30,6 +30,8 @@ With "Broken Link Notifier", you can:
 
 This plugin is a must-have for website owners, developers, and SEO enthusiasts who want to guarantee a smooth and error-free browsing experience for their audience!
 
+**IF THIS PLUGIN FLAGS SOME LINKS AS BROKEN WHEN THEY ARE NOT, PLEASE READ THE FAQ BELOW**
+
 == Installation ==
 1. Install the plugin from your website's plugin directory, or upload the plugin to your plugins folder. 
 2. Activate it.
@@ -41,11 +43,10 @@ This plugin is a must-have for website owners, developers, and SEO enthusiasts w
 7. If you have any questions, please reach out to me on my [Discord support server](https://discord.gg/3HnzNEJVnR). I am happy to assist you or fix any issues you might have with the plugin.
 
 == Frequently Asked Questions == 
-= Where can I request features and get further support? =
-Join my [Discord support server](https://discord.gg/3HnzNEJVnR)
-
 = Why do some links show as broken when they are not? =
 If the link works fine and it's still being flagged as broken, then it is likely either redirecting to another page or there is an issue with the page's response headers, and there's nothing we can do about it. If it is a redirect on your own site due to permalink modification, then it's better to fix the link instead of unnecessarily redirecting. You may use the Omit option to omit false positives from future scans as well. If you are seeing a pattern with multiple links from the same domain, you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain.
+
+If you feel that there is another issue at hand, I am happy to look into it further with you. You can join my [Discord support server](https://discord.gg/3HnzNEJVnR) or use the [support forum](https://wordpress.org/support/plugin/broken-link-notifier/) here on WP.org.
 
 = What causes a link to give a warning? =
 Warnings mean the link was found, but they may be unsecure or slow to respond. If you are getting too many warnings due to timeouts, try increasing your timeout in Settings. This will just result in longer wait times, but with more accuracy. You can also disable warnings if you have too many of them.
@@ -93,6 +94,9 @@ Yes, there are plenty. The following hooks are available:
 * `blnotifier_msteams_args` ( Array $args, Array $flagged, String $source_url ) — Filter the Microsoft Teams webhook args
 * `blnotifier_strings_to_replace` ( Array $strings_to_replace ) — Filter the strings to replace on the link
 
+= Where can I request features and get further support? =
+Join my [Discord support server](https://discord.gg/3HnzNEJVnR)
+
 == Demo ==
 https://youtu.be/B2FwRrDJLGs
 
@@ -108,11 +112,14 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.1.3.3 =
+* Fix: Added support for links starting with // (props pauleipper)
+
 = 1.1.3.2 =
-* Fix: Add full path to multi scan links to support multisite (props oddmoster)
+* Fix: Added full path to multi scan links to support multisite (props oddmoster)
 
 = 1.1.3.1 =
-* Fix: Add full path to "Edit" link to support multisite (props oddmoster)
+* Fix: Added full path to "Edit" link to support multisite (props oddmoster)
 
 = 1.1.3 =
 * Update: Added a link search page

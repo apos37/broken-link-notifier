@@ -997,6 +997,16 @@ class BLNOTIFIER_HELPERS {
         // String replace
         $link = $this->str_replace_on_link( $link );
 
+        // Handle protocol-relative URLs (those starting with //)
+        if ( str_starts_with( $link, '//' ) ) {
+
+            // Get the current protocol (http or https)
+            $protocol = isset( $_SERVER[ 'HTTPS' ] ) && sanitize_text_field( $_SERVER[ 'HTTPS' ] ) === 'on' ? 'https' : 'http';
+            
+            // Prepend the protocol to the link
+            $link = $protocol . ':' . $link;
+        }
+
         // Assuming the link is okay
         $status = [
             'type' => 'good',
@@ -1053,7 +1063,7 @@ class BLNOTIFIER_HELPERS {
             ];
             
         // If the match is local, easy check
-        } elseif ( str_starts_with( $link, home_url() ) || str_starts_with( $link, '/' ) ) {
+        } elseif ( str_starts_with( $link, home_url() ) || ( str_starts_with( $link, '/' ) && !str_starts_with( $link, '//' ) ) ) {
            
             // Check locally first
             if ( !url_to_postid( $link ) ) {

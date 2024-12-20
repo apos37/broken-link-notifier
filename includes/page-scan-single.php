@@ -208,7 +208,7 @@ if ( $s != '' ) {
                     }
 
                     // Link it
-                    if ( str_starts_with( $link, '/' ) ) {
+                    if ( str_starts_with( $link, '/' ) && !str_starts_with( $link, '//' ) ) {
                         $check_link = home_url().$link;
                     } else {
                         $check_link = $link;
