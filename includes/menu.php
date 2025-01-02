@@ -439,7 +439,12 @@ class BLNOTIFIER_MENU {
      */
     public function field_checkboxes( $args ) {
         $value = get_option( $args[ 'name' ] );
-        $value = !empty( $value ) ? array_keys( $value ) : $args[ 'default' ];
+        if ( get_option( 'blnotifier_has_updated_settings' ) ) {
+            $value = !empty( $value ) ? array_keys( $value ) : [];
+        } else {
+            $value = $args[ 'default' ];
+        }
+        
         if ( isset( $args[ 'options' ] ) ) {
             foreach ( $args[ 'options' ] as $key => $label ) {
                 $checked = in_array( $key, $value ) ? 'checked' : '';
@@ -464,7 +469,11 @@ class BLNOTIFIER_MENU {
      * @return boolean
      */
     public function sanitize_checkboxes( $value ) {
-        return filter_var_array( $value, FILTER_VALIDATE_BOOLEAN );
+        if ( !is_null( $value ) ) {
+            return filter_var_array( $value, FILTER_VALIDATE_BOOLEAN );
+        } else {
+            return [];
+        }
     } // End sanitize_checkboxes()
 
 

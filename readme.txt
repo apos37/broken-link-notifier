@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 1.1.3.3
+Stable tag: 1.1.3.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -112,6 +112,12 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.1.3.5 =
+* Fix: Fatal error on helpers.php at line 1001
+
+= 1.1.3.4 =
+* Fix: Fatal error when trying to uncheck all post types in settings (props @ravanh)
+
 = 1.1.3.3 =
 * Fix: Added support for links starting with // (props pauleipper)
 

@@ -998,7 +998,7 @@ class BLNOTIFIER_HELPERS {
         $link = $this->str_replace_on_link( $link );
 
         // Handle protocol-relative URLs (those starting with //)
-        if ( str_starts_with( $link, '//' ) ) {
+        if ( !is_array( $link ) && str_starts_with( $link, '//' ) ) {
 
             // Get the current protocol (http or https)
             $protocol = isset( $_SERVER[ 'HTTPS' ] ) && sanitize_text_field( $_SERVER[ 'HTTPS' ] ) === 'on' ? 'https' : 'http';
