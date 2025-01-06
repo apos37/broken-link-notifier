@@ -258,26 +258,56 @@ class BLNOTIFIER_MENU {
             );
         }
 
-        // Timeout
-        $timeout_option_name = 'blnotifier_timeout';
-        register_setting( $this->page_slug, $timeout_option_name, 'absint' );
-        add_settings_field(
-            $timeout_option_name,
-            'Timeout (seconds)',
-            [ $this, 'field_number' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $timeout_option_name,
-                'name'     => $timeout_option_name,
+        // Define an array of number fields
+        $number_fields = [
+            [ 
+                'name'     => 'timeout',
+                'label'    => 'Timeout (seconds)',
                 'default'  => 5,
                 'min'      => 5,
                 'comments' => 'How long to try to connect to a link\'s server before quitting'
+            ],
+            [ 
+                'name'     => 'max_redirects',
+                'label'    => 'Max Redirects',
+                'default'  => 5,
+                'min'      => 1,
+                'comments' => 'Maximum number of redirects before giving up on a link (will only be used if you allow redirects below)'
             ]
-        );
+        ];
+
+        // Loop through the array to add number fields
+        foreach ( $number_fields as $field ) {
+            $field_option_name = 'blnotifier_' . $field[ 'name' ];
+            
+            // Register the field with a sanitization callback
+            register_setting( $this->page_slug, $field_option_name, 'absint' );
+            
+            // Add the number field to the settings page
+            add_settings_field(
+                $field_option_name,
+                $field[ 'label' ],
+                [ $this, 'field_number' ],
+                $this->page_slug,
+                'general',
+                [
+                    'class'    => $field_option_name,
+                    'name'     => $field_option_name,
+                    'default'  => $field[ 'default' ],
+                    'min'      => $field[ 'min' ],
+                    'comments' => $field[ 'comments' ]
+                ]
+            );
+        }
 
         // Other checkboxes
         $checkboxes = [
+            [ 
+                'name'     => 'allow_redirects',
+                'label'    => 'Allow Redirects',
+                'default'  => true,
+                'comments' => 'Changes the method of checking for broken links from <code>HEAD</code> to <code>GET</code>'
+            ],
             [ 
                 'name'     => 'enable_warnings',
                 'label'    => 'Enable warnings',
@@ -415,7 +445,7 @@ class BLNOTIFIER_MENU {
             esc_html( $args[ 'name' ] ),
             esc_html( $args[ 'name' ] ),
             esc_html( checked( 1, $value, false ) ),
-            esc_html( $args[ 'comments' ] )
+            wp_kses( $args[ 'comments' ], [ 'code' => [] ] )
         );        
     } // End field_checkbox()
 

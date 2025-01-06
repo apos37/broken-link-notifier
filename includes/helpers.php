@@ -815,8 +815,14 @@ class BLNOTIFIER_HELPERS {
     public function check_url_status_code( $url, $timeout = null ) {
         // Get timeout
         if ( is_null( $timeout ) ) {
-            $timeout = get_option( 'blnotifier_timeout', 5 );
+            $timeout = absint( get_option( 'blnotifier_timeout', 5 ) );
         }
+
+        // Get the 'allow_redirects' option and sanitize it
+        $allow_redirects = filter_var( get_option( 'blnotifier_allow_redirects' ), FILTER_VALIDATE_BOOLEAN );
+
+        // Determine the request method based on allow_redirects option
+        $request_method = $allow_redirects ? 'GET' : 'HEAD';
 
         // Add the home url
         if ( str_starts_with( $url, '/' ) ) {
@@ -833,11 +839,11 @@ class BLNOTIFIER_HELPERS {
         // The request args
         // See https://developer.wordpress.org/reference/classes/WP_Http/request/
         $http_request_args = apply_filters( 'blnotifier_http_request_args', [
-            'method'      => 'HEAD',
-            'timeout'     => $timeout, // How long the connection should stay open in seconds. Default 5.
-            'redirection' => 5,        // Number of allowed redirects. Not supported by all transports. Default 5.
-            'httpversion' => '1.1',    // Version of the HTTP protocol to use. Accepts '1.0' and '1.1'. Default '1.0'.
-            'sslverify'   => get_option( 'blnotifier_ssl_verify', true )
+            'method'      => $request_method,
+            'timeout'     => $timeout,
+            'redirection' => absint( get_option( 'blnotifier_max_redirects', 5 ) ),
+            'httpversion' => '1.1',
+            'sslverify'   => filter_var( get_option( 'blnotifier_ssl_verify', true ), FILTER_VALIDATE_BOOLEAN )
         ], $url );
 
         // Check the link
