@@ -179,7 +179,7 @@ class BLNOTIFIER_MENU {
         register_setting( $this->page_slug, $enable_emailing_option_name, [ $this, 'sanitize_checkbox' ] );
         add_settings_field(
             $enable_emailing_option_name,
-            'Enable emailing',
+            'Enable Emailing',
             [ $this, 'field_checkbox' ],
             $this->page_slug,
             'general',
@@ -196,7 +196,7 @@ class BLNOTIFIER_MENU {
         register_setting( $this->page_slug, $emails_option_name, 'sanitize_text_field' );
         add_settings_field(
             $emails_option_name,
-            'Emails to send notifications',
+            'Emails to Send Notifications',
             [ $this, 'field_emails' ],
             $this->page_slug,
             'general',
@@ -228,7 +228,7 @@ class BLNOTIFIER_MENU {
             register_setting( $this->page_slug, $enable_option_name, [ $this, 'sanitize_checkbox' ] );
             add_settings_field(
                 $enable_option_name,
-                'Enable '.$webhook_field[ 'label' ].' notifications',
+                'Enable '.$webhook_field[ 'label' ].' Notifications',
                 [ $this, 'field_checkbox' ],
                 $this->page_slug,
                 'general',
@@ -310,37 +310,37 @@ class BLNOTIFIER_MENU {
             ],
             [ 
                 'name'     => 'enable_warnings',
-                'label'    => 'Enable warnings',
+                'label'    => 'Enable Warnings',
                 'default'  => true,
                 'comments' => 'Includes warnings in all scans'
             ],
             [ 
                 'name'     => 'include_images', 
-                'label'    => 'Check for broken images',
+                'label'    => 'Check for Broken Images',
                 'default'  => true,
                 'comments' => 'Includes image src links in all scans'
             ],
             [ 
                 'name'     => 'ssl_verify', 
-                'label'    => 'Warn if SSL is not verified',
+                'label'    => 'Warn if SSL is Not Verified',
                 'default'  => true,
                 'comments' => 'How long to try to connect to a link\'s server before quitting'
             ],
             [ 
                 'name'     => 'scan_header', 
-                'label'    => 'Scan <code>&#x3c;header&#x3e;</code> elements', 
+                'label'    => 'Scan <code>&#x3c;header&#x3e;</code> Elements', 
                 'default'  => false,
                 'comments' => 'Only applies to page load scans - the header elements usually include the navigation menu(s) at the top of the page'
             ],
             [ 
                 'name'     => 'scan_footer', 
-                'label'    => 'Scan <code>&#x3c;footer&#x3e;</code> elements', 
+                'label'    => 'Scan <code>&#x3c;footer&#x3e;</code> Elements', 
                 'default'  => false,
                 'comments' => 'Only applies to page load scans - the footer elements include any links at the bottom of every page'
             ],
             [ 
                 'name'     => 'show_in_console', 
-                'label'    => 'Show results in dev console', 
+                'label'    => 'Show Results in Dev Console', 
                 'default'  => false,
                 'comments' => 'Only applies to page load scans'
             ]
@@ -368,7 +368,7 @@ class BLNOTIFIER_MENU {
         register_setting( $this->page_slug, $post_types_option_name, [ $this, 'sanitize_checkboxes' ] );
         add_settings_field(
             $post_types_option_name,
-            'Enable Multi-Scan for these post types',
+            'Enable Multi-Scan for These Post Types',
             [ $this, 'field_checkboxes' ],
             $this->page_slug,
             'general',

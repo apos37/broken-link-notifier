@@ -181,7 +181,34 @@ class BLNOTIFIER_FULL_SCAN {
                     $results = '<em>Skipping since this page is only redirecting to another page</em>';
 
                 // Search the content
-                } elseif ( $content = apply_filters( 'the_content', $get_the_content ) ) {
+                // } elseif ( $content = apply_filters( 'the_content', $get_the_content ) ) {
+                } elseif ( $get_the_content ) {
+
+                    // Detect and handle redirections
+                    $redirect_detected = false;
+
+                    // Add a custom filter to detect redirects
+                    add_filter( 'wp_redirect', function ( $location ) use ( &$redirect_detected ) {
+                        $redirect_detected = true; // Mark redirection as detected
+                        return false; // Prevent the actual redirection
+                    }, 10, 1);
+
+                    // Start output buffering to suppress unexpected output
+                    ob_start();
+
+                    try {
+                        // Process shortcodes and expand them in the content
+                        $content = do_shortcode( $get_the_content );
+                    } catch ( Exception $e ) {
+                        error_log( 'Error processing shortcodes: ' . $e->getMessage() );
+                        $content = '';
+                    }
+
+                    // Clear any unexpected output
+                    ob_end_clean();
+
+                    // Remove the wp_redirect filter
+                    remove_filter( 'wp_redirect', '__return_false' );
 
                     // Extract the links
                     $links = $HELPERS->extract_links( $content );
@@ -223,7 +250,7 @@ class BLNOTIFIER_FULL_SCAN {
                                 // Encode the link
                                 $page_url = urlencode( $link );
 
-                                // If it is broken, then return it
+                                // If it is broken, then display this with JS
                                 $results .= '<li class="link" data-link="'.$link.'" data-post-id="'.$post_id.'"><strong><a class="url" href="'.$link.'" target="_blank">'.$link.'</a></strong><div class="status"></div><div class="actions"><a class="omit-link" href="#">Omit</a> | <a href="'.$permalink.'?blink='.$page_url.'" target="_blank">Find On Page</a></div></li>';
                             }
 
@@ -236,7 +263,7 @@ class BLNOTIFIER_FULL_SCAN {
 
                 // No content
                 } else {
-                    $results = '<em>No Content Found</em>';
+                    $results = '<em>No content found</em>';
                 }
             }
 

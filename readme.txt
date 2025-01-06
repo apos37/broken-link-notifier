@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 1.1.3.6
+Stable tag: 1.1.3.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -112,6 +112,9 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.1.3.7 =
+* Fix: Multi-Scan redirecting if content is not found or if pages have shortcodes that redirect.
+
 = 1.1.3.6 =
 * Update: Added settings for allowing redirects and setting max redirects amount (props @ravanh)
 

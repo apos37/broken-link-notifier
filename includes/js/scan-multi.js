@@ -1,5 +1,7 @@
+console.log( 'Scan Full JS Loaded  before jquery...' );
+
 jQuery( $ => {
-    // console.log( 'Scan Full JS Loaded...' );
+    console.log( 'Scan Full JS Loaded...' );
 
     // Nonce
     var nonce = blnotifier_scan_multi.nonce;
