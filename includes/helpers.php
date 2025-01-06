@@ -879,8 +879,8 @@ class BLNOTIFIER_HELPERS {
             208 => 'Already Reported', // WebDAV; RFC 5842
             226 => 'IM Used', // RFC 3229
             300 => 'Multiple Choices',
-            301 => 'Moved Permanently',
-            302 => 'Found', // Previously "Moved temporarily"
+            301 => 'Redirected: Moved Permanently',
+            302 => 'Redirected: Found', // Previously "Moved temporarily"
             303 => 'See Other', // since HTTP/1.1
             304 => 'Not Modified', // RFC 7232
             305 => 'Use Proxy', // since HTTP/1.1
@@ -1096,7 +1096,7 @@ class BLNOTIFIER_HELPERS {
         // Return the good status
         return $status;
     } // End check_link
-        
+
 }
 
 

@@ -271,7 +271,7 @@ class BLNOTIFIER_MENU {
                 'name'     => 'max_redirects',
                 'label'    => 'Max Redirects',
                 'default'  => 5,
-                'min'      => 1,
+                'min'      => 0,
                 'comments' => 'Maximum number of redirects before giving up on a link (will only be used if you allow redirects below)'
             ]
         ];

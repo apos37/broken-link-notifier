@@ -184,83 +184,87 @@ class BLNOTIFIER_FULL_SCAN {
                 // } elseif ( $content = apply_filters( 'the_content', $get_the_content ) ) {
                 } elseif ( $get_the_content ) {
 
-                    // Detect and handle redirections
-                    $redirect_detected = false;
-
-                    // Add a custom filter to detect redirects
-                    add_filter( 'wp_redirect', function ( $location ) use ( &$redirect_detected ) {
-                        $redirect_detected = true; // Mark redirection as detected
-                        return false; // Prevent the actual redirection
-                    }, 10, 1);
+                    // Prevent any redirects
+                    add_filter( 'wp_redirect', '__return_false', 1 );
+                    add_filter( 'wp_safe_redirect', '__return_false', 1 );
 
                     // Start output buffering to suppress unexpected output
                     ob_start();
 
                     try {
                         // Process shortcodes and expand them in the content
-                        $content = do_shortcode( $get_the_content );
+                        $content = apply_filters( 'the_content', $get_the_content );
                     } catch ( Exception $e ) {
                         error_log( 'Error processing shortcodes: ' . $e->getMessage() );
-                        $content = '';
+                        $redirect_detected = true;
                     }
 
                     // Clear any unexpected output
                     ob_end_clean();
 
-                    // Remove the wp_redirect filter
-                    remove_filter( 'wp_redirect', '__return_false' );
+                    // After processing the content, remove the filters to restore redirect functionality
+                    remove_filter( 'wp_redirect', '__return_false', 1 );
+                    remove_filter( 'wp_safe_redirect', '__return_false', 1 );
 
-                    // Extract the links
-                    $links = $HELPERS->extract_links( $content );
+                    // Handle redirects
+                    if ( $redirect_detected ) {
+                        $results = '<em>This page redirects, skipping...</em>';
 
-                    // Display the number of broken links found
-                    if ( !empty( $links ) ) {
-
-                        // Count
-                        $count_links = count( $links );
-
-                         // Start container
-                        $results = '<div id="bln-results-'.$post_id.'" class="bln-scan-results">
-                            <span class="progress dotdotdot"><em>Pending</em></span>';
-
-                            // HELPERS
-                            $HELPERS = new BLNOTIFIER_HELPERS;
-
-                            // Add the counts
-                            $results .= '<div id="bln-counts-'.$post_id.'" class="bln-count-cont">
-                                <span class="count-links"><strong>'.$count_links.'</strong> link'.$HELPERS->include_s( $count_links ).' found</span>
-                                <span class="count-broken-links"><strong>0</strong> broken link(s) found</span>
-                                <span class="count-warning-links"><strong>0</strong> warning link(s) found</span>
-                                <span class="count-error-links"><strong>0</strong> error(s) occured</span>
-                                <div class="time-loaded">Results generated in <strong><span class="timing">0</span> seconds</strong></div>
-                            </div>';
-
-                        // End container
-                        $results .= '</div>';
-
-                        // Start a list
-                        $results .= '<ul id="bln-links-'.$post_id.'" class="bln-links" data-post-id="'.absint( $post_id ).'" data-total-count="'.$count_links.'">';
-
-                            // For each link...
-                            foreach ( $links as $link ) {
-
-                                // Increase count for link
-                                $count_links++;
-
-                                // Encode the link
-                                $page_url = urlencode( $link );
-
-                                // If it is broken, then display this with JS
-                                $results .= '<li class="link" data-link="'.$link.'" data-post-id="'.$post_id.'"><strong><a class="url" href="'.$link.'" target="_blank">'.$link.'</a></strong><div class="status"></div><div class="actions"><a class="omit-link" href="#">Omit</a> | <a href="'.$permalink.'?blink='.$page_url.'" target="_blank">Find On Page</a></div></li>';
-                            }
-
-                        // End the list
-                        $results .= '</ul>';
-
+                    // Or else extract the links
                     } else {
-                        $results = '<em>No links found</em>';
-                    }
 
+                        // Extract the links
+                        $links = $HELPERS->extract_links( $content );
+
+                        // Display the number of broken links found
+                        if ( !empty( $links ) ) {
+
+                            // Count
+                            $count_links = count( $links );
+
+                            // Start container
+                            $results = '<div id="bln-results-'.$post_id.'" class="bln-scan-results">
+                                <span class="progress dotdotdot"><em>Pending</em></span>';
+
+                                // HELPERS
+                                $HELPERS = new BLNOTIFIER_HELPERS;
+
+                                // Add the counts
+                                $results .= '<div id="bln-counts-'.$post_id.'" class="bln-count-cont">
+                                    <span class="count-links"><strong>'.$count_links.'</strong> link'.$HELPERS->include_s( $count_links ).' found</span>
+                                    <span class="count-broken-links"><strong>0</strong> broken link(s) found</span>
+                                    <span class="count-warning-links"><strong>0</strong> warning link(s) found</span>
+                                    <span class="count-error-links"><strong>0</strong> error(s) occured</span>
+                                    <div class="time-loaded">Results generated in <strong><span class="timing">0</span> seconds</strong></div>
+                                </div>';
+
+                            // End container
+                            $results .= '</div>';
+
+                            // Start a list
+                            $results .= '<ul id="bln-links-'.$post_id.'" class="bln-links" data-post-id="'.absint( $post_id ).'" data-total-count="'.$count_links.'">';
+
+                                // For each link...
+                                foreach ( $links as $link ) {
+
+                                    // Increase count for link
+                                    $count_links++;
+
+                                    // Encode the link
+                                    $page_url = urlencode( $link );
+
+                                    // If it is broken, then display this with JS
+                                    $results .= '<li class="link" data-link="'.$link.'" data-post-id="'.$post_id.'"><strong><a class="url" href="'.$link.'" target="_blank">'.$link.'</a></strong><div class="status"></div><div class="actions"><a class="omit-link" href="#">Omit</a> | <a href="'.$permalink.'?blink='.$page_url.'" target="_blank">Find On Page</a></div></li>';
+                                }
+
+                            // End the list
+                            $results .= '</ul>';
+
+                        } else {
+                            $results = '<em>No links found</em>';
+                        }
+                    }
+                    
                 // No content
                 } else {
                     $results = '<em>No content found</em>';
