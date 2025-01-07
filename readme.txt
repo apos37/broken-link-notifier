@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 1.1.3.8
+Stable tag: 1.1.3.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -70,7 +70,7 @@ We skip links that start with `#` (anchor tags and JavaScript) or `?` (query str
 There are other plugins such as [Better Search Replace by WP Engine](https://wordpress.org/plugins/better-search-replace/) that will quickly replace URLs on your entire site at once.
 
 = Why does my multi-scan page stop loading halfway down? =
-There is likely an issue with the content on that page causing a redirect. We cannot intercept redirected all content unfortunately. If that is the case, you can omit the page being scanned so you can continue scanning the entire page the next time you try.
+There is likely an issue with the content on that page causing a redirect. We cannot intercept all redirected content unfortunately. If that is the case, you can omit the page being scanned so you can continue scanning the entire page the next time you try.
 
 = Are there hooks available for Developers? =
 Yes, there are plenty. The following hooks are available:
@@ -115,11 +115,14 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.1.3.9 =
+* Update: Added field for user agent and option to mark status code 0 as broken instead of warning (props @ravanh)
+
 = 1.1.3.8 =
 * Update: Allowed max redirects to be 0 to show redirect status code instead of the final status code
 
 = 1.1.3.7 =
-* Fix: Multi-Scan redirecting if content is not found or if pages have shortcodes that redirect.
+* Fix: Multi-Scan redirecting if content is not found or if pages have shortcodes that redirect
 
 = 1.1.3.6 =
 * Update: Added settings for allowing redirects and setting max redirects amount (props @ravanh)

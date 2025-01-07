@@ -47,6 +47,10 @@ class BLNOTIFIER_HELPERS {
      */
     public function get_bad_status_codes() {
         $default_codes = [ 666, 308, 400, 404, 408 ];
+        $marking_zero_as_broken = filter_var( get_option( 'blnotifier_mark_code_zero_broken', false ), FILTER_VALIDATE_BOOLEAN );
+        if ( $marking_zero_as_broken ) {
+            $default_codes[] = 0;
+        }
         return filter_var_array( apply_filters( 'blnotifier_bad_status_codes', $default_codes ), FILTER_SANITIZE_NUMBER_INT );
     } // End get_bad_status_codes()
 
@@ -57,13 +61,11 @@ class BLNOTIFIER_HELPERS {
      * @return array
      */
     public function get_warning_status_codes() {
-        $default_codes = [ 0 ];
+        $marking_zero_as_broken = filter_var( get_option( 'blnotifier_mark_code_zero_broken', false ), FILTER_VALIDATE_BOOLEAN );
+        $default_codes = $marking_zero_as_broken ? [] : [ 0 ];
         $default_codes = filter_var_array( apply_filters( 'blnotifier_warning_status_codes', $default_codes ), FILTER_SANITIZE_NUMBER_INT );
-        if ( $this->are_warnings_enabled() ) {
-            return $default_codes;
-        } else {
-            return [];
-        }
+
+        return $this->are_warnings_enabled() ? $default_codes : [];
     } // End get_bad_status_codes()
 
 
@@ -824,6 +826,15 @@ class BLNOTIFIER_HELPERS {
         // Determine the request method based on allow_redirects option
         $request_method = $allow_redirects ? 'GET' : 'HEAD';
 
+        // User agent
+        $user_agent = sanitize_text_field( get_option( 'blnotifier_user_agent' ) );
+        if ( $user_agent ) {
+            $user_agent = str_replace( '{blog_version}', get_bloginfo( 'version' ), $user_agent );
+            $user_agent = str_replace( '{blog_url}', get_bloginfo( 'url' ), $user_agent );
+        } else {
+            $user_agent = 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' );
+        }
+
         // Add the home url
         if ( str_starts_with( $url, '/' ) ) {
             $link = home_url().$url;
@@ -843,8 +854,10 @@ class BLNOTIFIER_HELPERS {
             'timeout'     => $timeout,
             'redirection' => absint( get_option( 'blnotifier_max_redirects', 5 ) ),
             'httpversion' => '1.1',
-            'sslverify'   => filter_var( get_option( 'blnotifier_ssl_verify', true ), FILTER_VALIDATE_BOOLEAN )
+            'sslverify'   => filter_var( get_option( 'blnotifier_ssl_verify', true ), FILTER_VALIDATE_BOOLEAN ),
+            'user-agent'  => $user_agent
         ], $url );
+        ddtt_write_log( $http_request_args );
 
         // Check the link
         $response = wp_remote_get( $link, $http_request_args );

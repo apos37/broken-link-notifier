@@ -19,7 +19,7 @@ jQuery( $ => {
     var nonce = blnotifier_back_end.nonce;
    
     // Scan an individual link
-    const scanLink = async ( link, postID, code ) => {
+    const scanLink = async ( link, postID, code, type ) => {
         console.log( `Scanning link (${link})...` );
 
         // Say it started
@@ -36,7 +36,8 @@ jQuery( $ => {
                 nonce: nonce,
                 link: link,
                 postID: postID,
-                code: code
+                code: code,
+                type: type
             }
         } )
     }
@@ -52,9 +53,10 @@ jQuery( $ => {
             const link = linkSpan.dataset.link;
             const postID = linkSpan.dataset.postId;
             const code = linkSpan.dataset.code;
+            const type = linkSpan.dataset.type;
 
             // Scan it
-            const data = await scanLink( link, postID, code );
+            const data = await scanLink( link, postID, code, type);
             console.log( data );
 
             // Status
@@ -81,11 +83,13 @@ jQuery( $ => {
                 $( `#post-${postID} .bln_type .message` ).text( statusText );
                 $( `#post-${postID} .title .row-actions` ).remove();
                 $( `#post-${postID} .bln_source .row-actions` ).remove();
-            } else if ( code != statusCode ) {
+            } else if ( code != statusCode || type != statusType ) {
                 if ( statusCode == 'ERR_FAILED' ) {
                     text = `Failed to remove link. ${statusText}`;
-                } else {
+                } else if ( code != statusCode ) {
                     text = `Link is still bad, but showing a different code. Old code was ${code}; new code is ${statusCode}.`;
+                } else {
+                    text = `Link is still bad, but showing a different type. Old type was ${type}; new type is ${statusType}.`;
                 }
                 $( `#post-${postID} .bln-type` ).attr( 'class', `bln-type ${statusType}`).text( statusType );
                 var codeLink = 'Code: ' + statusCode;

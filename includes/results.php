@@ -501,7 +501,8 @@ class BLNOTIFIER_RESULTS {
             $link = get_the_title( $post_id );
             $post = get_post( $post_id );
             $code = $post->code;
-            echo '<span id="bln-verify-'.esc_attr( $post_id ).'" class="bln-verify" data-post-id="'.esc_attr( $post_id ).'" data-link="'.esc_html( $link ).'" data-code="'.esc_attr( $code ).'">Pending</span>';
+            $type = $post->type;
+            echo '<span id="bln-verify-'.esc_attr( $post_id ).'" class="bln-verify" data-type="' . esc_attr( $type ) . '" data-post-id="'.esc_attr( $post_id ).'" data-link="'.esc_html( $link ).'" data-code="'.esc_attr( $code ).'">Pending</span>';
         }
     } // End admin_column_content()
     
@@ -950,6 +951,7 @@ class BLNOTIFIER_RESULTS {
         $link = sanitize_text_field( $_REQUEST[ 'link' ] );
         $post_id = isset( $_REQUEST[ 'postID' ] ) ? absint( $_REQUEST[ 'postID' ] ) : false;
         $code = isset( $_REQUEST[ 'code' ] ) ? absint( $_REQUEST[ 'code' ] ) : false;
+        $type = isset( $_REQUEST[ 'type' ] ) ? sanitize_key( $_REQUEST[ 'type' ] ) : false;
 
         // Make sure we have a source URL
         if ( $link ) {
@@ -973,8 +975,8 @@ class BLNOTIFIER_RESULTS {
                     $result[ 'msg' ] = 'Could not remove '.$status[ 'type' ].' link. Please try again.';
                 }
 
-            // If it's still not good, but doesn't have the same code, update it
-            } elseif ( $code !== $status[ 'code' ] ) {
+            // If it's still not good, but doesn't have the same code or type, update it
+            } elseif ( $code !== $status[ 'code' ] || $type !== $status[ 'type' ] ) {
                 $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $post_id );
                 if ( $remove ) {
                     $result[ 'type' ] = 'success';
@@ -982,7 +984,7 @@ class BLNOTIFIER_RESULTS {
                     $result[ 'link' ] = $link;
                     $result[ 'post_id' ] = $post_id;
 
-                    // Re-add it with new code
+                    // Re-add it with new data
                     $this->add( [
                         'type'     => $status[ 'type' ],
                         'code'     => $status[ 'code' ],

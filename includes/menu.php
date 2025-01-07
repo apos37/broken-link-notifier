@@ -258,6 +258,23 @@ class BLNOTIFIER_MENU {
             );
         }
 
+        // Text
+        $user_agent_option_name = 'blnotifier_user_agent';
+        register_setting( $this->page_slug, $user_agent_option_name, 'sanitize_text_field' );
+        add_settings_field(
+            $user_agent_option_name,
+            'User Agent',
+            [ $this, 'field_text' ],
+            $this->page_slug,
+            'general',
+            [
+                'class'    => $user_agent_option_name,
+                'name'     => $user_agent_option_name,
+                'default'  => 'WordPress/{blog_version}; {blog_url}',
+                'comments' => 'Only change this if you know what you are doing. Default is "WordPress/{blog_version}; {blog_url}" (WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ) . ')'
+            ]
+        );
+
         // Define an array of number fields
         $number_fields = [
             [ 
@@ -313,6 +330,12 @@ class BLNOTIFIER_MENU {
                 'label'    => 'Enable Warnings',
                 'default'  => true,
                 'comments' => 'Includes warnings in all scans'
+            ],
+            [ 
+                'name'     => 'mark_code_zero_broken',
+                'label'    => 'Mark Code 0 as Broken',
+                'default'  => false,
+                'comments' => 'Code <code>0</code> is given when the site returns 0, no code, or an error message; this is useful if you do not want to enable warnings but still want to see code 0\'s only'
             ],
             [ 
                 'name'     => 'include_images', 
