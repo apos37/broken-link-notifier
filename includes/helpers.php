@@ -857,7 +857,6 @@ class BLNOTIFIER_HELPERS {
             'sslverify'   => filter_var( get_option( 'blnotifier_ssl_verify', true ), FILTER_VALIDATE_BOOLEAN ),
             'user-agent'  => $user_agent
         ], $url );
-        ddtt_write_log( $http_request_args );
 
         // Check the link
         $response = wp_remote_get( $link, $http_request_args );
