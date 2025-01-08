@@ -174,6 +174,23 @@ class BLNOTIFIER_MENU {
         $has_updated_settings = 'blnotifier_has_updated_settings';
         register_setting( $this->page_slug, $has_updated_settings );
 
+        // Pause front-end scanning
+        $pause_frontend_scanning_option_name = 'blnotifier_pause_frontend_scanning';
+        register_setting( $this->page_slug, $pause_frontend_scanning_option_name, [ $this, 'sanitize_checkbox' ] );
+        add_settings_field(
+            $pause_frontend_scanning_option_name,
+            'Pause Front-End Scanning',
+            [ $this, 'field_checkbox' ],
+            $this->page_slug,
+            'general',
+            [
+                'class'    => $pause_frontend_scanning_option_name,
+                'name'     => $pause_frontend_scanning_option_name,
+                'default'  => false,
+                'comments' => 'You can pause front-end scanning if you just want to scan manually; disabling this means you will NOT get notified when someone visits a page with broken links'
+            ]
+        );
+
         // Enable emailing
         $enable_emailing_option_name = 'blnotifier_enable_emailing';
         register_setting( $this->page_slug, $enable_emailing_option_name, [ $this, 'sanitize_checkbox' ] );
@@ -332,12 +349,6 @@ class BLNOTIFIER_MENU {
                 'comments' => 'Includes warnings in all scans'
             ],
             [ 
-                'name'     => 'mark_code_zero_broken',
-                'label'    => 'Mark Code 0 as Broken',
-                'default'  => false,
-                'comments' => 'Code <code>0</code> is given when the site returns 0, no code, or an error message; this is useful if you do not want to enable warnings but still want to see code 0\'s only'
-            ],
-            [ 
                 'name'     => 'include_images', 
                 'label'    => 'Check for Broken Images',
                 'default'  => true,
@@ -347,7 +358,7 @@ class BLNOTIFIER_MENU {
                 'name'     => 'ssl_verify', 
                 'label'    => 'Warn if SSL is Not Verified',
                 'default'  => true,
-                'comments' => 'How long to try to connect to a link\'s server before quitting'
+                'comments' => 'If you are not concerned about insecure links, you can disable this'
             ],
             [ 
                 'name'     => 'scan_header', 
@@ -401,7 +412,23 @@ class BLNOTIFIER_MENU {
                 'options'  => $this->get_post_type_choices(),
                 'default'  => [ 'post', 'page' ]
             ]
-        );        
+        );
+
+        // Status codes
+        $status_codes_option_name = 'blnotifier_status_codes';
+        register_setting( $this->page_slug, $status_codes_option_name, [] );
+        add_settings_field(
+            $status_codes_option_name,
+            'Status Codes',
+            [ $this, 'field_status_codes' ],
+            $this->page_slug,
+            'general',
+            [
+                'class'    => $status_codes_option_name,
+                'name'     => $status_codes_option_name,
+                'options'  => (new BLNOTIFIER_HELPERS)->get_status_codes(),
+            ]
+        );   
     } // End settings_fields()
 
 
@@ -513,6 +540,159 @@ class BLNOTIFIER_MENU {
             }
         }
     } // field_checkboxes()
+
+
+    /**
+     * Custom callback function to print status codes field
+     *
+     * @param array $args
+     * @return void
+     */
+    public function field_status_codes( $args ) {
+        $value = filter_var_array( get_option( $args[ 'name' ], [] ), FILTER_SANITIZE_SPECIAL_CHARS );
+
+        $HELPERS = new BLNOTIFIER_HELPERS;
+        $broken = $HELPERS->get_bad_status_codes();
+        $warning = $HELPERS->get_warning_status_codes( true );
+
+        if ( empty( $value ) ) {
+            $mark_zero_as_broken = filter_var( get_option( 'blnotifier_mark_code_zero_broken' ), FILTER_VALIDATE_BOOLEAN );
+            if ( $mark_zero_as_broken ) {
+                $value[ 0 ] = 'broken'; 
+            } else {
+                $value[ 0 ] = 'warning'; 
+            }
+            
+            foreach ( $broken as $code ) {
+                $value[ $code ] = 'broken';
+            }
+            
+            foreach ( $warning as $code ) {
+                if ( !in_array( $code, array_keys( $value ) ) ) {
+                    $value[ $code ] = 'warning';
+                }
+            }
+        }
+    
+        if ( isset( $args[ 'options' ] ) ) {
+            echo '<style>
+                .status-row {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 2rem;
+                    border-radius: 5px;
+                    border: 1px solid #ccc;
+                    padding: 10px;
+                    font-weight: bold;
+                }
+                .status-row.warning .type {
+                    background: yellow;
+                    color: black;
+                }
+                .status-row.broken .type {
+                    background: red;
+                    color: white;
+                }
+                .status-row.good .type {
+                    background: #008000;
+                    color: white;
+                }
+                .status-row .type {
+                    float: right;
+                    padding: 5px 10px;
+                    font-weight: bold;
+                    margin: 10px;
+                    width: 100px;
+                    text-align: center;
+                    text-transform: uppercase;
+                    box-shadow: 0 2px 4px 0 rgba(7, 36, 86, 0.075);
+                    border: 1px solid rgba(7, 36, 86, 0.075);
+                    border-radius: 10px;
+                }
+                .status-row .code-msg, 
+                .status-row .description {
+                    margin-bottom: 1rem;
+                    margin-left: 0 !important;
+                }
+                .status-row label {
+                    margin-right: 10px;
+                }
+                .status-container {
+                    margin-top: 1rem;
+                    display: none; /* Initially hidden */
+                }
+                .toggle-link {
+                    cursor: pointer;
+                    color: #0073aa;
+                    text-decoration: underline;
+                    margin-bottom: 10px;
+                    display: inline-block;
+                }
+            </style>';
+
+            echo '<strong>Broken Status Codes:</strong> ' . esc_html( !empty( $broken ) ? implode( ', ', $broken ) : 'None' ).'<br>';
+            echo '<strong>Warning Status Codes:</strong> ' . esc_html( !empty( $warning ) ? implode( ', ', $warning ) : 'None' ).'<br><br><br>';
+
+            echo '<a class="toggle-link" data-target="status-container">View/Change Status Types</a>';
+            echo '<div class="status-container">';
+
+            foreach ( $args[ 'options' ] as $code => $c ) {
+                $type = isset( $value[ $code ] ) ? $value[ $code ] : 'good';
+                $checked_good = $type === 'good' ? 'checked' : '';
+                $checked_warning = $type === 'warning' ? 'checked' : '';
+                $checked_broken = $type === 'broken' ? 'checked' : '';
+                $display_code = isset( $c[ 'official' ] ) && !$c[ 'official' ] ? $code : '<a href="https://http.dev/' . $code . '" target="_blank">' . $code . '</a>';
+    
+                printf(
+                    '<div class="status-row ' . $type . '">
+                        <div class="info-input">
+                            <div class="code-msg">
+                                <span class="code">%s</span> <span class="message">(%s)</span>
+                            </div>
+                            <div class="description">%s</div>
+                            <div class="selections">
+                                <input type="radio" id="%s_good" name="%s[%s]" value="good" %s/> 
+                                <label for="%s_good">Good</label>
+                                <input type="radio" id="%s_warning" name="%s[%s]" value="warning" %s/> 
+                                <label for="%s_warning">Warning</label>
+                                <input type="radio" id="%s_broken" name="%s[%s]" value="broken" %s/> 
+                                <label for="%s_broken">Broken</label>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="type">%s</div>
+                        </div>
+                    </div><br><br>',
+                    wp_kses( $display_code, [ 'a' => [ 'href' => [], 'target' => [] ] ] ),
+                    esc_html( $c[ 'msg' ] ),
+                    wp_kses( $c[ 'desc' ], [ 'code' ] ),
+
+                    esc_html( $args[ 'name' ].'_'.$code ),
+                    esc_html( $args[ 'name' ] ),
+                    esc_attr( $code ),
+                    esc_html( $checked_good ),
+                    esc_html( $args[ 'name' ].'_'.$code ),
+
+                    esc_html( $args[ 'name' ].'_'.$code ),
+                    esc_html( $args[ 'name' ] ),
+                    esc_attr( $code ),
+                    esc_html( $checked_warning ),
+                    esc_html( $args[ 'name' ].'_'.$code ),
+
+                    esc_html( $args[ 'name' ].'_'.$code ),
+                    esc_html( $args[ 'name' ] ),
+                    esc_attr( $code ),
+                    esc_html( $checked_broken ),
+                    esc_html( $args[ 'name' ].'_'.$code ),
+
+                    esc_attr( strtoupper( $type ) )
+                );
+            }
+
+            echo '</div>';
+        }
+    } // End field_status_codes()
 
 
     /**

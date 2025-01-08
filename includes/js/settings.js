@@ -35,5 +35,26 @@ jQuery( $ => {
             msteamsWebhookInput.prop( 'required', false );
         }
     } );
+
+    // Toggle the status codes
+    $( '.toggle-link' ).on( 'click', function( e ) {
+        e.preventDefault();
+        const target = $( '.' + $( this ).data( 'target' ) );
+        if ( target.is( ':visible' ) ) {
+            target.hide();
+            $( this ).text( 'View/Change Status Types' );
+        } else {
+            target.show();
+            $( this ).text( 'Hide Status Types' );
+        }
+    } );
+
+    // Listen for status code changes
+    $( '.status-row input' ).on( 'change', function( e ) {
+        const $row = $( this ).closest( '.status-row' );
+        const type = $( this ).val();
     
+        $row.removeClass( 'good warning broken' ).addClass( type );
+        $row.find( '.type' ).text( type.toUpperCase() );
+    } );    
 } )

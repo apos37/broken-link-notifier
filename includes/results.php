@@ -1031,7 +1031,8 @@ class BLNOTIFIER_RESULTS {
      */
     public function front_script_enqueuer() {
         // Only if
-        if ( is_admin() || (new BLNOTIFIER_OMITS)->is_omitted( get_the_permalink(), 'pages' ) || in_array( get_post_type(), (new BLNOTIFIER_HELPERS)->get_omitted_pageload_post_types() ) ) {
+        $HELPERS = new BLNOTIFIER_HELPERS;
+        if ( is_admin() || (new BLNOTIFIER_OMITS)->is_omitted( get_the_permalink(), 'pages' ) || in_array( get_post_type(), $HELPERS->get_omitted_pageload_post_types() ) || $HELPERS->is_frontend_scanning_paused() ) {
             return;
         }
 

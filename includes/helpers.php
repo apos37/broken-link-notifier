@@ -38,6 +38,16 @@ class BLNOTIFIER_HELPERS {
             return $post_type_obj->labels->name;
         }
     } // End get_post_type_name()
+    
+
+    /**
+     * Check if warnings are enabled
+     *
+     * @return boolean
+     */
+    public function is_frontend_scanning_paused() {
+        return filter_var( get_option( 'blnotifier_pause_frontend_scanning' ), FILTER_VALIDATE_BOOLEAN );
+    } // End is_frontend_scanning_paused()
 
     
     /**
@@ -47,11 +57,29 @@ class BLNOTIFIER_HELPERS {
      */
     public function get_bad_status_codes() {
         $default_codes = [ 666, 308, 400, 404, 408 ];
-        $marking_zero_as_broken = filter_var( get_option( 'blnotifier_mark_code_zero_broken', false ), FILTER_VALIDATE_BOOLEAN );
-        if ( $marking_zero_as_broken ) {
-            $default_codes[] = 0;
+
+        $types = filter_var_array( get_option( 'blnotifier_status_codes', [] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+        if ( empty( $types ) ) {
+            $old_filtered_array = filter_var_array( apply_filters( 'blnotifier_bad_status_codes', $default_codes ), FILTER_SANITIZE_NUMBER_INT );
+            if ( !empty( $old_filtered_array ) ) {
+                foreach ( $old_filtered_array as $code ) {
+                    $types[ $code ] = 'broken';
+                }
+            }
         }
-        return filter_var_array( apply_filters( 'blnotifier_bad_status_codes', $default_codes ), FILTER_SANITIZE_NUMBER_INT );
+
+        $codes = [];
+        if ( !empty( $types ) ) {
+            foreach ( $types as $code => $type ) {
+                if ( $type === 'broken' ) {
+                    $codes[] = $code;
+                }
+            }
+        } else {
+            $codes = $default_codes;
+        }
+        
+        return $codes;
     } // End get_bad_status_codes()
 
 
@@ -60,13 +88,32 @@ class BLNOTIFIER_HELPERS {
      *
      * @return array
      */
-    public function get_warning_status_codes() {
-        $marking_zero_as_broken = filter_var( get_option( 'blnotifier_mark_code_zero_broken', false ), FILTER_VALIDATE_BOOLEAN );
-        $default_codes = $marking_zero_as_broken ? [] : [ 0 ];
-        $default_codes = filter_var_array( apply_filters( 'blnotifier_warning_status_codes', $default_codes ), FILTER_SANITIZE_NUMBER_INT );
+    public function get_warning_status_codes( $force_enable = false ) {
+        $default_codes = [ 0 ];
 
-        return $this->are_warnings_enabled() ? $default_codes : [];
-    } // End get_bad_status_codes()
+        $types = filter_var_array( get_option( 'blnotifier_status_codes', [] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+        if ( empty( $types ) ) {
+            $old_filtered_array = filter_var_array( apply_filters( 'blnotifier_warning_status_codes', $default_codes ), FILTER_SANITIZE_NUMBER_INT );
+            if ( !empty( $old_filtered_array ) ) {
+                foreach ( $old_filtered_array as $code ) {
+                    $types[ $code ] = 'warning';
+                }
+            }
+        }
+
+        $codes = [];
+        if ( !empty( $types ) ) {
+            foreach ( $types as $code => $type ) {
+                if ( $type === 'warning' ) {
+                    $codes[] = $code;
+                }
+            }
+        } else {
+            $codes = $default_codes;
+        }
+
+        return ( $force_enable || $this->are_warnings_enabled() ) ? $codes : [];
+    } // End get_warning_status_codes()
 
 
     /**
@@ -808,6 +855,371 @@ class BLNOTIFIER_HELPERS {
 
 
     /**
+     * Get all status codes
+     *
+     * @return array
+     */
+    public function get_status_codes() {
+        // Possible Codes
+        return [
+            0   => [
+                'msg'  => 'No Response',
+                'desc' => 'The client did not receive any response from the server, often due to a connection issue.',
+                'official' => false
+            ],
+            100 => [
+                'msg'  => 'Continue',
+                'desc' => 'This interim response indicates that the client should continue the request or ignore the response if the request is already finished.',
+            ],
+            103 => [
+                'msg'  => 'Early Hints',
+                'desc' => 'This status code is primarily intended to be used with the <code>Link</code> header, letting the user agent start preloading resources while the server prepares a response or preconnect to an origin from which the page will need resources.',
+            ],
+            200 => [
+                'msg'  => 'OK',
+                'desc' => 'The request succeeded. The result and meaning of "success" depends on the HTTP method. <code>GET</code>: The resource has been fetched and transmitted in the message body. <code>HEAD</code>: Representation headers are included in the response without any message body.',
+            ],
+            202 => [
+                'msg'  => 'Accepted',
+                'desc' => 'The request has been received but not yet acted upon. It is noncommittal, since there is no way in HTTP to later send an asynchronous response indicating the outcome of the request. It is intended for cases where another process or server handles the request, or for batch processing.',
+            ],
+            203 => [
+                'msg'  => 'Non-Authoritative Information',
+                'desc' => 'This response code means the returned metadata is not exactly the same as is available from the origin server, but is collected from a local or a third-party copy. This is mostly used for mirrors or backups of another resource. Except for that specific case, the <code>200 OK</code> response is preferred to this status.',
+            ],
+            204 => [
+                'msg'  => 'No Content',
+                'desc' => 'There is no content to send for this request, but the headers are useful. The user agent may update its cached headers for this resource with the new ones.',
+            ],
+            207 => [
+                'msg'  => 'Multi-Status',
+                'desc' => 'Conveys information about multiple resources, for situations where multiple status codes might be appropriate.',
+            ],
+            208 => [
+                'msg'  => 'Already Reported',
+                'desc' => 'Used inside a <code>' . htmlentities( '<dav:propstat>' ) . '</code> response element to avoid repeatedly enumerating the internal members of multiple bindings to the same collection.',
+            ],
+            218 => [
+                'msg'  => 'This is fine',
+                'desc' => 'Used by Apache Web Server.',
+                'official' => false
+            ],
+            226 => [
+                'msg'  => 'IM Used',
+                'desc' => 'The server has fulfilled a <code>GET</code> request for the resource, and the response is a representation of the result of one or more instance-manipulations applied to the current instance.',
+            ],
+            300 => [
+                'msg'  => 'Multiple Choices',
+                'desc' => 'In agent-driven content negotiation, the request has more than one possible response and the user agent or user should choose one of them. There is no standardized way for clients to automatically choose one of the responses, so this is rarely used.',
+            ],
+            301 => [
+                'msg'  => 'Redirected: Moved Permanently',
+                'desc' => 'The URL of the requested resource has been changed permanently. The new URL is given in the response.',
+            ],
+            302 => [
+                'msg'  => 'Redirected: Found',
+                'desc' => 'This response code means that the URI of requested resource has been changed temporarily. Further changes in the URI might be made in the future, so the same URI should be used by the client in future requests.',
+            ],
+            303 => [
+                'msg'  => 'See Other',
+                'desc' => 'The server sent this response to direct the client to get the requested resource at another URI with a GET request.',
+            ],
+            304 => [
+                'msg'  => 'Not Modified',
+                'desc' => 'This is used for caching purposes. It tells the client that the response has not been modified, so the client can continue to use the same cached version of the response.',
+            ],
+            305 => [
+                'msg'  => 'Use Proxy',
+                'desc' => 'Defined in a previous version of the HTTP specification to indicate that a requested response must be accessed by a proxy. It has been deprecated due to security concerns regarding in-band configuration of a proxy.',
+            ],
+            306 => [
+                'msg'  => 'Switch Proxy',
+                'desc' => 'This response code is no longer used; but is reserved. It was used in a previous version of the HTTP/1.1 specification.',
+            ],
+            307 => [
+                'msg'  => 'Temporary Redirect',
+                'desc' => 'The server sends this response to direct the client to get the requested resource at another URI with the same method that was used in the prior request. This has the same semantics as the 302 Found response code, with the exception that the user agent must not change the HTTP method used: if a <code>GET</code> was used in the first request, a <code>GET</code> must be used in the redirected request.',
+            ],
+            308 => [
+                'msg'  => 'Permanent Redirect',
+                'desc' => 'This means that the resource is now permanently located at another URI, specified by the Location response header. This has the same semantics as the 301 Moved Permanently HTTP response code, with the exception that the user agent must not change the HTTP method used: if a <code>GET</code> was used in the first request, a <code>GET</code> must be used in the second request.',
+            ],
+            400 => [
+                'msg'  => 'Bad Request',
+                'desc' => 'The server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing).',
+            ],
+            401 => [
+                'msg'  => 'Unauthorized',
+                'desc' => 'Although the HTTP standard specifies "unauthorized", semantically this response means "unauthenticated". That is, the client must authenticate itself to get the requested response.',
+            ],
+            402 => [
+                'msg'  => 'Payment Required',
+                'desc' => 'The initial purpose of this code was for digital payment systems, however this status code is rarely used and no standard convention exists.',
+            ],
+            403 => [
+                'msg'  => 'Forbidden or Unsecure',
+                'desc' => 'The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike <code>401 Unauthorized</code>, the client\'s identity is known to the server.',
+            ],
+            404 => [
+                'msg'  => 'Not Found',
+                'desc' => 'The server cannot find the requested resource. In the browser, this means the URL is not recognized. In an API, this can also mean that the endpoint is valid but the resource itself does not exist. Servers may also send this response instead of <code>403 Forbidden</code> to hide the existence of a resource from an unauthorized client. This response code is probably the most well known due to its frequent occurrence on the web.',
+            ],
+            405 => [
+                'msg'  => 'Method Not Allowed',
+                'desc' => 'The request method is known by the server but is not supported by the target resource.',
+            ],
+            406 => [
+                'msg'  => 'Not Acceptable',
+                'desc' => 'This response is sent when the web server, after performing server-driven content negotiation, doesn\'t find any content that conforms to the criteria given by the user agent.',
+            ],
+            407 => [
+                'msg'  => 'Proxy Authentication Required',
+                'desc' => 'This is similar to <code>401 Unauthorized</code> but authentication is needed to be done by a proxy.',
+            ],
+            408 => [
+                'msg'  => 'Request Timeout',
+                'desc' => 'This response is sent on an idle connection by some servers, even without any previous request by the client. It means that the server would like to shut down this unused connection. This response is used much more since some browsers use HTTP pre-connection mechanisms to speed up browsing. Some servers may shut down a connection without sending this message.',
+            ],
+            409 => [
+                'msg'  => 'Conflict',
+                'desc' => 'This response is sent when a request conflicts with the current state of the server. In WebDAV remote web authoring, <code>409</code> responses are errors sent to the client so that a user might be able to resolve a conflict and resubmit the request.',
+            ],
+            410 => [
+                'msg'  => 'Gone',
+                'desc' => 'This response is sent when the requested content has been permanently deleted from server, with no forwarding address. Clients are expected to remove their caches and links to the resource. The HTTP specification intends this status code to be used for "limited-time, promotional services". APIs should not feel compelled to indicate resources that have been deleted with this status code.',
+            ],
+            411 => [
+                'msg'  => 'Length Required',
+                'desc' => 'Server rejected the request because the Content-Length header field is not defined and the server requires it.',
+            ],
+            412 => [
+                'msg'  => 'Precondition Failed',
+                'desc' => 'In conditional requests, the client has indicated preconditions in its headers which the server does not meet.',
+            ],
+            413 => [
+                'msg'  => 'Payload Too Large',
+                'desc' => 'The request body is larger than limits defined by server. The server might close the connection or return a Retry-After header field.',
+            ],
+            414 => [
+                'msg'  => 'URI Too Long',
+                'desc' => 'The URI requested by the client is longer than the server is willing to interpret.',
+            ],
+            415 => [
+                'msg'  => 'Unsupported Media Type',
+                'desc' => 'The media format of the requested data is not supported by the server, so the server is rejecting the request.',
+            ],
+            416 => [
+                'msg'  => 'Range Not Satisfiable',
+                'desc' => 'The ranges specified by the <copde>Range</copde> header field in the request cannot be fulfilled. It\'s possible that the range is outside the size of the target resource\'s data.',
+            ],
+            417 => [
+                'msg'  => 'Expectation Failed',
+                'desc' => 'The expectation indicated by the <code>Expect</code> request header field cannot be met by the server.',
+            ],
+            418 => [
+                'msg'  => 'I\'m a Teapot',
+                'desc' => 'The server refuses the attempt to brew coffee with a teapot.',
+            ],
+            421 => [
+                'msg'  => 'Misdirected Request',
+                'desc' => 'The request was directed at a server that is not able to produce a response. This can be sent by a server that is not configured to produce responses for the combination of scheme and authority that are included in the request URI.',
+            ],
+            422 => [
+                'msg'  => 'Unprocessable Entity',
+                'desc' => 'The request was well-formed but was unable to be followed due to semantic errors.',
+            ],
+            423 => [
+                'msg'  => 'Locked',
+                'desc' => 'The resource that is being accessed is locked.',
+            ],
+            424 => [
+                'msg'  => 'Failed Dependency',
+                'desc' => 'The request failed due to failure of a previous request.',
+            ],
+            425 => [
+                'msg'  => 'Too Early',
+                'desc' => 'Indicates that the server is unwilling to risk processing a request that might be replayed.',
+            ],
+            426 => [
+                'msg'  => 'Upgrade Required',
+                'desc' => 'The server refuses to perform the request using the current protocol but might be willing to do so after the client upgrades to a different protocol. The server sends an <code>Upgrade</code> header in a <code>426</code> response to indicate the required protocol(s).',
+            ],
+            429 => [
+                'msg'  => 'Too Many Requests',
+                'desc' => 'The user has sent too many requests in a given amount of time (rate limiting).',
+            ],
+            430 => [
+                'msg'  => 'Request Header Fields Too Large',
+                'desc' => 'Used by Shopify.',
+                'official' => false
+            ],
+            431 => [
+                'msg'  => 'Request Header Fields Too Large',
+                'desc' => 'The server is unwilling to process the request because its header fields are too large. The request may be resubmitted after reducing the size of the request header fields.',
+            ],
+            440 => [
+                'msg'  => 'Login Time-out',
+                'desc' => 'Used by IIS.',
+                'official' => false
+            ],
+            444 => [
+                'msg'  => 'No Response',
+                'desc' => 'Used by NGINX.',
+                'official' => false
+            ],
+            450 => [
+                'msg'  => 'Blocked by Windows Parental Controls',
+                'desc' => 'Used by Microsoft.',
+                'official' => false
+            ],
+            451 => [
+                'msg'  => 'Unavailable For Legal Reasons',
+                'desc' => 'The user agent requested a resource that cannot legally be provided, such as a web page censored by a government.',
+            ],
+            494 => [
+                'msg'  => 'Request header too large',
+                'desc' => 'Used by NGINX.',
+                'official' => false
+            ],
+            495 => [
+                'msg'  => 'SSL Certificate Error',
+                'desc' => 'Used by NGINX.',
+                'official' => false
+            ],
+            496 => [
+                'msg'  => 'SSL Certificate Required',
+                'desc' => 'Used by NGINX.',
+                'official' => false
+            ],
+            497 => [
+                'msg'  => 'HTTP Request Sent to HTTPS Port',
+                'desc' => 'Used by NGINX.',
+                'official' => false
+            ],
+            498 => [
+                'msg'  => 'Invalid Token',
+                'desc' => 'Used by Esri.',
+                'official' => false
+            ],
+            499 => [
+                'msg'  => 'Token Required',
+                'desc' => 'Used by Esri.',
+                'official' => false
+            ],
+            500 => [
+                'msg'  => 'Internal Server Error',
+                'desc' => 'The server has encountered a situation it does not know how to handle. This error is generic, indicating that the server cannot find a more appropriate <code>5XX</code> status code to respond with.',
+            ],
+            501 => [
+                'msg'  => 'Not Implemented',
+                'desc' => 'The request method is not supported by the server and cannot be handled. The only methods that servers are required to support (and therefore that must not return this code) are GET and HEAD.',
+            ],
+            502 => [
+                'msg'  => 'Bad Gateway',
+                'desc' => 'This error response means that the server, while working as a gateway to get a response needed to handle the request, got an invalid response.',
+            ],
+            503 => [
+                'msg'  => 'Service Unavailable',
+                'desc' => 'The server is not ready to handle the request. Common causes are a server that is down for maintenance or that is overloaded. Note that together with this response, a user-friendly page explaining the problem should be sent. This response should be used for temporary conditions and the <code>Retry-After</code> HTTP header should, if possible, contain the estimated time before the recovery of the service. The webmaster must also take care about the caching-related headers that are sent along with this response, as these temporary condition responses should usually not be cached.',
+            ],
+            504 => [
+                'msg'  => 'Gateway Timeout',
+                'desc' => 'This error response is given when the server is acting as a gateway and cannot get a response in time.',
+            ],
+            505 => [
+                'msg'  => 'HTTP Version Not Supported',
+                'desc' => 'The HTTP version used in the request is not supported by the server.',
+            ],
+            506 => [
+                'msg'  => 'Variant Also Negotiates',
+                'desc' => 'The server has an internal configuration error: during content negotiation, the chosen variant is configured to engage in content negotiation itself, which results in circular references when creating responses.',
+            ],
+            507 => [
+                'msg'  => 'Insufficient Storage',
+                'desc' => 'The method could not be performed on the resource because the server is unable to store the representation needed to successfully complete the request.',
+            ],
+            508 => [
+                'msg'  => 'Loop Detected',
+                'desc' => 'The server detected an infinite loop while processing the request.',
+            ],
+            510 => [
+                'msg'  => 'Not Extended',
+                'desc' => 'The client request declares an HTTP Extension (RFC 2774) that should be used to process the request, but the extension is not supported.',
+            ],
+            511 => [
+                'msg'  => 'Network Authentication Required',
+                'desc' => 'Indicates that the client needs to authenticate to gain network access.',
+            ],
+            520 => [
+                'msg'  => 'Web Server Returned an Unknown Error',
+                'desc' => 'Used by Cloudflare.',
+                'official' => false
+            ],
+            521 => [
+                'msg'  => 'Web Server Is Down',
+                'desc' => 'Used by Cloudflare.',
+                'official' => false
+            ],
+            522 => [
+                'msg'  => 'Connection Timed Out',
+                'desc' => 'Used by Cloudflare.',
+                'official' => false
+            ],
+            523 => [
+                'msg'  => 'Origin Is Unreachable',
+                'desc' => 'Used by Cloudflare.',
+                'official' => false
+            ],
+            524 => [
+                'msg'  => 'A Timeout Occurred',
+                'desc' => 'Used by Cloudflare.',
+                'official' => false
+            ],
+            525 => [
+                'msg'  => 'SSL Handshake Failed',
+                'desc' => 'Used by Cloudflare.',
+                'official' => false
+            ],
+            526 => [
+                'msg'  => 'Invalid SSL Certificate',
+                'desc' => 'Used by Cloudflare.',
+                'official' => false
+            ],
+            527 => [
+                'msg'  => 'Railgun Error',
+                'desc' => 'Used by Cloudflare.',
+                'official' => false
+            ],
+            529 => [
+                'msg'  => 'Site is Overloaded',
+                'desc' => 'Used by Qualys in the SSLLabs.',
+                'official' => false
+            ],
+            530 => [
+                'msg'  => 'Site is Frozen',
+                'desc' => 'Used by Pantheon web platform.',
+                'official' => false
+            ],
+            598 => [
+                'msg'  => 'Network Read Timeout Error',
+                'desc' => 'Informal convention.',
+                'official' => false
+            ],
+            666 => [
+                'msg'  => 'Invalid URL or Could Not Resolve Host',
+                'desc' => 'Used by Broken Link Notifier for when a valid URL was not provided or the server responds with <code>cURL error 6: Could not resolve host</code>.',
+                'official' => false
+            ],
+            999 => [
+                'msg'  => 'Scanning Not Permitted',
+                'desc' => 'A non-standard code.',
+                'official' => false
+            ]
+        ];        
+    } // End get_status_codes()
+
+
+    /**
      * Check a URL to see if it Exists
      *
      * @param string $url
@@ -874,107 +1286,7 @@ class BLNOTIFIER_HELPERS {
         }
 
         // Possible Codes
-        $codes = [
-            0 => $error,
-            100 => 'Continue',
-            101 => 'Switching Protocols',
-            102 => 'Processing', // WebDAV; RFC 2518
-            103 => 'Early Hints', // RFC 8297
-            200 => 'OK',
-            201 => 'Created',
-            202 => 'Accepted',
-            203 => 'Non-Authoritative Information', // since HTTP/1.1
-            204 => 'No Content',
-            205 => 'Reset Content',
-            206 => 'Partial Content', // RFC 7233
-            207 => 'Multi-Status', // WebDAV; RFC 4918
-            208 => 'Already Reported', // WebDAV; RFC 5842
-            226 => 'IM Used', // RFC 3229
-            300 => 'Multiple Choices',
-            301 => 'Redirected: Moved Permanently',
-            302 => 'Redirected: Found', // Previously "Moved temporarily"
-            303 => 'See Other', // since HTTP/1.1
-            304 => 'Not Modified', // RFC 7232
-            305 => 'Use Proxy', // since HTTP/1.1
-            306 => 'Switch Proxy',
-            307 => 'Temporary Redirect', // since HTTP/1.1
-            308 => 'Permanent Redirect', // RFC 7538
-            400 => 'Bad Request',
-            401 => 'Unauthorized', // RFC 7235
-            402 => 'Payment Required',
-            403 => 'Forbidden or Unsecure',
-            404 => 'Not Found',
-            405 => 'Method Not Allowed',
-            406 => 'Not Acceptable',
-            407 => 'Proxy Authentication Required', // RFC 7235
-            408 => 'Request Timeout',
-            409 => 'Conflict',
-            410 => 'Gone',
-            411 => 'Length Required',
-            412 => 'Precondition Failed', // RFC 7232
-            413 => 'Payload Too Large', // RFC 7231
-            414 => 'URI Too Long', // RFC 7231
-            415 => 'Unsupported Media Type', // RFC 7231
-            416 => 'Range Not Satisfiable', // RFC 7233
-            417 => 'Expectation Failed',
-            418 => 'I\'m a teapot', // RFC 2324, RFC 7168
-            421 => 'Misdirected Request', // RFC 7540
-            422 => 'Unprocessable Entity', // WebDAV; RFC 4918
-            423 => 'Locked', // WebDAV; RFC 4918
-            424 => 'Failed Dependency', // WebDAV; RFC 4918
-            425 => 'Too Early', // RFC 8470
-            426 => 'Upgrade Required',
-            428 => 'Precondition Required', // RFC 6585
-            429 => 'Too Many Requests', // RFC 6585
-            431 => 'Request Header Fields Too Large', // RFC 6585
-            451 => 'Unavailable For Legal Reasons', // RFC 7725
-            500 => 'Internal Server Error',
-            501 => 'Not Implemented',
-            502 => 'Bad Gateway',
-            503 => 'Service Unavailable',
-            504 => 'Gateway Timeout',
-            505 => 'HTTP Version Not Supported',
-            506 => 'Variant Also Negotiates', // RFC 2295
-            507 => 'Insufficient Storage', // WebDAV; RFC 4918
-            508 => 'Loop Detected', // WebDAV; RFC 5842
-            510 => 'Not Extended', // RFC 2774
-            511 => 'Network Authentication Required', // RFC 6585
-            
-            // Unofficial codes
-            103 => 'Checkpoint',
-            218 => 'This is fine', // Apache Web Server
-            419 => 'Page Expired', // Laravel Framework
-            420 => 'Method Failure', // Spring Framework
-            420 => 'Enhance Your Calm', // Twitter
-            430 => 'Request Header Fields Too Large', // Shopify
-            450 => 'Blocked by Windows Parental Controls', // Microsoft
-            498 => 'Invalid Token', // Esri
-            499 => 'Token Required', // Esri
-            509 => 'Bandwidth Limit Exceeded', // Apache Web Server/cPanel
-            526 => 'Invalid SSL Certificate', // Cloudflare and Cloud Foundry's gorouter
-            529 => 'Site is overloaded', // Qualys in the SSLLabs
-            530 => 'Site is frozen', // Pantheon web platform
-            598 => 'Network read timeout error', // Informal convention
-            440 => 'Login Time-out', // IIS
-            449 => 'Retry With', // IIS
-            451 => 'Redirect', // IIS
-            444 => 'No Response', // nginx
-            494 => 'Request header too large', // nginx
-            495 => 'SSL Certificate Error', // nginx
-            496 => 'SSL Certificate Required', // nginx
-            497 => 'HTTP Request Sent to HTTPS Port', // nginx
-            499 => 'Client Closed Request', // nginx
-            520 => 'Web Server Returned an Unknown Error', // Cloudflare
-            521 => 'Web Server Is Down', // Cloudflare
-            522 => 'Connection Timed Out', // Cloudflare
-            523 => 'Origin Is Unreachable', // Cloudflare
-            524 => 'A Timeout Occurred', // Cloudflare
-            525 => 'SSL Handshake Failed', // Cloudflare
-            526 => 'Invalid SSL Certificate', // Cloudflare
-            527 => 'Railgun Error', // Cloudflare
-            666 => $error, // Our own error converted from 0
-            999 => 'Scanning Not Permitted' // Non-standard code
-        ];
+        $codes = $this->get_status_codes();
 
         // Bad links
         if ( in_array( $code, $this->get_bad_status_codes() ) ) {
@@ -993,7 +1305,7 @@ class BLNOTIFIER_HELPERS {
         $status = apply_filters( 'blnotifier_status', [
             'type' => $type,
             'code' => $code,
-            'text' => isset( $codes[ $code ] ) ? $codes[ $code ] : $error,
+            'text' => ( $code !== 0 && ( isset( $codes[ $code ] ) && $codes[ $code ][ 'msg' ] != '' ) ) ? $codes[ $code ][ 'msg' ] : $error,
             'link' => $url
         ] );
 

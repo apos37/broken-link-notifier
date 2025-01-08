@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 1.1.4
+Stable tag: 1.1.4.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -75,8 +75,6 @@ There is likely an issue with the content on that page causing a redirect. We ca
 = Are there hooks available for Developers? =
 Yes, there are plenty. The following hooks are available:
 * `blnotifier_html_link_sources` ( Array $sources ) — Filter where the links are found in the content's HTML
-* `blnotifier_bad_status_codes` ( Array $codes ) — Filter which status codes to signal as bad
-* `blnotifier_warning_status_codes` ( Array $codes ) — Filter which status codes to signal as warning only
 * `blnotifier_omitted_links` ( Array $links ) — Filter your omitted links
 * `blnotifier_omitted_pages` ( Array $pages ) — Filter your omitted pages
 * `blnotifier_omitted_pageload_post_types` ( Array $post_types ) — Filter the post types that you don't want to scan on page load
@@ -115,6 +113,10 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.1.4.1 =
+* Update: Added an option to pause front-end scanning (props @ravanh)
+* Update: Added status codes to settings, allowing you to change types, deprecated hooks will only work if codes in settings have no been saved: blnotifier_bad_status_codes, blnotifier_warning_status_codes
+
 = 1.1.4 =
 * Update: Added field for user agent and option to mark status code 0 as broken instead of warning (props @ravanh)
 

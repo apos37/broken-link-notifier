@@ -11,20 +11,6 @@ $hooks = [
         'desc'  => '<li>Return an <code>Array ( String <em>tag</em> => String <em>attribute</em> )</code></li><li>Default:<br><code>Array (<br>&nbsp;&nbsp;&nbsp;&nbsp;"a" => "href",<br>&nbsp;&nbsp;&nbsp;&nbsp;"img" => "src",<br>&nbsp;&nbsp;&nbsp;&nbsp;"iframe" => "src"<br>)</code></li>',
         'type'  => 'filter'
     ],
-    [
-        'hook'  => 'blnotifier_bad_status_codes',
-        'args'  => '( Array $codes )',
-        'label' => 'Which codes to signal as bad',
-        'desc'  => '<li>Defaults: [ 666, 308, 400, 404, 408 ]</li>',
-        'type'  => 'filter'
-    ],
-    [    
-        'hook'  => 'blnotifier_warning_status_codes',
-        'args'  => '( Array $codes )',
-        'label' => 'Which codes to signal as warning only',
-        'desc'  => '<li>Defaults: [ 0 ]</li>',
-        'type'  => 'filter'
-    ],
     [    
         'hook'  => 'blnotifier_omitted_links',
         'args'  => '( Array $links )',
