@@ -19,7 +19,7 @@ h2 { margin: 3rem 0 1rem 0; }
     <div class="admin—title-cont">
         <h1><span id="plugin-page-title"><?php echo esc_attr( BLNOTIFIER_NAME ).' '.esc_html( $submenu_title ); ?></span></h1>
     </div>
-    <div id="plugin-version">Version <?php echo esc_attr( BLNOTIFIER_VERSION ); ?></div>
+    <div id="plugin-version"><?php echo esc_html__( 'Version', 'broken-link-notifier' ); ?> <?php echo esc_attr( BLNOTIFIER_VERSION ); ?></div>
 
     <br><br>
     <div class="tab-content">

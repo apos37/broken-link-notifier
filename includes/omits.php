@@ -147,11 +147,11 @@ class BLNOTIFIER_OMITS {
         $taxonomies = array_keys( $this->taxonomies );
         if ( $current_screen->id == 'edit-'.$taxonomies[0] ) {
             echo '<div class="notice notice-info" >
-                <p>These links will be skipped during scanning and not be checked for validity.</p>
+                <p>' . esc_html__( 'These links will be skipped during scanning and not be checked for validity.', 'broken-link-notifier' ) . '</p>
             </div>';
         } elseif ( $current_screen->id == 'edit-'.$taxonomies[1] ) {
             echo '<div class="notice notice-info" >
-                <p>These pages will not be scanned for broken links.</p>
+                <p>' . esc_html__( 'These pages will not be scanned for broken links.', 'broken-link-notifier' ) . '</p>
             </div>';
         }
     } // End description_notice()

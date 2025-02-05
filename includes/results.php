@@ -63,6 +63,9 @@ class BLNOTIFIER_RESULTS {
         add_action( 'load-edit.php', [ $this, 'add_header' ] );
         add_action( 'load-edit-tags.php', [ $this, 'add_header' ] );
 
+        // Add instructions to top of page
+        add_action( 'admin_notices', [ $this, 'description_notice' ] );
+
         // Redirect
         add_filter( 'get_edit_post_link', [ $this, 'redirect' ], 10, 3 );
 
@@ -212,15 +215,29 @@ class BLNOTIFIER_RESULTS {
                 tr.omitted {
                     opacity: 0.5;
                 }
-
                 </style>';
                 echo '<div class="admin—title-cont">
                     <h1><span id="plugin-page-title">'.esc_attr( BLNOTIFIER_NAME ).' — Results</span></h1>
                 </div>
-                <div id="plugin-version">Version '.esc_attr( BLNOTIFIER_VERSION ).'</div>';
+                <div id="plugin-version">' . esc_html__( 'Version', 'broken-link-notifier' ) . ' '.esc_attr( BLNOTIFIER_VERSION ).'</div>';
             } );
         }
     } // End add_header()
+
+
+    /**
+     * Add a description notice
+     * 
+     * @return void
+     */
+    public function description_notice() {
+        global $current_screen;
+        if ( 'edit-'.$this->post_type === $current_screen->id ) {
+            echo '<div class="notice notice-info" >
+                <p>' . esc_html__( 'This page shows the results of your scans. It automatically rechecks the links themselves to see if they are still broken, but it does not remove the links from the pages or rescan the pages to see if broken links have been fixed. After fixing a broken link, you will need to trash the result below. Then when you rescan the page it should not show up here again. Note that the plugin will still find broken links if you simply hide them on the page.', 'broken-link-notifier' ) . '</p>
+            </div>';
+        }
+    } // End description_notice()
 
 
     /**
@@ -818,7 +835,7 @@ class BLNOTIFIER_RESULTS {
      */
     public function ajax_blinks() {
         // Verify nonce
-        if ( !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_blinks ) ) {
+        if ( !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce_blinks ) ) {
             exit( 'No naughty business please.' );
         }
     
@@ -927,7 +944,7 @@ class BLNOTIFIER_RESULTS {
         // Echo the result or redirect
         if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) == 'xmlhttprequest' ) {
             echo wp_json_encode( $result );
-        } else {
+        } elseif ( isset( $_SERVER[ 'HTTP_REFERER' ] ) ) {
             header( 'Location: '.filter_var( $_SERVER[ 'HTTP_REFERER' ], FILTER_SANITIZE_URL ) );
         }
     

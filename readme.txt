@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag: 1.1.4.1
+Stable tag: 1.1.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -113,6 +113,11 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.1.4.2 =
+* Tweak: Added support for translations on some other info boxes
+* Update: Added an info box to the top of the results page with clarification on trashing results
+* Fix: Undefined array key "HTTP_REFERER"
+
 = 1.1.4.1 =
 * Update: Added an option to pause front-end scanning (props @ravanh)
 * Update: Added status codes to settings, allowing you to change types, deprecated hooks will only work if codes in settings have no been saved: blnotifier_bad_status_codes, blnotifier_warning_status_codes
