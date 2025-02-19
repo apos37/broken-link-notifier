@@ -467,7 +467,7 @@ class BLNOTIFIER_RESULTS {
                     }
                     $nonce = wp_create_nonce( 'blnotifier_scan_single' );
                     $actions[] = '<span class="scan"><a class="scan-page" href="'.(new BLNOTIFIER_MENU)->get_plugin_page( 'scan-single' ).'&scan='.$source_url.'&_wpnonce='.$nonce.'" target="_blank">Scan Page</a></span>';
-                    $actions[] = '<span class="edit"><a href="'.admin_url( 'post.php' ).'?post='.$source_id.'&action=edit">Edit</a></span>';
+                    $actions[] = '<span class="edit"><a href="'.admin_url( 'post.php' ).'?post='.$source_id.'&action=edit">Edit Page</a></span>';
                     if ( is_plugin_active( 'cornerstone/cornerstone.php' ) ) {
                         $actions[] = '<span class="edit-in-cornerstone"><a href="'.home_url( '/cornerstone/edit/'.$source_id ).'">Edit in Cornerstone</a></span>';
                     }
