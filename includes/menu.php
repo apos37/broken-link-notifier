@@ -340,13 +340,25 @@ class BLNOTIFIER_MENU {
                 'name'     => 'allow_redirects',
                 'label'    => 'Allow Redirects',
                 'default'  => true,
-                'comments' => 'Changes the method of checking for broken links from <code>HEAD</code> to <code>GET</code>'
+                'comments' => 'Changes the method of checking for broken links from <code>HEAD</code> to <code>GET</code>. May cause issues linking to larger documents.'
+            ],
+            [ 
+                'name'     => 'documents_use_head',
+                'label'    => 'Force Documents to Use <code>HEAD</code> Requests',
+                'default'  => false,
+                'comments' => 'If you have enabled allowing redirects (above), by default images, videos, and audio files force the use of <code>HEAD</code> requests rather than <code>GET</code>. Some servers automatically block <code>HEAD</code> requests for documents, so we don\'t force them by default. If you are having issues with large documents not completing a scan, then you can try enabling this option to see if it helps. If they are blocked, at least you will know why.'
             ],
             [ 
                 'name'     => 'enable_warnings',
                 'label'    => 'Enable Warnings',
                 'default'  => true,
                 'comments' => 'Includes warnings in all scans'
+            ],
+            [ 
+                'name'     => 'enable_delete_source',
+                'label'    => 'Enable Delete Source Action Link',
+                'default'  => false,
+                'comments' => 'An action link will appear on the Results tab under the source where you can delete the post or page entirely'
             ],
             [ 
                 'name'     => 'include_images', 

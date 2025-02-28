@@ -40,6 +40,9 @@ class BLNOTIFIER_RESULTS {
     // private $back_end_ajax_key = 'blnotifier_ignore';
     private $ajax_key_blinks = 'blnotifier_blinks';
     private $ajax_key_rescan = 'blnotifier_rescan';
+    private $ajax_key_replace_link = 'blnotifier_replace_link';
+    private $ajax_key_delete_result = 'blnotifier_delete_result';
+    private $ajax_key_delete_source = 'blnotifier_delete_source';
 
 
     /**
@@ -49,6 +52,8 @@ class BLNOTIFIER_RESULTS {
      */
     private $nonce_blinks = 'blnotifier_blinks_found';
     private $nonce_rescan = 'blnotifier_rescan';
+    private $nonce_replace = 'blnotifier_replace';
+    private $nonce_delete = 'blnotifier_delete';
 
 
     /**
@@ -104,6 +109,13 @@ class BLNOTIFIER_RESULTS {
         add_action( 'wp_ajax_nopriv_'.$this->ajax_key_blinks, [ $this, 'ajax_blinks' ] );
         add_action( 'wp_ajax_'.$this->ajax_key_rescan, [ $this, 'ajax_rescan' ] );
         add_action( 'wp_ajax_nopriv_'.$this->ajax_key_rescan, [ $this, 'ajax_rescan' ] );
+
+        add_action( 'wp_ajax_'.$this->ajax_key_replace_link, [ $this, 'ajax_replace_link' ] );
+        add_action( 'wp_ajax_nopriv_'.$this->ajax_key_replace_link, [ $this, 'ajax_unauthorized' ] );
+        add_action( 'wp_ajax_'.$this->ajax_key_delete_result, [ $this, 'ajax_delete_result' ] );
+        add_action( 'wp_ajax_nopriv_'.$this->ajax_key_delete_result, [ $this, 'ajax_unauthorized' ] );
+        add_action( 'wp_ajax_'.$this->ajax_key_delete_source, [ $this, 'ajax_delete_source' ] );
+        add_action( 'wp_ajax_nopriv_'.$this->ajax_key_delete_source, [ $this, 'ajax_unauthorized' ] );
         
         // Enqueue scripts
         add_action( 'wp_enqueue_scripts', [ $this, 'front_script_enqueuer' ] );
@@ -194,7 +206,8 @@ class BLNOTIFIER_RESULTS {
                     background: yellow;
                     color: black;
                 }
-                .bln-type.good {
+                .bln-type.good,
+                .bln-type.fixed {
                     background: green;
                     color: white;
                 }
@@ -293,14 +306,22 @@ class BLNOTIFIER_RESULTS {
      */
     public function row_actions( $actions, $post ) {
         if ( $this->post_type == $post->post_type ) {
-            foreach ( $actions as $action => $link ) {
-                if ( $action != 'trash' ) {
-                    unset( $actions[ $action ] );
-                }
-            }
+            $actions = [];
+
+            $actions[ 'clear' ] = '<a class="clear-result" href="#" data-post-id="' . $post->ID . '">' . __( 'Clear Result', 'broken-link-notifier' ) . '</a></span>';
+
             $permalink = get_the_title( $post );
             if ( !(new BLNOTIFIER_OMITS)->is_omitted( $permalink, 'links' ) ) {
-                $actions[ 'omit' ] = '<a class="omit-link" href="#" data-link="'.$permalink.'" data-post-id="'.$post->ID.'">Omit From Future Scans</a>';
+                $actions[ 'omit' ] = '<a class="omit-link" href="#" data-link="' . $permalink . '" data-post-id="' . $post->ID . '">' . __( 'Omit Link', 'broken-link-notifier' ) . '</a>';
+            }
+
+            $source_url = get_post_meta( $post->ID, 'source', true );
+            if ( $source_url ) {
+                $source_url = filter_var( $source_url, FILTER_SANITIZE_URL );
+                
+                if ( $source_id = url_to_postid( $source_url ) ) {
+                    $actions[ 'replace' ] = '<a class="replace-link" href="#" data-link="' . $permalink . '" data-post-id="' . $post->ID . '" data-source-id="' . $source_id . '">' . __( 'Replace Link', 'broken-link-notifier' ) . '</a></span>';
+                }
             }
         }
         return $actions;
@@ -434,19 +455,19 @@ class BLNOTIFIER_RESULTS {
         if ( 'bln_type' === $column ) {
             $post = get_post( $post_id );
             if ( $post->type == 'broken' ) {
-                echo '<div class="bln-type broken">Broken</div>';
+                echo '<div class="bln-type broken">' . __( 'Broken', 'broken-link-notifier' ) . '</div>';
             } elseif ( $post->type == 'warning' ) {
-                echo '<div class="bln-type warning">Warning</div>';
+                echo '<div class="bln-type warning">' . __( 'Warning', 'broken-link-notifier' ) . '</div>';
             }
             $code = $post->code;
             if ( $code != 0 && $code != 666 ) {
                 $code = '<a href="https://http.dev/'.$code.'" target="_blank">'.$code.'</a>';
             }
             if ( $code == 666 ) {
-                $incl_title = ' title="A status code of 666 is a code we use to force invalid URL code 0 to be a broken link. It is not an official status code."';
+                $incl_title = ' title="' . __( 'A status code of 666 is a code we use to force invalid URL code 0 to be a broken link. It is not an official status code.', 'broken-link-notifier' ) . '"';
             } elseif ( $code == 0 ) {
-                $incl_title = ' title="A status code of 0 means there was no response and it can occur for various reasons, like request time outs. It almost always means something is randomly interfering with the user\'s connection, like a proxy server / firewall / load balancer / laggy connection / network congestion, etc."';
-            }else {
+                $incl_title = ' title="' . __( 'A status code of 0 means there was no response and it can occur for various reasons, like request time outs. It almost always means something is randomly interfering with the user\'s connection, like a proxy server / firewall / load balancer / laggy connection / network congestion, etc.', 'broken-link-notifier' ) . '"';
+            } else {
                 $incl_title = '';
             }
             echo '<code'.wp_kses_post( $incl_title ).'>Code: '.wp_kses_post( $code ).'</code> <span class="message">'.esc_html( $post->post_content ).'</span>';
@@ -459,21 +480,28 @@ class BLNOTIFIER_RESULTS {
                 $source_url = filter_var( $source_url, FILTER_SANITIZE_URL );
                 $source_url = remove_query_arg( (new BLNOTIFIER_HELPERS)->get_qs_to_remove_from_source(), $source_url );
                 $actions = [
-                    '<span class="view"><a href="'.add_query_arg( 'blink', urlencode( strtok( get_the_title( $post_id ), '?' ) ), $source_url ).'" target="_blank">View</a></span>'
+                    '<span class="view"><a href="'.add_query_arg( 'blink', urlencode( strtok( get_the_title( $post_id ), '?' ) ), $source_url ).'" target="_blank">' . __( 'View Page', 'broken-link-notifier' ) . '</a></span>'
                 ];
                 if ( $source_id = url_to_postid( $source_url ) ) {
                     if ( !(new BLNOTIFIER_OMITS)->is_omitted( $source_url, 'pages' ) ) {
-                        $actions[] = '<span class="omit"><a class="omit-page" href="#" data-link="'.$source_url.'">Omit</a></span>';
+                        $actions[] = '<span class="omit"><a class="omit-page" href="#" data-link="'.$source_url.'">' . __( 'Omit Page', 'broken-link-notifier' ) . '</a></span>';
                     }
-                    $nonce = wp_create_nonce( 'blnotifier_scan_single' );
-                    $actions[] = '<span class="scan"><a class="scan-page" href="'.(new BLNOTIFIER_MENU)->get_plugin_page( 'scan-single' ).'&scan='.$source_url.'&_wpnonce='.$nonce.'" target="_blank">Scan Page</a></span>';
-                    $actions[] = '<span class="edit"><a href="'.admin_url( 'post.php' ).'?post='.$source_id.'&action=edit">Edit</a></span>';
+                    $scan_nonce = wp_create_nonce( 'blnotifier_scan_single' );
+                    $actions[] = '<span class="scan"><a class="scan-page" href="'.(new BLNOTIFIER_MENU)->get_plugin_page( 'scan-single' ).'&scan='.$source_url.'&_wpnonce='.$scan_nonce.'" target="_blank">Scan Page</a></span>';
+                    $actions[] = '<span class="edit"><a href="'.admin_url( 'post.php' ).'?post='.$source_id.'&action=edit">' . __( 'Edit Page', 'broken-link-notifier' ) . '</a></span>';
                     if ( is_plugin_active( 'cornerstone/cornerstone.php' ) ) {
-                        $actions[] = '<span class="edit-in-cornerstone"><a href="'.home_url( '/cornerstone/edit/'.$source_id ).'">Edit in Cornerstone</a></span>';
+                        $actions[] = '<span class="edit-in-cornerstone"><a href="'.home_url( '/cornerstone/edit/'.$source_id ).'">' . __( 'Edit in Cornerstone', 'broken-link-notifier' ) . '</a></span>';
                     }
-                    $source_url = '<strong><a class="source-url" href="'.$source_url.'">'.get_the_title( $source_id ).'</a></strong>';
+
+                    $title = get_the_title( $source_id );
+                    $source_url = '<strong><a class="source-url" href="'.$source_url.'">'.$title.'</a></strong>';
+
+                    if ( get_option( 'blnotifier_enable_delete_source' ) ) {
+                        $actions[] = '<span class="delete"><a class="delete-source" href="#" data-source-title="' . $title . '" data-source-id="' . $source_id . '">' . __( 'Trash Page', 'broken-link-notifier' ) . '</a></span>';
+                    }
                 }
-                echo wp_kses_post( $source_url ).'<div class="row-actions">'.wp_kses_post( implode( ' | ', $actions ) ).'</div>';
+
+                echo wp_kses_post( $source_url ).'<div class="row-actions" data-source-id="' . $source_id . '">'.wp_kses_post( implode( ' | ', $actions ) ).'</div>';
             }
         }
 
@@ -835,7 +863,7 @@ class BLNOTIFIER_RESULTS {
      */
     public function ajax_blinks() {
         // Verify nonce
-        if ( !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce_blinks ) ) {
+        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce_blinks ) ) {
             exit( 'No naughty business please.' );
         }
     
@@ -960,7 +988,7 @@ class BLNOTIFIER_RESULTS {
      */
     public function ajax_rescan() {
         // Verify nonce
-        if ( !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_rescan ) ) {
+        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_rescan ) ) {
             exit( 'No naughty business please.' );
         }
     
@@ -1041,6 +1069,141 @@ class BLNOTIFIER_RESULTS {
 
 
     /**
+     * Unauthorized ajax
+     *
+     * @return void
+     */
+    public function ajax_unauthorized() {
+        wp_send_json_error( 'Unauthorized access.', 403 );
+        exit;
+    } // End ajax_unauthorized()
+
+
+    /**
+     * Ajax call for back end
+     *
+     * @return void
+     */
+    public function ajax_replace_link() {
+        // Verify nonce
+        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_replace ) ) {
+            exit( 'No naughty business please.' );
+        }
+    
+        // Get the vars
+        $result_id = isset( $_REQUEST[ 'resultID' ] ) ? absint( $_REQUEST[ 'resultID' ] ) : false;
+        $oldLink = isset( $_REQUEST[ 'oldLink' ] ) ? sanitize_text_field( $_REQUEST[ 'oldLink' ] ) : false;
+        $newLink = isset( $_REQUEST[ 'newLink' ] ) ? sanitize_text_field( $_REQUEST[ 'newLink' ] ) : false;
+        $source_id = isset( $_REQUEST[ 'sourceID' ] ) ? absint( $_REQUEST[ 'sourceID' ] ) : false;
+
+        if ( $result_id && $oldLink && $newLink && $source_id && get_post( $source_id ) ) {
+
+            // Get the current post content
+            $post_content = get_post_field( 'post_content', $source_id );
+
+            // Replace old link with new link in the content
+            $updated_content = str_replace( $oldLink, $newLink, $post_content );
+
+            // Update the post content
+            $updated_post = [
+                'ID'           => $source_id,
+                'post_content' => $updated_content,
+            ];
+
+            // Update the post in the database
+            $result = wp_update_post( $updated_post );
+            if ( !is_wp_error( $result ) ) {
+
+                // Let's also delete the result
+                wp_delete_post( $result_id );
+
+                // Respond
+                wp_send_json_success();
+            } else {
+                wp_send_json_error( 'Failed to update the post: ' . $result->get_error_message() );
+            }
+        }
+
+        // Failure
+        wp_send_json_error( 'Failed to delete.' );
+    } // End ajax_replace_link()
+
+
+    /**
+     * Ajax call for back end
+     *
+     * @return void
+     */
+    public function ajax_delete_result() {
+        // Verify nonce
+        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_delete ) ) {
+            exit( 'No naughty business please.' );
+        }
+    
+        // Get the ID
+        $post_id = isset( $_REQUEST[ 'postID' ] ) ? absint( $_REQUEST[ 'postID' ] ) : false;
+        if ( $post_id ) {
+
+            // Delete it
+            if ( wp_delete_post( $post_id ) ) {
+                wp_send_json_success();
+            }
+        }
+
+        // Failure
+        wp_send_json_error( 'Failed to delete.' );
+    } // End ajax_delete_result()
+
+
+    /**
+     * Ajax call for back end
+     *
+     * @return void
+     */
+    public function ajax_delete_source() {
+        // Verify nonce
+        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_delete ) ) {
+            exit( 'No naughty business please.' );
+        }
+    
+        // Get the ID
+        $source_id = isset( $_REQUEST[ 'sourceID' ] ) ? absint( $_REQUEST[ 'sourceID' ] ) : false;
+        if ( $source_id ) {
+
+            // Delete all links with this source
+            $source_url = (new BLNOTIFIER_HELPERS)->get_clean_permalink( $source_id );
+            if ( $source_url ) {
+                $query = new WP_Query( [
+                    'post_type'      => $this->post_type,
+                    'meta_query'     => [
+                        [
+                            'key'   => 'source',
+                            'value' => $source_url,
+                        ]
+                    ],
+                    'fields'         => 'ids',
+                    'posts_per_page' => -1,
+                ] );
+    
+                if ( !empty( $query->posts ) ) {
+                    foreach ( $query->posts as $post_id ) {
+                        wp_delete_post( $post_id, true );
+                    }
+                }
+            }
+
+            // Trash the source itself
+            if ( wp_trash_post( $source_id ) ) {
+                wp_send_json_success();
+            }
+        }
+
+        // Failure
+        wp_send_json_error( 'Failed to delete.' );
+    } // End ajax_delete_source()
+
+
+    /**
      * Enque the JavaScript
      * // TODO: Reminder to swap version number after testing
      *
@@ -1085,12 +1248,13 @@ class BLNOTIFIER_RESULTS {
     public function back_script_enqueuer( $screen ) {
         $post_type = get_post_type();
         if ( $screen == 'edit.php' && $post_type == 'blnotifier-results' ) {
-            $nonce = wp_create_nonce( $this->nonce_rescan );
             $handle = 'blnotifier_results_back_end_script';
             wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-back.js', [ 'jquery' ], BLNOTIFIER_VERSION, true );
             wp_localize_script( $handle, 'blnotifier_back_end', [
-                'nonce'           => $nonce,
-                'ajaxurl'         => admin_url( 'admin-ajax.php' )
+                'nonce_rescan'  => wp_create_nonce( $this->nonce_rescan ),
+                'nonce_replace' => wp_create_nonce( $this->nonce_replace ),
+                'nonce_delete'  => wp_create_nonce( $this->nonce_delete ),
+                'ajaxurl'       => admin_url( 'admin-ajax.php' )
             ] );
             wp_enqueue_script( $handle );
             wp_enqueue_script( 'jquery' );

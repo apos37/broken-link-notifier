@@ -2,9 +2,9 @@
 Contributors: apos37
 Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
-Tested up to: 6.7.1
+Tested up to: 6.7.2
 Requires PHP: 7.4
-Stable tag: 1.1.4.2
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -94,6 +94,7 @@ Yes, there are plenty. The following hooks are available:
 * `blnotifier_discord_args` ( Array $args, Array $flagged, String $source_url ) — Filter the Discord webhook args
 * `blnotifier_msteams_args` ( Array $args, Array $flagged, String $source_url ) — Filter the Microsoft Teams webhook args
 * `blnotifier_strings_to_replace` ( Array $strings_to_replace ) — Filter the strings to replace on the link
+* `blnotifier_force_head_file_types` (Array $file_types, Boolean $docs_use_head) — Filter the list of file types that should force a HEAD request, with the $docs_use_head variable determining whether document types should be included
 
 = Where can I request features and get further support? =
 Join my [Discord support server](https://discord.gg/3HnzNEJVnR)
@@ -113,6 +114,16 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.2.0 =
+* Update: Added code 413 to warnings and automatically code files larger than 10 MB with 413 when using `GET` requests (allowing redirects option)
+* Update: Added an option for forcing documents to use `HEAD` requests
+* Fix: Gifs, videos, and other large files timing out (props @mrphunin)
+* Update: Added a Replace Link action to link column on results page (props a4jp-com for suggestion)
+* Update: Added a Trash Page action to source on results page; must enable it in Settings (props @mrphunin for suggestion)
+* Fix: Sometimes no permission for trash error; changed Clear Result action to use ajax instead
+* Tweak: Renamed all other action links on link and source columns on results page
+* Tweak: Changed Edit link to "Edit Page" (props a4jp-com)
+
 = 1.1.4.2 =
 * Tweak: Added support for translations on some other info boxes
 * Update: Added an info box to the top of the results page with clarification on trashing results

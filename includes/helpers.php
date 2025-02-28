@@ -89,7 +89,7 @@ class BLNOTIFIER_HELPERS {
      * @return array
      */
     public function get_warning_status_codes( $force_enable = false ) {
-        $default_codes = [ 0 ];
+        $default_codes = [ 0, 413 ];
 
         $types = filter_var_array( get_option( 'blnotifier_status_codes', [] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
         if ( empty( $types ) ) {
@@ -220,7 +220,8 @@ class BLNOTIFIER_HELPERS {
     public function get_html_link_sources() {
         $el = [ 
             'a'      => 'href',
-            'iframe' => 'src'
+            'iframe' => 'src',
+            'video'  => 'src',
         ];
         $has_updated_settings = get_option( 'blnotifier_has_updated_settings' );
         $incl_images = get_option( 'blnotifier_include_images' );
@@ -229,6 +230,33 @@ class BLNOTIFIER_HELPERS {
         }
         return filter_var_array( apply_filters( 'blnotifier_html_link_sources', $el ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
     } // End get_html_link_sources()
+
+
+    /**
+     * Determine if a URL should force the HEAD request method.
+     *
+     * @return array
+     */
+    public function get_force_head_file_types() {
+        $file_types = [ 
+            // Image formats
+            'gif', 'jpg', 'jpeg', 'png', 'webp', 'svg', 'bmp', 'tiff', 'ico', 'avif',
+
+            // Video formats
+            'mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv', 'flv', 'wmv', 'm4v',
+
+            // Audio formats
+            'mp3', 'wav', 'flac', 'aac', 'ogg', 'm4a'
+        ];
+
+        $docs_use_head = filter_var( get_option( 'blnotifier_documents_use_head' ), FILTER_VALIDATE_BOOLEAN );
+        if ( $docs_use_head ) {
+            $doc_types = [ 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'rtf', 'odt', 'ods', 'epub', 'mobi' ];
+            $file_types = array_merge( $file_types, $doc_types );
+        }
+
+        return apply_filters( 'blnotifier_force_head_file_types', $file_types, $docs_use_head );
+    } // End get_force_head_file_types()
 
 
     /**
@@ -998,7 +1026,7 @@ class BLNOTIFIER_HELPERS {
             ],
             413 => [
                 'msg'  => 'Payload Too Large',
-                'desc' => 'The request body is larger than limits defined by server. The server might close the connection or return a Retry-After header field.',
+                'desc' => 'The request body is larger than limits defined by server. The server might close the connection or return a Retry-After header field. This usually happens if the link is to a large file.',
             ],
             414 => [
                 'msg'  => 'URI Too Long',
@@ -1238,6 +1266,14 @@ class BLNOTIFIER_HELPERS {
         // Determine the request method based on allow_redirects option
         $request_method = $allow_redirects ? 'GET' : 'HEAD';
 
+        // Force giving head for images, videos, and audio files
+        if ( $request_method == 'GET' ) {
+            $file_extension = strtolower( pathinfo( $url, PATHINFO_EXTENSION ) );
+            if ( in_array( $file_extension, $this->get_force_head_file_types() ) ) {
+                $request_method = 'HEAD';
+            }
+        }
+        
         // User agent
         $user_agent = sanitize_text_field( get_option( 'blnotifier_user_agent' ) );
         if ( $user_agent ) {
@@ -1288,6 +1324,14 @@ class BLNOTIFIER_HELPERS {
         // Possible Codes
         $codes = $this->get_status_codes();
 
+        // Files too large
+        if ( $request_method == 'GET' ) {
+            $content_length = wp_remote_retrieve_header( $response, 'content-length' );
+            if ( $content_length && $content_length > 10 * 1024 * 1024 ) { // 10 MB
+                $code = 413;
+            }
+        }
+        
         // Bad links
         if ( in_array( $code, $this->get_bad_status_codes() ) ) {
             $type = 'broken';
@@ -1396,7 +1440,7 @@ class BLNOTIFIER_HELPERS {
         } elseif ( str_starts_with( $link, home_url() ) || ( str_starts_with( $link, '/' ) && !str_starts_with( $link, '//' ) ) ) {
            
             // Check locally first
-            if ( !url_to_postid( $link ) ) {
+            if ( !url_to_postid( $link ) ) {                
 
                 // It may be redirected or an archive page, so let's check status anyway
                 return $this->check_url_status_code( $link );
@@ -1420,6 +1464,46 @@ class BLNOTIFIER_HELPERS {
         // Return the good status
         return $status;
     } // End check_link
+
+
+    /**
+     * Get the clean link regardless of status
+     *
+     * @param int|WP_Post $post
+     * @return string
+     */
+    public function get_clean_permalink( $post ) {
+        // Check if $post is a numeric ID and retrieve the post object if so
+        if ( is_numeric( $post ) ) {
+            $post = get_post( $post );
+        }
+    
+        // Initialize permalink variable
+        $permalink = '';
+    
+        if ( in_array( $post->post_status, [ 'draft', 'pending', 'auto-draft' ] ) ) {
+            // Clone the current post object to avoid modifying the global $post
+            $my_post = clone $post;
+        
+            // Change the post status to 'publish' for URL generation
+            $my_post->post_status = 'publish';
+        
+            // Sanitize the post name (slug) using the post title if it's empty
+            $my_post->post_name = sanitize_title(
+                $my_post->post_name ? $my_post->post_name : $my_post->post_title,
+                $my_post->ID
+            );
+        
+            // Get the permalink using the modified post object
+            $permalink = get_permalink( $my_post );
+
+        } else {
+            // For published or other post statuses, get the permalink normally
+            $permalink = get_permalink( $post );
+        }
+    
+        return $permalink;
+    } // End get_clean_permalink()    
 
 }
 
