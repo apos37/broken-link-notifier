@@ -22,6 +22,7 @@ jQuery( $ => {
                 nonce: nonce,
                 link: link,
                 postID: blnotifier_scan_single.post_id,
+                method: 'single'
             }
         } )
     }

@@ -23,7 +23,7 @@ jQuery( $ => {
      */
    
     // Scan an individual link
-    const scanLink = async ( link, postID, code, type ) => {
+    const scanLink = async ( link, postID, code, type, sourceID, method ) => {
         console.log( `Scanning link (${link})...` );
 
         // Say it started
@@ -41,7 +41,9 @@ jQuery( $ => {
                 link: link,
                 postID: postID,
                 code: code,
-                type: type
+                type: type,
+                sourceID: sourceID,
+                method: method
             }
         } );
     }
@@ -58,9 +60,11 @@ jQuery( $ => {
             const postID = linkSpan.dataset.postId;
             const code = linkSpan.dataset.code;
             const type = linkSpan.dataset.type;
+            const sourceID = linkSpan.dataset.sourceId;
+            const method = linkSpan.dataset.method;
 
             // Scan it
-            const data = await scanLink( link, postID, code, type);
+            const data = await scanLink( link, postID, code, type, sourceID, method );
             console.log( data );
 
             // Status
@@ -79,14 +83,23 @@ jQuery( $ => {
 
             // Text and actions
             var text;
-            if ( statusType == 'good' || statusType == 'omitted' ) {
-                text = '<em>Link is ' + statusType + ', removing from list...</em>';
+            if ( statusType == 'good' || statusType == 'omitted' || statusType == 'n/a' ) {
+                if ( statusType == 'n/a' ) {
+                    text = '<em>Source no longer exists, removing from list...</em>';
+                } else {
+                    text = '<em>Link is ' + statusType + ', removing from list...</em>';
+                }
+                
                 $( `#post-${postID}` ).addClass( 'omitted' );
                 $( `#post-${postID} .bln-type` ).addClass( statusType ).text( statusType );
                 $( `#post-${postID} .bln_type code` ).html( 'Code: ' + statusCode );
                 $( `#post-${postID} .bln_type .message` ).text( statusText );
                 $( `#post-${postID} .title .row-actions` ).remove();
                 $( `#post-${postID} .bln_source .row-actions` ).remove();
+
+                // Also reduce count in admin bar
+                reduceAdminBarCount();
+
             } else if ( code != statusCode || type != statusType ) {
                 if ( statusCode == 'ERR_FAILED' ) {
                     text = `Failed to remove link. ${statusText}`;
@@ -114,7 +127,9 @@ jQuery( $ => {
     }
 
     // Do it
-    reScanLinks();
+    if ( blnotifier_back_end.verifying ) {
+        reScanLinks();
+    }
 
 
     /**
@@ -211,6 +226,9 @@ jQuery( $ => {
                     if ( rowActions.children().length === 1 ) {
                         rowActions.html( rowActions.html().replace(' | ', '' ) );
                     }
+
+                    // Reduce admin bar count
+                    reduceAdminBarCount();
                     
                 } else {
                     alert( response.data );
@@ -247,6 +265,10 @@ jQuery( $ => {
                     button.closest( 'tr' ).fadeOut( 'fast', function () {
                         $( this ).remove();
                     } );
+
+                    // Reduce admin bar count
+                    reduceAdminBarCount();
+
                 } else {
                     alert( response.data );
                 }
@@ -294,6 +316,9 @@ jQuery( $ => {
                             row.fadeOut( 'fast', function () {
                                 $( this ).remove();
                             } );
+
+                            // Reduce admin bar count
+                            reduceAdminBarCount();
                         }
                     } );
                 } else {
@@ -305,4 +330,22 @@ jQuery( $ => {
             }
         } );
     } );
+
+    
+    /**
+     * REDUCE COUNT IN ADMIN BAR
+     */
+
+    function reduceAdminBarCount() {
+        var adminBarEl = $( '#wp-admin-bar-blnotifier-notify' );
+        if ( adminBarEl.length ) {
+            var adminBarCountEl = adminBarEl.find( '.awaiting-mod' );
+            var adminBarCount = parseInt( adminBarCountEl.text(), 10 );
+    
+            if ( !isNaN( adminBarCount ) && adminBarCount > 0 ) {
+                adminBarCountEl.text( adminBarCount - 1 );
+            }
+        }
+    }
+    
 } )

@@ -28,6 +28,7 @@ jQuery( $ => {
                 nonce: nonce,
                 link: link,
                 postID: postID,
+                method: 'multi'
             }
         } )
     }

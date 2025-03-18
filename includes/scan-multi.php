@@ -191,6 +191,8 @@ class BLNOTIFIER_FULL_SCAN {
                     // Start output buffering to suppress unexpected output
                     ob_start();
 
+                    $redirect_detected = false;
+
                     try {
                         // Process shortcodes and expand them in the content
                         $content = apply_filters( 'the_content', $get_the_content );

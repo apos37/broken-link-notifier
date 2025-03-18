@@ -191,6 +191,23 @@ class BLNOTIFIER_MENU {
             ]
         );
 
+        // Pause results verification
+        $pause_results_verification_option_name = 'blnotifier_pause_results_verification';
+        register_setting( $this->page_slug, $pause_results_verification_option_name, [ $this, 'sanitize_checkbox' ] );
+        add_settings_field(
+            $pause_results_verification_option_name,
+            'Pause Results Auto-Verification',
+            [ $this, 'field_checkbox' ],
+            $this->page_slug,
+            'general',
+            [
+                'class'    => $pause_results_verification_option_name,
+                'name'     => $pause_results_verification_option_name,
+                'default'  => false,
+                'comments' => 'You can pause the automatic verification and removal on the results page'
+            ]
+        );
+
         // Enable emailing
         $enable_emailing_option_name = 'blnotifier_enable_emailing';
         register_setting( $this->page_slug, $enable_emailing_option_name, [ $this, 'sanitize_checkbox' ] );
@@ -358,7 +375,7 @@ class BLNOTIFIER_MENU {
                 'name'     => 'enable_delete_source',
                 'label'    => 'Enable Delete Source Action Link',
                 'default'  => false,
-                'comments' => 'An action link will appear on the Results tab under the source where you can delete the post or page entirely'
+                'comments' => 'An action link will appear on the Results tab under the source where you can trash the page entirely'
             ],
             [ 
                 'name'     => 'include_images', 

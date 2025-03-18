@@ -266,7 +266,7 @@ class BLNOTIFIER_OMITS {
             $link,
             'omit-'.$type,
             [
-                'description' => 'Added by '.$user->display_name.' on '.(new BLNOTIFIER_HELPERS)->convert_timezone(),
+                'description' => 'Added by '.$user->display_name.' on '.(new BLNOTIFIER_HELPERS())->convert_timezone(),
             ]
         );
         if ( !is_wp_error( $omit ) ) {
@@ -274,7 +274,9 @@ class BLNOTIFIER_OMITS {
             // Also delete it from results
             if ( $page && $page == 'scan-results' ) {
                 if ( $post_id = post_exists( $link ) ) {
-                    wp_delete_post( $post_id, true );
+                    if ( get_post_type( $post_id ) == (new BLNOTIFIER_RESULTS())->post_type ) {
+                        wp_delete_post( $post_id, true );
+                    }
                 }
             }
             return true;

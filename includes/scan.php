@@ -70,6 +70,7 @@ class BLNOTIFIER_SCAN {
         // Get the ID
         $link = $HELPERS->sanitize_link( $_REQUEST[ 'link' ] );
         $post_id = isset( $_REQUEST[ 'postID' ] ) ? absint( $_REQUEST[ 'postID' ] ) : false;
+        $method = isset( $_REQUEST[ 'method' ] ) ? sanitize_key( $_REQUEST[ 'method' ] ) : false;
 
         // Make sure we have a source URL
         if ( $link ) {
@@ -89,7 +90,8 @@ class BLNOTIFIER_SCAN {
                     'link'     => $status[ 'link' ],
                     'source'   => get_the_permalink( $post_id ),
                     'author'   => get_current_user_id(),
-                    'location' => 'content'
+                    'location' => 'content',
+                    'method'   => $method
                 ] );
             }
 

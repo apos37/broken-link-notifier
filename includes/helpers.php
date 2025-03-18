@@ -41,13 +41,23 @@ class BLNOTIFIER_HELPERS {
     
 
     /**
-     * Check if warnings are enabled
+     * Check if we are pausing frontend scanning
      *
      * @return boolean
      */
     public function is_frontend_scanning_paused() {
         return filter_var( get_option( 'blnotifier_pause_frontend_scanning' ), FILTER_VALIDATE_BOOLEAN );
     } // End is_frontend_scanning_paused()
+
+
+    /**
+     * Check if we are pausing results verification
+     *
+     * @return boolean
+     */
+    public function is_results_verification_paused() {
+        return filter_var( get_option( 'blnotifier_pause_results_verification' ), FILTER_VALIDATE_BOOLEAN );
+    } // End is_results_verification_paused()
 
     
     /**

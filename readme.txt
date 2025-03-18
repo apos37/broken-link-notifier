@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9.0
 Tested up to: 6.7.2
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -19,6 +19,7 @@ This plugin:
 * Identifies broken links, including 404 errors, timeouts, images, and embedded YouTube videos
 * Notifies you via dashboard notifications, email, Discord, and/or Microsoft Teams
 * Provides a list of broken links for easy review and correction
+* Allows easy replacement of links straight from the results page (**NEW with Version 1.2.0**)
 
 With "Broken Link Notifier", you can:
 
@@ -114,6 +115,18 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.2.1.1 // TODO: BETA
+* Fix: Undefined variable $redirect_detected
+
+= 1.2.1 =
+* Update: Added a method column to the results page
+* Fix: Links being added from invalid sources
+* Tweak: Links without a source will be automatically removed
+* Fix: Some links are being added to results without a source
+* Update: Added option to pause auto-verification on results page
+* Update: Admin bar count is reduced in real time if results are removed
+* Tweak: Update notice on results page from "trash" to "clear" (props @cantabber for pointing it out)
+
 = 1.2.0 =
 * Update: Added code 413 to warnings and automatically code files larger than 10 MB with 413 when using `GET` requests (allowing redirects option)
 * Update: Added an option for forcing documents to use `HEAD` requests

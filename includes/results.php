@@ -247,7 +247,7 @@ class BLNOTIFIER_RESULTS {
         global $current_screen;
         if ( 'edit-'.$this->post_type === $current_screen->id ) {
             echo '<div class="notice notice-info" >
-                <p>' . esc_html__( 'This page shows the results of your scans. It automatically rechecks the links themselves to see if they are still broken, but it does not remove the links from the pages or rescan the pages to see if broken links have been fixed. After fixing a broken link, you will need to trash the result below. Then when you rescan the page it should not show up here again. Note that the plugin will still find broken links if you simply hide them on the page.', 'broken-link-notifier' ) . '</p>
+                <p>' . esc_html__( 'This page shows the results of your scans. It automatically rechecks the links themselves to see if they are still broken, but it does not remove the links from the pages or rescan the pages to see if broken links have been fixed. After fixing a broken link, you will need to clear the result below. Then when you rescan the page it should not show up here again. Note that the plugin will still find broken links if you simply hide them on the page.', 'broken-link-notifier' ) . '</p>
             </div>';
         }
     } // End description_notice()
@@ -438,6 +438,7 @@ class BLNOTIFIER_RESULTS {
             'bln_source_pt' => __( 'Source Post Type', 'broken-link-notifier' ),
             'bln_date'      => __( 'Date', 'broken-link-notifier' ),
             'bln_author'    => __( 'User', 'broken-link-notifier' ),
+            'bln_method'    => __( 'Method', 'broken-link-notifier' ),
             'bln_verify'    => __( 'Verify', 'broken-link-notifier' ),
         ];
     } // End admin_columns()
@@ -502,6 +503,8 @@ class BLNOTIFIER_RESULTS {
                 }
 
                 echo wp_kses_post( $source_url ).'<div class="row-actions" data-source-id="' . $source_id . '">'.wp_kses_post( implode( ' | ', $actions ) ).'</div>';
+            } else {
+                echo esc_html__( 'No source found...', 'broken-link-notifier' );
             }
         }
 
@@ -541,13 +544,49 @@ class BLNOTIFIER_RESULTS {
             echo esc_html( $display_name );
         }
 
+        // Method
+        if ( 'bln_method' === $column ) {
+            $post = get_post( $post_id );
+            if ( isset( $post->method ) && $post->method ) {
+
+                switch ( sanitize_key( $post->method ) ) {
+                    case 'visit':
+                        $method = __( 'Front-End Visit', 'broken-link-notifier' );
+                        break;
+                    case 'multi':
+                        $method = __( 'Multi-Scan', 'broken-link-notifier' );
+                        break;
+                    case 'single':
+                        $method = __( 'Page Scan', 'broken-link-notifier' );
+                        break;
+                    default:
+                        $method = __( 'Unknown', 'broken-link-notifier' );
+                }
+            } else {
+                $method = __( 'Unknown', 'broken-link-notifier' );
+            }
+            echo esc_html( $method );
+        }
+
         // Verify
         if ( 'bln_verify' === $column ) {
-            $link = get_the_title( $post_id );
-            $post = get_post( $post_id );
-            $code = $post->code;
-            $type = $post->type;
-            echo '<span id="bln-verify-'.esc_attr( $post_id ).'" class="bln-verify" data-type="' . esc_attr( $type ) . '" data-post-id="'.esc_attr( $post_id ).'" data-link="'.esc_html( $link ).'" data-code="'.esc_attr( $code ).'">Pending</span>';
+
+            if ( !(new BLNOTIFIER_HELPERS ())->is_results_verification_paused() ) {
+                $link = get_the_title( $post_id );
+                $post = get_post( $post_id );
+                $code = absint( $post->code );
+                $type = sanitize_text_field( $post->type );
+                $source_url = filter_var( $post->source, FILTER_SANITIZE_URL );
+                $source_url = remove_query_arg( (new BLNOTIFIER_HELPERS)->get_qs_to_remove_from_source(), $source_url );
+                $source_id = url_to_postid( $source_url );
+                $method = $post->method ? sanitize_key( $post->method ) : 'unknown';
+
+                echo '<span id="bln-verify-'.esc_attr( $post_id ).'" class="bln-verify" data-type="' . esc_attr( $type ) . '" data-post-id="'.esc_attr( $post_id ).'" data-link="'.esc_html( $link ).'" data-code="'.esc_attr( $code ).'" data-source-id="'.esc_attr( $source_id ).'" data-method="'.esc_attr( $method ).'">' . esc_html__( 'Pending', 'broken-link-notifier' ) . '</span>';
+
+            } else {
+                echo esc_html__( 'Auto-verification is paused in settings.', 'broken-link-notifier' );
+            }
+
         }
     } // End admin_column_content()
     
@@ -657,6 +696,12 @@ class BLNOTIFIER_RESULTS {
             return 'Link already added';
         }
 
+        // Validate source
+        $source_url = remove_query_arg( (new BLNOTIFIER_HELPERS)->get_qs_to_remove_from_source(), filter_var( $args[ 'source' ], FILTER_SANITIZE_URL ) );
+        if ( !$source_url ) {
+            return __( 'Invalid source: ' . $source_url, 'broken-link-notifier' );
+        }
+
         // Args
         $data = [
             'post_title'    => sanitize_text_field( $args[ 'link' ] ),
@@ -666,9 +711,10 @@ class BLNOTIFIER_RESULTS {
             'meta_input'    => [
                 'type'     => sanitize_key( $args[ 'type' ] ),
                 'code'     => absint( $args[ 'code' ] ),
-                'source'   => remove_query_arg( (new BLNOTIFIER_HELPERS)->get_qs_to_remove_from_source(), filter_var( $args[ 'source' ], FILTER_SANITIZE_URL ) ),
+                'source'   => $source_url,
                 'location' => sanitize_key( $args[ 'location' ] ),
-                'guest'    => false
+                'guest'    => false,
+                'method'   => sanitize_key( $args[ 'method' ] )
             ],
         ];
 
@@ -702,8 +748,10 @@ class BLNOTIFIER_RESULTS {
             $link_id = post_exists( $link, '', '', $this->post_type );
         }
         if ( $link_id ) {
-            if ( wp_delete_post( $link_id ) ) {
-                return true;
+            if ( get_post_type( $link_id ) == $this->post_type ) {
+                if ( wp_delete_post( $link_id ) ) {
+                    return true;
+                }
             }
         }
         return false;
@@ -876,8 +924,15 @@ class BLNOTIFIER_RESULTS {
         // Make sure we have a source URL
         if ( $source_url ) {
 
+            // Only allow webpages, not file:///, etc.
+            if ( !str_starts_with( $source_url, 'http' ) ) {
+                wp_send_json_error( 'Invalid source: ' . $source_url );
+            }
+
             // Initiate helpers
             $HELPERS = new BLNOTIFIER_HELPERS;
+
+            // Codes
             $bad_status_codes = $HELPERS->get_bad_status_codes();
             $warning_status_codes = $HELPERS->get_warning_status_codes();
             $notify_status_codes = array_merge( $bad_status_codes, $warning_status_codes );
@@ -943,7 +998,8 @@ class BLNOTIFIER_RESULTS {
                         'link'     => $status[ 'link' ],
                         'source'   => $source_url,
                         'author'   => get_current_user_id(),
-                        'location' => $location
+                        'location' => $location,
+                        'method'   => 'visit'
                     ] );
                 }
             }
@@ -997,6 +1053,8 @@ class BLNOTIFIER_RESULTS {
         $post_id = isset( $_REQUEST[ 'postID' ] ) ? absint( $_REQUEST[ 'postID' ] ) : false;
         $code = isset( $_REQUEST[ 'code' ] ) ? absint( $_REQUEST[ 'code' ] ) : false;
         $type = isset( $_REQUEST[ 'type' ] ) ? sanitize_key( $_REQUEST[ 'type' ] ) : false;
+        $source_id = isset( $_REQUEST[ 'sourceID' ] ) ? absint( $_REQUEST[ 'sourceID' ] ) : false;
+        $method = isset( $_REQUEST[ 'method' ] ) ? sanitize_key( $_REQUEST[ 'method' ] ) : false;
 
         // Make sure we have a source URL
         if ( $link ) {
@@ -1004,12 +1062,16 @@ class BLNOTIFIER_RESULTS {
             // Initiate helpers
             $HELPERS = new BLNOTIFIER_HELPERS;
 
-            // Check status
-            $status = $HELPERS->check_link( $link );
-
-            // If it's good now, remove the old post
-            if ( $status[ 'type' ] == 'good' || $status[ 'type' ] == 'omitted' ) {
+            // If the source no longer exists, auto remove it
+            if ( !$source_id || !get_post( $source_id ) ) {
                 $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $post_id );
+                $status = [
+                    'type' => 'n/a',
+                    'code' => $code,
+                    'text' => __( 'Source no longer exists.', 'broken-link-notifier' ),
+                    'link' => $link
+                ];
+
                 if ( $remove ) {
                     $result[ 'type' ] = 'success';
                     $result[ 'status' ] = $status;
@@ -1017,43 +1079,67 @@ class BLNOTIFIER_RESULTS {
                     $result[ 'post_id' ] = $post_id;
                 } else {
                     $result[ 'type' ] = 'error';
-                    $result[ 'msg' ] = 'Could not remove '.$status[ 'type' ].' link. Please try again.';
+                    $result[ 'msg' ] = __( 'Could not auto-remove link.', 'broken-link-notifier' );
                 }
 
-            // If it's still not good, but doesn't have the same code or type, update it
-            } elseif ( $code !== $status[ 'code' ] || $type !== $status[ 'type' ] ) {
-                $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $post_id );
-                if ( $remove ) {
-                    $result[ 'type' ] = 'success';
-                    $result[ 'status' ] = $status;
-                    $result[ 'link' ] = $link;
-                    $result[ 'post_id' ] = $post_id;
-
-                    // Re-add it with new data
-                    $this->add( [
-                        'type'     => $status[ 'type' ],
-                        'code'     => $status[ 'code' ],
-                        'text'     => $status[ 'text' ],
-                        'link'     => $status[ 'link' ],
-                        'source'   => get_the_permalink( $post_id ),
-                        'author'   => get_current_user_id(),
-                        'location' => 'content'
-                    ] );
-                } else {
-                    $result[ 'type' ] = 'error';
-                    $result[ 'msg' ] = 'Could not update link with new code. Please try again.';
-                }
+            // Source exists
             } else {
-                $result[ 'type' ] = 'success';
-                $result[ 'status' ] = $status;
-                $result[ 'link' ] = $link;
-                $result[ 'post_id' ] = $post_id;
+
+                // Check status
+                $status = $HELPERS->check_link( $link );
+                
+                // If it's good now, remove the old post
+                if ( $status[ 'type' ] == 'good' || $status[ 'type' ] == 'omitted' ) {
+                    $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $post_id );
+                    if ( $remove ) {
+                        $result[ 'type' ] = 'success';
+                        $result[ 'status' ] = $status;
+                        $result[ 'link' ] = $link;
+                        $result[ 'post_id' ] = $post_id;
+                    } else {
+                        $result[ 'type' ] = 'error';
+                        // translators: the status type
+                        $result[ 'msg' ] = sprintf( __( 'Could not remove %s link. Please try again.', 'broken-link-notifier' ),
+                            $status[ 'type' ]
+                        );
+                    }
+    
+                // If it's still not good, but doesn't have the same code or type, update it
+                } elseif ( $code !== $status[ 'code' ] || $type !== $status[ 'type' ] ) {
+                    $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $post_id );
+                    if ( $remove ) {
+                        $result[ 'type' ] = 'success';
+                        $result[ 'status' ] = $status;
+                        $result[ 'link' ] = $link;
+                        $result[ 'post_id' ] = $post_id;
+    
+                        // Re-add it with new data
+                        $this->add( [
+                            'type'     => $status[ 'type' ],
+                            'code'     => $status[ 'code' ],
+                            'text'     => $status[ 'text' ],
+                            'link'     => $status[ 'link' ],
+                            'source'   => get_the_permalink( $post_id ),
+                            'author'   => get_current_user_id(),
+                            'location' => 'content',
+                            'method'   => $method
+                        ] );
+                    } else {
+                        $result[ 'type' ] = 'error';
+                        $result[ 'msg' ] = __( 'Could not update link with new code. Please try again.', 'broken-link-notifier' );
+                    }
+                } else {
+                    $result[ 'type' ] = 'success';
+                    $result[ 'status' ] = $status;
+                    $result[ 'link' ] = $link;
+                    $result[ 'post_id' ] = $post_id;
+                }
             }
 
         // Nope
         } else {
             $result[ 'type' ] = 'error';
-            $result[ 'msg' ] = 'No link found.';
+            $result[ 'msg' ] = __( 'No link found.', 'broken-link-notifier' );
         }
     
         // Echo the result or redirect
@@ -1115,7 +1201,9 @@ class BLNOTIFIER_RESULTS {
             if ( !is_wp_error( $result ) ) {
 
                 // Let's also delete the result
-                wp_delete_post( $result_id );
+                if ( get_post_type( $result_id ) == $this->post_type ) {
+                    wp_delete_post( $result_id );
+                }
 
                 // Respond
                 wp_send_json_success();
@@ -1145,8 +1233,10 @@ class BLNOTIFIER_RESULTS {
         if ( $post_id ) {
 
             // Delete it
-            if ( wp_delete_post( $post_id ) ) {
-                wp_send_json_success();
+            if ( get_post_type( $post_id ) == $this->post_type ) {
+                if ( wp_delete_post( $post_id ) ) {
+                    wp_send_json_success();
+                }
             }
         }
 
@@ -1164,6 +1254,11 @@ class BLNOTIFIER_RESULTS {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_delete ) ) {
             exit( 'No naughty business please.' );
+        }
+
+        // Make sure we are allowed to delete the source
+        if ( !get_option( 'blnotifier_enable_delete_source' ) ) {
+            wp_send_json_error( 'Deleting source is not enabled.' );
         }
     
         // Get the ID
@@ -1187,7 +1282,9 @@ class BLNOTIFIER_RESULTS {
     
                 if ( !empty( $query->posts ) ) {
                     foreach ( $query->posts as $post_id ) {
-                        wp_delete_post( $post_id, true );
+                        if ( get_post_type( $post_id ) == $this->post_type ) {
+                            wp_delete_post( $post_id, true );
+                        }
                     }
                 }
             }
@@ -1251,6 +1348,7 @@ class BLNOTIFIER_RESULTS {
             $handle = 'blnotifier_results_back_end_script';
             wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-back.js', [ 'jquery' ], BLNOTIFIER_VERSION, true );
             wp_localize_script( $handle, 'blnotifier_back_end', [
+                'verifying'     => !(new BLNOTIFIER_HELPERS())->is_results_verification_paused(),
                 'nonce_rescan'  => wp_create_nonce( $this->nonce_rescan ),
                 'nonce_replace' => wp_create_nonce( $this->nonce_replace ),
                 'nonce_delete'  => wp_create_nonce( $this->nonce_delete ),
