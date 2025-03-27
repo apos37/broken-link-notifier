@@ -1,10 +1,10 @@
 === Broken Link Notifier ===
 Contributors: apos37
 Tags: broken, link, links, checker, notify
-Requires at least: 5.9.0
-Tested up to: 6.7.2
+Requires at least: 5.9
+Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -115,7 +115,9 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
-= 1.2.1.1 // TODO: BETA
+= 1.2.2 =
+* Update: Changed author name from Apos37 to WordPress Enhanced, new Author URI
+* Tweak: Optimization of main file
 * Fix: Undefined variable $redirect_detected
 
 = 1.2.1 =

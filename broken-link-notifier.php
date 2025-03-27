@@ -3,37 +3,49 @@
  * Plugin Name:         Broken Link Notifier
  * Plugin URI:          https://github.com/apos37/broken-link-notifier
  * Description:         Get notified when someone loads a page with a broken link
- * Version:             1.2.1
- * Requires at least:   5.9.0
- * Tested up to:        6.7.2
+ * Version:             1.2.2
+ * Requires at least:   5.9
+ * Tested up to:        6.7
  * Requires PHP:        7.4
- * Author:              Apos37
- * Author URI:          https://apos37.com/
+ * Author:              WordPress Enhanced
+ * Author URI:          https://wordpressenhanced.com/
+ * Support URI:         https://discord.gg/3HnzNEJVnR
  * Text Domain:         broken-link-notifier
  * License:             GPLv2 or later
  * License URI:         http://www.gnu.org/licenses/gpl-2.0.txt
+ * Created on:          April 7, 2024
  */
 
-// Exit if accessed directly.
-if ( !defined( 'ABSPATH' ) ) {
-	exit;
-}
+
+/**
+ * Exit if accessed directly.
+ */
+if ( !defined( 'ABSPATH' ) ) exit;
 
 
 /**
  * Defines
  */
+$plugin_data = get_file_data( __FILE__, [
+    'name'         => 'Plugin Name',
+    'version'      => 'Version',
+    'requires_php' => 'Requires PHP',
+    'textdomain'   => 'Text Domain',
+    'author'       => 'Author',
+    'author_uri'   => 'Author URI',
+    'support_uri'  => 'Support URI',
+] );
 
 // Versions
-define( 'BLNOTIFIER_VERSION', '1.2.1' );
-define( 'BLNOTIFIER_MIN_PHP_VERSION', '7.4' );
+define( 'BLNOTIFIER_VERSION', $plugin_data[ 'version' ] );
+define( 'BLNOTIFIER_MIN_PHP_VERSION', $plugin_data[ 'requires_php' ] );
 
 // Names
-define( 'BLNOTIFIER_NAME', 'Broken Link Notifier' );
-define( 'BLNOTIFIER_TEXTDOMAIN', 'broken-link-notifier' );
-define( 'BLNOTIFIER_AUTHOR_NAME', 'Apos37' );
-define( 'BLNOTIFIER_AUTHOR_URL', 'https://apos37.com/' );
-define( 'BLNOTIFIER_DISCORD_SUPPORT_URL', 'https://discord.gg/3HnzNEJVnR' );
+define( 'BLNOTIFIER_NAME', $plugin_data[ 'name' ] );
+define( 'BLNOTIFIER_TEXTDOMAIN', $plugin_data[ 'textdomain' ] );
+define( 'BLNOTIFIER_AUTHOR_NAME', $plugin_data[ 'author' ] );
+define( 'BLNOTIFIER_AUTHOR_URL', $plugin_data[ 'author_uri' ] );
+define( 'BLNOTIFIER_DISCORD_SUPPORT_URL', $plugin_data[ 'support_uri' ] );
 
 // Prevent loading the plugin if PHP version is not minimum
 if ( version_compare( PHP_VERSION, BLNOTIFIER_MIN_PHP_VERSION, '<=' ) ) {
