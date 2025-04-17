@@ -2,9 +2,9 @@
 Contributors: apos37
 Tags: broken, link, links, checker, notify
 Requires at least: 5.9
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.2.2
+Stable tag: 1.2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -115,6 +115,10 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.2.3 =
+* Update: Auto-switch user agent for X/Twitter links if a custom user agent isn't provided
+* Update: Updated author name and website again per WordPress trademark policy
+
 = 1.2.2 =
 * Update: Changed author name from Apos37 to WordPress Enhanced, new Author URI
 * Tweak: Optimization of main file

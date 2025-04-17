@@ -180,6 +180,38 @@ table.hooks th.type {
 section .plugin-card div {
     margin-bottom: 0;
 }
+#the-list {
+    display: flex;
+    flex-flow: wrap;
+}
+.plugin-card {
+    display: flex;
+    flex-direction: column;
+    margin-left: 0 !important;
+}
+.plugin-card .plugin-card-top {
+    flex: 1;
+}
+.plugin-card .plugin-card-bottom {
+    margin-top: auto;
+}
+.plugin-card .ws_stars {
+    display: inline-block;
+}
+.php-incompatible {
+    padding: 12px 20px;
+    background-color: #D1231B;
+    color: #FFFFFF;
+    border-top: 1px solid #dcdcde;
+    overflow: hidden;
+}
+#wpbody-content .plugin-card .plugin-action-buttons a.install-now[aria-disabled="true"] {
+    color: #CBB8AD !important;
+    border-color: #CBB8AD !important;
+}
+.plugin-action-buttons {
+    list-style: none !important;   
+}
 </style>
 
 <section>
@@ -367,9 +399,19 @@ section .plugin-card div {
 
 <section>
 <br><br>
-    <h3>Try My Other Plugins</h3>
-    <?php echo wp_kses_post( $HELPERS->plugin_card( 'admin-help-docs' ) ); ?>
-    <?php echo wp_kses_post( $HELPERS->plugin_card( 'gf-discord' ) ); ?>
-    <?php echo wp_kses_post( $HELPERS->plugin_card( 'gf-msteams' ) ); ?>
-    <?php echo wp_kses_post( $HELPERS->plugin_card( 'dev-debug-tools' ) ); ?>
+    <h3><?php echo esc_html__( 'Try My Other Plugins', 'broken-link-notifier' ); ?></h3>
+    <div class="wp-list-table widefat plugin-install">
+        <div id="the-list">
+            <?php echo wp_kses_post( $HELPERS->plugin_card( 'admin-help-docs' ) ); ?>
+            <?php echo wp_kses_post( $HELPERS->plugin_card( 'eri-file-library' ) ); ?>
+            <?php echo wp_kses_post( $HELPERS->plugin_card( 'clear-cache-everywhere' ) ); ?>
+            <?php echo wp_kses_post( $HELPERS->plugin_card( 'dev-debug-tools' ) ); ?>
+            <?php if ( is_plugin_active( 'gravityforms/gravityforms.php' ) ) { ?>
+                <?php echo wp_kses_post( $HELPERS->plugin_card( 'gf-tools' ) ); ?>
+                <?php echo wp_kses_post( $HELPERS->plugin_card( 'gf-discord' ) ); ?>
+                <?php echo wp_kses_post( $HELPERS->plugin_card( 'gf-msteams' ) ); ?>
+                <?php echo wp_kses_post( $HELPERS->plugin_card( 'gravity-zwr' ) ); ?>
+            <?php } ?>
+        </div>
+    </div>
 </section>

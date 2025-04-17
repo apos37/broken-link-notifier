@@ -829,6 +829,63 @@ class BLNOTIFIER_HELPERS {
 
 
     /**
+     * Check if the link is an X/Twitter link
+     *
+     * @param string $link
+     * @return boolean
+     */
+    public function is_x_link( $link ) {
+        if ( ! $link ) {
+            return false;
+        }
+    
+        $host = parse_url( $link, PHP_URL_HOST );
+        $host = strtolower( preg_replace( '/^www\./', '', $host ) );
+    
+        $possible_links = [
+            'x.com',
+            'x.co',
+            'twitter.com',
+            'mobile.twitter.com',
+            'm.twitter.com',
+            't.co'
+        ];
+
+        return in_array( $host, $possible_links, true );
+    } // End is_x_link()
+
+
+    /**
+     * Get the user agent
+     *
+     * @param string $link
+     * @return string
+     */
+    public function get_user_agent( $link ) {
+        // Default user agent
+        $default_user_agent = 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' );
+
+        // Saved option
+        $user_agent_option = sanitize_text_field( get_option( 'blnotifier_user_agent' ) );
+        if ( $user_agent_option ) {
+            $user_agent_option = str_replace( '{blog_version}', get_bloginfo( 'version' ), $user_agent_option );
+            $user_agent_option = str_replace( '{blog_url}', get_bloginfo( 'url' ), $user_agent_option );
+        }
+        
+        // Check if it's the default
+        $is_default = ( $default_user_agent == $user_agent_option );
+        
+        // Twitter
+        if ( ( !$user_agent_option || $is_default ) && $this->is_x_link( $link ) ) {
+            return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+        }
+
+        // Return default
+        return $default_user_agent;
+    } // End get_user_agent()
+
+
+    /**
      * Extract links from content
      *
      * @param [type] $content
@@ -1285,13 +1342,7 @@ class BLNOTIFIER_HELPERS {
         }
         
         // User agent
-        $user_agent = sanitize_text_field( get_option( 'blnotifier_user_agent' ) );
-        if ( $user_agent ) {
-            $user_agent = str_replace( '{blog_version}', get_bloginfo( 'version' ), $user_agent );
-            $user_agent = str_replace( '{blog_url}', get_bloginfo( 'url' ), $user_agent );
-        } else {
-            $user_agent = 'WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' );
-        }
+        $user_agent = $this->get_user_agent( $url );
 
         // Add the home url
         if ( str_starts_with( $url, '/' ) ) {
