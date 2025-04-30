@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.2.4.1
+Stable tag: 1.2.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -113,6 +113,9 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.2.4.2 =
+* Fix: If no link is found, omit it
+
 = 1.2.4.1 =
 * Tweak: Updated "Did not pass pre-check filter" error to provide more information
 

@@ -1453,10 +1453,10 @@ class BLNOTIFIER_HELPERS {
         // Handle the filtered link if false
         if ( !$link ) {
             return [
-                'type' => 'broken',
-                'code' => 0,
-                'text' => 'Did not pass pre-check filter: no link found',
-                'link' => $link
+                'type' => 'omitted',
+                'code' => 200,
+                'text' => 'No link found',
+                'link' => 'Unknown'
             ];
 
         // Handle the filtered link if in-proper array
