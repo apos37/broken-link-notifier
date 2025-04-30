@@ -12,18 +12,6 @@ $hooks = [
         'type'  => 'filter'
     ],
     [    
-        'hook'  => 'blnotifier_omitted_links',
-        'args'  => '( Array $links )',
-        'label' => 'Your omitted links',
-        'type'  => 'filter'
-    ],
-    [    
-        'hook'  => 'blnotifier_omitted_pages',
-        'args'  => '( Array $pages )',
-        'label' => 'Your omitted pages',
-        'type'  => 'filter'
-    ],
-    [    
         'hook'  => 'blnotifier_omitted_pageload_post_types',
         'args'  => '( Array $post_types )',
         'label' => 'Post types that you do not want to scan on page load',

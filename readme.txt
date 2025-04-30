@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.2.3
+Stable tag: 1.2.4.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -76,8 +76,6 @@ There is likely an issue with the content on that page causing a redirect. We ca
 = Are there hooks available for Developers? =
 Yes, there are plenty. The following hooks are available:
 * `blnotifier_html_link_sources` ( Array $sources ) — Filter where the links are found in the content's HTML
-* `blnotifier_omitted_links` ( Array $links ) — Filter your omitted links
-* `blnotifier_omitted_pages` ( Array $pages ) — Filter your omitted pages
 * `blnotifier_omitted_pageload_post_types` ( Array $post_types ) — Filter the post types that you don't want to scan on page load
 * `blnotifier_omitted_multiscan_post_types` ( Array $post_types ) — Filter the post types that you don't want to allow for Multi-Scan option
 * `blnotifier_link_before_prechecks` ( String|Array|False $link ) — Filter the link before checking anything
@@ -115,6 +113,13 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.2.4.1 =
+* Tweak: Updated "Did not pass pre-check filter" error to provide more information
+
+= 1.2.4 =
+* Tweak: Added minified versions of results-front.js and results-front.css
+* Tweak: Removed omitted links and omitted pages hooks from readme.txt since they were moved to their own pages
+
 = 1.2.3 =
 * Update: Auto-switch user agent for X/Twitter links if a custom user agent isn't provided
 * Update: Updated author name and website again per WordPress trademark policy

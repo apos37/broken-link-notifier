@@ -1455,16 +1455,21 @@ class BLNOTIFIER_HELPERS {
             return [
                 'type' => 'broken',
                 'code' => 0,
-                'text' => 'Did not pass pre-check filter',
+                'text' => 'Did not pass pre-check filter: no link found',
                 'link' => $link
             ];
 
         // Handle the filtered link if in-proper array
         } elseif ( is_array( $link ) && ( !isset( $link[ 'type' ] ) || !isset( $link[ 'code' ] ) || !isset( $link[ 'text' ] ) ) ) {
+            $missing = [];
+            if ( !isset( $link[ 'type' ] ) ) { $missing[] = 'type'; }
+            if ( !isset( $link[ 'code' ] ) ) { $missing[] = 'code'; }
+            if ( !isset( $link[ 'text' ] ) ) { $missing[] = 'text'; }
+
             return [
                 'type' => 'broken',
                 'code' => 0,
-                'text' => 'Did not pass pre-check filter',
+                'text' => 'Did not pass pre-check filter: missing ' . implode( ', ' . $missing ),
                 'link' => $link
             ];
     

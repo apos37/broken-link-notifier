@@ -1,0 +1,1 @@
+@keyframes glowingText{0%{background-color:#ff0;box-shadow:0 0 5px #ff0}50%{background-color:#fff;box-shadow:0 0 20px #fff}100%{background-color:#ff0;box-shadow:0 0 5px #ff0}}.glowText{animation:glowingText 1.3s infinite;color:#000!important;border:2px dashed red!important}

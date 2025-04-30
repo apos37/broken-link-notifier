@@ -1314,14 +1314,14 @@ class BLNOTIFIER_RESULTS {
         }
 
         // CSS
-        wp_enqueue_style( 'front_end_css', BLNOTIFIER_PLUGIN_CSS_PATH.'results-front.css', [], BLNOTIFIER_VERSION );
+        wp_enqueue_style( 'front_end_css', BLNOTIFIER_PLUGIN_CSS_PATH.'results-front.min.css', [], BLNOTIFIER_VERSION );
 
         // Nonce
         $nonce = wp_create_nonce( $this->nonce_blinks );
 
         // Javascript
         $handle = 'front_end_js';
-        wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-front.js', [ 'jquery' ], BLNOTIFIER_VERSION, true ); 
+        wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-front.min.js', [ 'jquery' ], BLNOTIFIER_VERSION, true ); 
         wp_localize_script( $handle, 'blnotifier_front_end', [
             'show_in_console' => filter_var( get_option( 'blnotifier_show_in_console' ), FILTER_VALIDATE_BOOLEAN ),
             'admin_dir'       => BLNOTIFIER_ADMIN_DIR,
