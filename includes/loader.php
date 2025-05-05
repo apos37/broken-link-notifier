@@ -98,6 +98,7 @@ class BLNOTIFIER_LOADER {
 
         // Requires
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'menu.php';
+        require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'cache.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'helpers.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'omits.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'discord.php';

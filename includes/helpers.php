@@ -1432,6 +1432,13 @@ class BLNOTIFIER_HELPERS {
         // String replace
         $link = $this->str_replace_on_link( $link );
 
+        // Check for cached link
+        $CACHE = new BLNOTIFIER_CACHE();
+        $cached = $CACHE->get_cached_link( $link );
+        if ( $cached ) {
+            return $cached;
+        }
+
         // Handle protocol-relative URLs (those starting with //)
         if ( !is_array( $link ) && str_starts_with( $link, '//' ) ) {
 
@@ -1509,7 +1516,10 @@ class BLNOTIFIER_HELPERS {
             if ( !url_to_postid( $link ) ) {                
 
                 // It may be redirected or an archive page, so let's check status anyway
-                return $this->check_url_status_code( $link );
+                // return $this->check_url_status_code( $link );
+                $status = $this->check_url_status_code( $link );
+                $CACHE->set_cached_link( $status );
+                return $status;
             }
 
         // Otherwise
@@ -1524,12 +1534,15 @@ class BLNOTIFIER_HELPERS {
             }
 
             // Return the status
-            return $this->check_url_status_code( $link );
+            // return $this->check_url_status_code( $link );
+            $status = $this->check_url_status_code( $link );
+            $CACHE->set_cached_link( $status );
+            return $status;
         }
 
         // Return the good status
         return $status;
-    } // End check_link
+    } // End check_link()
 
 
     /**

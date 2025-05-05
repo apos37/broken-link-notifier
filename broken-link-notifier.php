@@ -3,7 +3,7 @@
  * Plugin Name:         Broken Link Notifier
  * Plugin URI:          https://github.com/apos37/broken-link-notifier
  * Description:         Get notified when someone loads a page with a broken link
- * Version:             1.2.4.2
+ * Version:             1.2.5
  * Requires at least:   5.9
  * Tested up to:        6.8
  * Requires PHP:        7.4
@@ -76,3 +76,16 @@ define( 'BLNOTIFIER_PLUGIN_IMG_PATH', BLNOTIFIER_PLUGIN_DIR.'includes/img/' );  
  * Load the files
  */
 require BLNOTIFIER_PLUGIN_INCLUDES_PATH . 'loader.php';
+
+
+/**
+ * Delete the cache table on plugin deactivation or uninstall.
+ */
+register_deactivation_hook( __FILE__, 'blnotifier_cleanup_on_shutdown' );
+register_uninstall_hook( __FILE__, 'blnotifier_cleanup_on_shutdown' );
+function blnotifier_cleanup_on_shutdown() {
+    if ( class_exists( 'BLNOTIFIER_CACHE' ) ) {
+        $cache = new BLNOTIFIER_CACHE();
+        $cache->delete_cache_table();
+    }
+} // End blnotifier_cleanup_on_shutdown()

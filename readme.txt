@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.2.4.2
+Stable tag: 1.2.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -20,6 +20,7 @@ This plugin:
 * Notifies you via dashboard notifications, email, Discord, and/or Microsoft Teams
 * Provides a list of broken links for easy review and correction
 * Allows easy replacement of links straight from the results page (**NEW with Version 1.2.0**)
+* Caches working (good) links to skip rechecking them for a configurable amount of time (**NEW with Version 1.2.5**)
 
 With "Broken Link Notifier", you can:
 
@@ -28,6 +29,7 @@ With "Broken Link Notifier", you can:
 * Maintain a professional and trustworthy website image
 * Save time and effort in manual link checking
 * Scan multiple pages at a time on the back-end from your WP List Tables
+* Improve performance by caching successful link checks (optional)
 
 This plugin is a must-have for website owners, developers, and SEO enthusiasts who want to guarantee a smooth and error-free browsing experience for their audience!
 
@@ -41,13 +43,25 @@ This plugin is a must-have for website owners, developers, and SEO enthusiasts w
 5. Go to `Broken Link Notifier > Omitted Pages`, and add any pages that you don't want to scan, such as pages you know won't have any links on them. This will speed up the multi-scan option.
 5. Page load scans are enabled automatically, so it's recommended that you test it out by deliberately making some broken links on a test page and then visiting the page. The results should show up on the `Broken Link Notifier > Results` page, and notify you if you have enabled email, Discord, or Microsoft Teams notifications. Reloading the page will not submit them twice. For testing, you should delete them from the results so they get reported again.
 6. It is suggested to run a Multi-Scan on each of your public-facing post types to quickly see if there are any broken links before others encounter them. Also to omit some links that will be reported as false positives. You can omit individual links quickly from the results, or you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain. See screenshots for examples.
-7. If you have any questions, please reach out to me on my [Discord support server](https://discord.gg/3HnzNEJVnR). I am happy to assist you or fix any issues you might have with the plugin.
+7. If you have any questions, please reach out on our [Discord support server](https://discord.gg/3HnzNEJVnR). We are happy to assist you or fix any issues you might have with the plugin.
 
 == Frequently Asked Questions == 
+= Will this plugin slow down my site? =
+No — The plugin is designed to have minimal impact on performance by only scanning content after the page has fully loaded for a visitor. This means it doesn’t interfere with the page render or user experience. Additionally, in version 1.2.5, we introduced a link caching option that can further improve performance.
+
+If enabled (via the Settings page), caching good links will prevent the same working links from being rechecked repeatedly for a set period of time. This reduces unnecessary HTTP requests and improves scan efficiency on high-traffic sites.
+
+You can set the cache duration in seconds — common values include:
+- 28800 for 8 hours
+- 43200 for 12 hours
+- 86400 for 24 hours
+
+Adjust this based on your site's traffic and how frequently your links change.
+
 = Why do some links show as broken when they are not? =
 If the link works fine and it's still being flagged as broken, then it is likely either redirecting to another page or there is an issue with the page's response headers, and there's nothing we can do about it. If it is a redirect on your own site due to permalink modification, then it's better to fix the link instead of unnecessarily redirecting. You may use the Omit option to omit false positives from future scans as well. If you are seeing a pattern with multiple links from the same domain, you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain.
 
-If you feel that there is another issue at hand, I am happy to look into it further with you. You can join my [Discord support server](https://discord.gg/3HnzNEJVnR) or use the [support forum](https://wordpress.org/support/plugin/broken-link-notifier/) here on WP.org.
+If you feel that there is another issue at hand, We are happy to look into it further with you. You can join our [Discord support server](https://discord.gg/3HnzNEJVnR) or use the [support forum](https://wordpress.org/support/plugin/broken-link-notifier/) here on WP.org.
 
 = What causes a link to give a warning? =
 Warnings mean the link was found, but they may be unsecure or slow to respond. If you are getting too many warnings due to timeouts, try increasing your timeout in Settings. This will just result in longer wait times, but with more accuracy. You can also disable warnings if you have too many of them.
@@ -59,7 +73,7 @@ A status code of `666` is a code we use to force invalid URL `code 0` to be a br
 Yes, you can omit links from being checked for validity by using the "Omit" link in the scan results, or by entering them in manually under Omitted Links. Likewise, you can omit pages from being scanned from the results page or Omitted Pages. Wildcards (*) are accepted.
 
 = When I click on "Find On Page," I cannot find the link. Where is it? =
-Sometimes links are hidden with CSS or inside modals/popups. To find hidden links, go to the page and either open your developer console or view the page source and search for the link. This will show you where it is and which element to look in. Then you can edit the page accordingly. This is more advanced and may require some assistance, so feel free to reach out to me for help.
+Sometimes links are hidden with CSS or inside modals/popups. To find hidden links, go to the page and either open your developer console or view the page source and search for the link. This will show you where it is and which element to look in. Then you can edit the page accordingly. This is more advanced and may require some assistance, so feel free to reach out to us for help.
 
 = Why does the dev console show more links that what is scanned on the Multi-Scan? =
 The Multi-Scan link count does not include links that are filtered out from the pre-check.
@@ -96,7 +110,7 @@ Yes, there are plenty. The following hooks are available:
 * `blnotifier_force_head_file_types` (Array $file_types, Boolean $docs_use_head) — Filter the list of file types that should force a HEAD request, with the $docs_use_head variable determining whether document types should be included
 
 = Where can I request features and get further support? =
-Join my [Discord support server](https://discord.gg/3HnzNEJVnR)
+Join our [Discord support server](https://discord.gg/3HnzNEJVnR)
 
 == Demo ==
 https://youtu.be/B2FwRrDJLGs
@@ -113,6 +127,9 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.2.5 =
+* Update: Added option for caching good links (enable in settings)
+
 = 1.2.4.2 =
 * Fix: If no link is found, omit it
 

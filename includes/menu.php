@@ -426,6 +426,23 @@ class BLNOTIFIER_MENU {
             );
         }
 
+        // Caching
+        $cache_option_name = 'blnotifier_cache';
+        register_setting( $this->page_slug, $cache_option_name, 'sanitize_text_field' );
+        add_settings_field(
+            $cache_option_name,
+            'Length of Time to Cache Good Links (in Seconds)',
+            [ $this, 'field_number' ],
+            $this->page_slug,
+            'general',
+            [
+                'class'    => $cache_option_name,
+                'name'     => $cache_option_name,
+                'default'  => 0,
+                'comments' => 'Use 0 to disable caching. If you are experienced performance issues, you can set the value to 28800 (8 hours), 43200 (12 hours), 86400 (24 hours) or whatever you feel is best. Broken and warning links will never be cached. Deactivating or uninstalling the plugin will clear the cache completely.'
+            ]
+        );
+
         // Post types
         $post_types_option_name = 'blnotifier_post_types';
         register_setting( $this->page_slug, $post_types_option_name, [ $this, 'sanitize_checkboxes' ] );
