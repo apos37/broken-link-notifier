@@ -1417,18 +1417,20 @@ class BLNOTIFIER_HELPERS {
         // String replace
         $link = $this->str_replace_on_link( $link );
 
-        // Check for cached link
-        $CACHE = new BLNOTIFIER_CACHE();
-        $cached = $CACHE->get_cached_link( $link );
-        if ( $cached ) {
-            return $cached;
+        // Check for cached link only if the link is not an array
+        if ( !is_array( $link ) ) {
+            $CACHE = new BLNOTIFIER_CACHE();
+            $cached = $CACHE->get_cached_link( $link );
+            if ( $cached ) {
+                return $cached;
+            }
         }
 
         // Handle protocol-relative URLs (those starting with //)
         if ( !is_array( $link ) && str_starts_with( $link, '//' ) ) {
 
             // Get the current protocol (http or https)
-            $protocol = isset( $_SERVER['HTTPS'] ) && sanitize_text_field( wp_unslash( $_SERVER['HTTPS'] ) ) === 'on' ? 'https' : 'http';
+            $protocol = isset( $_SERVER[ 'HTTPS' ] ) && sanitize_text_field( wp_unslash( $_SERVER[ 'HTTPS' ] ) ) === 'on' ? 'https' : 'http';
             
             // Prepend the protocol to the link
             $link = $protocol . ':' . $link;
