@@ -44,7 +44,7 @@ class BLNOTIFIER_MSTEAMS {
         // Validate webhook
         $webhook = $this->sanitize_webhook_url( $webhook );
         if ( $webhook == '' ) {
-            error_log( 'Could not send notification to MS Teams. Webhook URL ('.$webhook.') is not valid. URL should look like this: https://yourdomain.webhook.office.com/xxx/xxx...' );
+            error_log( 'Could not send notification to MS Teams. Webhook URL ('.$webhook.') is not valid. URL should look like this: https://yourdomain.webhook.office.com/xxx/xxx...' ); // phpcs:ignore 
             return false;
         }
 
@@ -186,11 +186,11 @@ class BLNOTIFIER_MSTEAMS {
             if ( $send[ 'response' ][ 'code' ] != 400 ) {
                 return $send[ 'response' ][ 'code' ].' - '.$send[ 'response' ][ 'message' ];
             } else {
-                error_log( 'Could not send to MS Teams channel for the following reason: '.$send[ 'response' ][ 'code' ].' - '.$send[ 'response' ][ 'message' ].'. There is an error in your MS Teams args.' );
+                error_log( 'Could not send to MS Teams channel for the following reason: '.$send[ 'response' ][ 'code' ].' - '.$send[ 'response' ][ 'message' ].'. There is an error in your MS Teams args.' ); // phpcs:ignore 
                 return false;
             }
         } else {
-            error_log( 'Could not send to MS Teams channel for the following reason: '.$send->get_error_message() );
+            error_log( 'Could not send to MS Teams channel for the following reason: '.$send->get_error_message() ); // phpcs:ignore 
             return false;
         }
     } // End send()

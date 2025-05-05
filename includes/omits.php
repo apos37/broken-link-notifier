@@ -348,43 +348,43 @@ class BLNOTIFIER_OMITS {
      */
     public function ajax() {
         // Verify nonce
-        if ( !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
+        $nonce = isset( $_REQUEST[ 'nonce' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ) : '';
+        if ( !wp_verify_nonce( $nonce, $this->nonce ) ) {
             exit( 'No naughty business please.' );
         }
     
-        // Get the ID
-        $link = sanitize_text_field( $_REQUEST[ 'link' ] );
-        $type = sanitize_key( $_REQUEST[ 'type' ] );
-        $page = sanitize_text_field( $_REQUEST[ 'page' ] );
-
+        // Get parameters safely
+        $link = isset( $_REQUEST[ 'link' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'link' ] ) ) : '';
+        $type = isset( $_REQUEST[ 'type' ] ) ? sanitize_key( wp_unslash( $_REQUEST[ 'type' ] ) ) : '';
+        $page = isset( $_REQUEST[ 'page' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'page' ] ) ) : '';
+    
         // Make sure we have a source URL
         if ( $link && $type ) {
-
+    
             // Add it
             $omit = $this->add( $link, $type, $page );
             if ( $omit ) {
                 $result[ 'type' ] = 'success';
             } else {
                 $result[ 'type' ] = 'error';
-                $result[ 'msg' ] = 'Could not add taxonomy. '.$omit;
+                $result[ 'msg' ] = 'Could not add taxonomy. ' . $omit;
             }
-
-        // Nope
+    
         } else {
             $result[ 'type' ] = 'error';
             $result[ 'msg' ] = 'Missing data';
         }
     
         // Echo the result or redirect
-        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) == 'xmlhttprequest' ) {
+        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( wp_unslash( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) ) === 'xmlhttprequest' ) {
             echo wp_json_encode( $result );
         } else {
-            header( 'Location: '.filter_var( $_SERVER[ 'HTTP_REFERER' ], FILTER_SANITIZE_URL ) );
+            $referer = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? filter_var( wp_unslash( $_SERVER[ 'HTTP_REFERER' ] ), FILTER_SANITIZE_URL ) : '';
+            header( 'Location: ' . $referer );
         }
     
-        // We're done here
         die();
-    } // End ajax()
+    } // End ajax()    
 
 
     /**

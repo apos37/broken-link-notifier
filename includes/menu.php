@@ -172,7 +172,7 @@ class BLNOTIFIER_MENU {
 
         // Has updated settings
         $has_updated_settings = 'blnotifier_has_updated_settings';
-        register_setting( $this->page_slug, $has_updated_settings );
+        register_setting( $this->page_slug, $has_updated_settings, [ $this, 'sanitize_boolean' ] );
 
         // Pause front-end scanning
         $pause_frontend_scanning_option_name = 'blnotifier_pause_frontend_scanning';
@@ -691,7 +691,7 @@ class BLNOTIFIER_MENU {
                 $display_code = isset( $c[ 'official' ] ) && !$c[ 'official' ] ? $code : '<a href="https://http.dev/' . $code . '" target="_blank">' . $code . '</a>';
     
                 printf(
-                    '<div class="status-row ' . $type . '">
+                    '<div class="status-row ' . esc_attr( $type ) . '">
                         <div class="info-input">
                             <div class="code-msg">
                                 <span class="code">%s</span> <span class="message">(%s)</span>
@@ -754,6 +754,17 @@ class BLNOTIFIER_MENU {
             return [];
         }
     } // End sanitize_checkboxes()
+
+
+    /**
+     * Sanitize boolean
+     *
+     * @param mixed $input
+     * @return boolean
+     */
+    public function sanitize_boolean( $input ) {
+        return (bool) $input;
+    } // End sanitize_boolean()
 
 
     /**

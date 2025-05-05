@@ -456,9 +456,9 @@ class BLNOTIFIER_RESULTS {
         if ( 'bln_type' === $column ) {
             $post = get_post( $post_id );
             if ( $post->type == 'broken' ) {
-                echo '<div class="bln-type broken">' . __( 'Broken', 'broken-link-notifier' ) . '</div>';
+                echo '<div class="bln-type broken">' . esc_html( __( 'Broken', 'broken-link-notifier' ) ) . '</div>';
             } elseif ( $post->type == 'warning' ) {
-                echo '<div class="bln-type warning">' . __( 'Warning', 'broken-link-notifier' ) . '</div>';
+                echo '<div class="bln-type warning">' . esc_html( __( 'Warning', 'broken-link-notifier' ) ) . '</div>';
             }
             $code = $post->code;
             if ( $code != 0 && $code != 666 ) {
@@ -502,7 +502,7 @@ class BLNOTIFIER_RESULTS {
                     }
                 }
 
-                echo wp_kses_post( $source_url ).'<div class="row-actions" data-source-id="' . $source_id . '">'.wp_kses_post( implode( ' | ', $actions ) ).'</div>';
+                echo wp_kses_post( $source_url ).'<div class="row-actions" data-source-id="' . esc_attr( $source_id ) . '">'.wp_kses_post( implode( ' | ', $actions ) ).'</div>';
             } else {
                 echo esc_html__( 'No source found...', 'broken-link-notifier' );
             }
@@ -699,7 +699,7 @@ class BLNOTIFIER_RESULTS {
         // Validate source
         $source_url = remove_query_arg( (new BLNOTIFIER_HELPERS)->get_qs_to_remove_from_source(), filter_var( $args[ 'source' ], FILTER_SANITIZE_URL ) );
         if ( !$source_url ) {
-            return __( 'Invalid source: ' . $source_url, 'broken-link-notifier' );
+            return __( 'Invalid source:', 'broken-link-notifier' ) . ' ' . $source_url;
         }
 
         // Args
@@ -731,7 +731,7 @@ class BLNOTIFIER_RESULTS {
             return $link_id;
         } else {
             $error = $link_id->get_error_message();
-            error_log( $error );
+            error_log( $error ); // phpcs:ignore 
             return $error;
         }
     } // End add()
@@ -811,7 +811,7 @@ class BLNOTIFIER_RESULTS {
 
                         // Try or log
                         if ( !wp_mail( $emails, $subject, $message, $headers ) ) {
-                            error_log( BLNOTIFIER_NAME.' email could not be sent. Please check for issues with WP Mailer.' );
+                            error_log( BLNOTIFIER_NAME.' email could not be sent. Please check for issues with WP Mailer.' ); // phpcs:ignore 
                         }
                     }
                 }
@@ -900,7 +900,7 @@ class BLNOTIFIER_RESULTS {
      * @return void
      */
     public function on_email_error( $wp_error ) {
-        error_log( $wp_error->get_error_message() );
+        error_log( $wp_error->get_error_message() ); // phpcs:ignore 
     } // End on_email_error()
 
 
@@ -916,10 +916,10 @@ class BLNOTIFIER_RESULTS {
         }
     
         // Get the ID
-        $source_url = filter_var( $_REQUEST[ 'source_url' ], FILTER_SANITIZE_URL );
-        $header_links = isset( $_REQUEST[ 'header_links' ] ) ? $_REQUEST[ 'header_links' ] : [];
-        $content_links = isset( $_REQUEST[ 'content_links' ] ) ? $_REQUEST[ 'content_links' ] : [];
-        $footer_links = isset( $_REQUEST[ 'footer_links' ] ) ? $_REQUEST[ 'footer_links' ] : [];
+        $source_url    = isset( $_REQUEST[ 'source_url' ] ) ? filter_var( wp_unslash( $_REQUEST[ 'source_url' ] ), FILTER_SANITIZE_URL ) : '';
+        $header_links  = isset( $_REQUEST[ 'header_links' ] ) ? wp_unslash( $_REQUEST[ 'header_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        $content_links = isset( $_REQUEST[ 'content_links' ] ) ? wp_unslash( $_REQUEST[ 'content_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        $footer_links  = isset( $_REQUEST[ 'footer_links' ] ) ? wp_unslash( $_REQUEST[ 'footer_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
         // Make sure we have a source URL
         if ( $source_url ) {
@@ -1026,10 +1026,11 @@ class BLNOTIFIER_RESULTS {
         }
     
         // Echo the result or redirect
-        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) == 'xmlhttprequest' ) {
+        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( wp_unslash( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) ) === 'xmlhttprequest' ) {
             echo wp_json_encode( $result );
-        } elseif ( isset( $_SERVER[ 'HTTP_REFERER' ] ) ) {
-            header( 'Location: '.filter_var( $_SERVER[ 'HTTP_REFERER' ], FILTER_SANITIZE_URL ) );
+        } else {
+            $referer = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? filter_var( wp_unslash( $_SERVER[ 'HTTP_REFERER' ] ), FILTER_SANITIZE_URL ) : '';
+            header( 'Location: ' . $referer );
         }
     
         // We're done here
@@ -1049,12 +1050,12 @@ class BLNOTIFIER_RESULTS {
         }
     
         // Get the ID
-        $link = sanitize_text_field( $_REQUEST[ 'link' ] );
-        $post_id = isset( $_REQUEST[ 'postID' ] ) ? absint( $_REQUEST[ 'postID' ] ) : false;
-        $code = isset( $_REQUEST[ 'code' ] ) ? absint( $_REQUEST[ 'code' ] ) : false;
-        $type = isset( $_REQUEST[ 'type' ] ) ? sanitize_key( $_REQUEST[ 'type' ] ) : false;
-        $source_id = isset( $_REQUEST[ 'sourceID' ] ) ? absint( $_REQUEST[ 'sourceID' ] ) : false;
-        $method = isset( $_REQUEST[ 'method' ] ) ? sanitize_key( $_REQUEST[ 'method' ] ) : false;
+        $link      = isset( $_REQUEST[ 'link' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'link' ] ) ) : false;
+        $post_id   = isset( $_REQUEST[ 'postID' ] ) ? absint( wp_unslash( $_REQUEST[ 'postID' ] ) ) : false;
+        $code      = isset( $_REQUEST[ 'code' ] ) ? absint( wp_unslash( $_REQUEST[ 'code' ] ) ) : false;
+        $type      = isset( $_REQUEST[ 'type' ] ) ? sanitize_key( wp_unslash( $_REQUEST[ 'type' ] ) ) : false;
+        $source_id = isset( $_REQUEST[ 'sourceID' ] ) ? absint( wp_unslash( $_REQUEST[ 'sourceID' ] ) ) : false;
+        $method    = isset( $_REQUEST[ 'method' ] ) ? sanitize_key( wp_unslash( $_REQUEST[ 'method' ] ) ) : false;
 
         // Make sure we have a source URL
         if ( $link ) {
@@ -1143,10 +1144,11 @@ class BLNOTIFIER_RESULTS {
         }
     
         // Echo the result or redirect
-        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) == 'xmlhttprequest' ) {
+        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( wp_unslash( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) ) === 'xmlhttprequest' ) {
             echo wp_json_encode( $result );
         } else {
-            header( 'Location: '.filter_var( $_SERVER[ 'HTTP_REFERER' ], FILTER_SANITIZE_URL ) );
+            $referer = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? filter_var( wp_unslash( $_SERVER[ 'HTTP_REFERER' ] ), FILTER_SANITIZE_URL ) : '';
+            header( 'Location: ' . $referer );
         }
     
         // We're done here
@@ -1177,10 +1179,10 @@ class BLNOTIFIER_RESULTS {
         }
     
         // Get the vars
-        $result_id = isset( $_REQUEST[ 'resultID' ] ) ? absint( $_REQUEST[ 'resultID' ] ) : false;
-        $oldLink = isset( $_REQUEST[ 'oldLink' ] ) ? sanitize_text_field( $_REQUEST[ 'oldLink' ] ) : false;
-        $newLink = isset( $_REQUEST[ 'newLink' ] ) ? sanitize_text_field( $_REQUEST[ 'newLink' ] ) : false;
-        $source_id = isset( $_REQUEST[ 'sourceID' ] ) ? absint( $_REQUEST[ 'sourceID' ] ) : false;
+        $result_id  = isset( $_REQUEST[ 'resultID' ] ) ? absint( wp_unslash( $_REQUEST[ 'resultID' ] ) ) : false;
+        $oldLink    = isset( $_REQUEST[ 'oldLink' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'oldLink' ] ) ) : false;
+        $newLink    = isset( $_REQUEST[ 'newLink' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'newLink' ] ) ) : false;
+        $source_id  = isset( $_REQUEST[ 'sourceID' ] ) ? absint( wp_unslash( $_REQUEST[ 'sourceID' ] ) ) : false;
 
         if ( $result_id && $oldLink && $newLink && $source_id && get_post( $source_id ) ) {
 
@@ -1270,7 +1272,7 @@ class BLNOTIFIER_RESULTS {
             if ( $source_url ) {
                 $query = new WP_Query( [
                     'post_type'      => $this->post_type,
-                    'meta_query'     => [
+                    'meta_query'     => [ // phpcs:ignore 
                         [
                             'key'   => 'source',
                             'value' => $source_url,

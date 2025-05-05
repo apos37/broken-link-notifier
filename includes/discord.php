@@ -53,7 +53,7 @@ class BLNOTIFIER_DISCORD {
         // Validate webhook
         $webhook = $this->sanitize_webhook_url( $webhook );
         if ( $webhook == '' ) {
-            error_log( 'Could not send notification to Discord. Webhook URL ('.$webhook.') is not valid. URL should look like this: https://discord.com/api/webhooks/xxx/xxx...' );
+            error_log( 'Could not send notification to Discord. Webhook URL ('.$webhook.') is not valid. URL should look like this: https://discord.com/api/webhooks/xxx/xxx...' ); // phpcs:ignore 
             return false;
         }
 
@@ -176,11 +176,11 @@ class BLNOTIFIER_DISCORD {
             if ( $send[ 'response' ][ 'code' ] != 400 ) {
                 return $send[ 'response' ][ 'code' ].' - '.$send[ 'response' ][ 'message' ];
             } else {
-                error_log( 'Could not send to Discord channel for the following reason: '.$send[ 'response' ][ 'code' ].' - '.$send[ 'response' ][ 'message' ].'. There is an error in your Discord args.' );
+                error_log( 'Could not send to Discord channel for the following reason: '.$send[ 'response' ][ 'code' ].' - '.$send[ 'response' ][ 'message' ].'. There is an error in your Discord args.' ); // phpcs:ignore 
                 return false;
             }
         } else {
-            error_log( 'Could not send to Discord channel for the following reason: '.$send->get_error_message() );
+            error_log( 'Could not send to Discord channel for the following reason: '.$send->get_error_message() ); // phpcs:ignore 
             return false;
         }
     } // End send()

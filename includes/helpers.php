@@ -302,42 +302,27 @@ class BLNOTIFIER_HELPERS {
      * @return string
      */
     public function get_current_url( $params = true, $domain = true ) {
-        // Are we including the domain?
-        if ( $domain == true ) {
-
-            // Get the protocol
-            $protocol = isset( $_SERVER[ 'HTTPS' ] ) && $_SERVER[ 'HTTPS' ] !== 'off' ? 'https' : 'http';
-
-            // Get the domain
-            $domain_without_protocol = sanitize_text_field( $_SERVER[ 'HTTP_HOST' ] );
-
-            // Domain with protocol
-            $domain = $protocol.'://'.$domain_without_protocol;
-
-        } elseif ( $domain == 'only' ) {
-
-            // Get the domain
-            $domain = sanitize_text_field( $_SERVER[ 'HTTP_HOST' ] );
-            return $domain;
-
+        // Get raw server variables and sanitize
+        $https_raw = isset( $_SERVER[ 'HTTPS' ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ 'HTTPS' ] ) ) : '';
+        $host_raw  = isset( $_SERVER[ 'HTTP_HOST' ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ 'HTTP_HOST' ] ) ) : '';
+    
+        if ( $domain === true ) {
+            $protocol = ( $https_raw !== '' && $https_raw !== 'off' ) ? 'https' : 'http';
+            $domain   = $protocol . '://' . $host_raw;
+    
+        } elseif ( $domain === 'only' ) {
+            return $host_raw;
+    
         } else {
             $domain = '';
         }
-
+    
         // Get the URI
         $uri = filter_input( INPUT_SERVER, 'REQUEST_URI', FILTER_SANITIZE_URL );
-
-        // Put it together
-        $full_url = $domain.$uri;
-
-        // Are we including query string params?
-        if ( !$params ) {
-            return strtok( $full_url, '?' );
-            
-        } else {
-            return $full_url;
-        }
-    } // End get_current_url()
+        $full_url = $domain . $uri;
+    
+        return ( $params ) ? $full_url : strtok( $full_url, '?' );
+    } // End get_current_url()    
 
 
     /**
@@ -839,7 +824,7 @@ class BLNOTIFIER_HELPERS {
             return false;
         }
     
-        $host = parse_url( $link, PHP_URL_HOST );
+        $host = wp_parse_url( $link, PHP_URL_HOST );
         $host = strtolower( preg_replace( '/^www\./', '', $host ) );
     
         $possible_links = [
@@ -1443,7 +1428,7 @@ class BLNOTIFIER_HELPERS {
         if ( !is_array( $link ) && str_starts_with( $link, '//' ) ) {
 
             // Get the current protocol (http or https)
-            $protocol = isset( $_SERVER[ 'HTTPS' ] ) && sanitize_text_field( $_SERVER[ 'HTTPS' ] ) === 'on' ? 'https' : 'http';
+            $protocol = isset( $_SERVER['HTTPS'] ) && sanitize_text_field( wp_unslash( $_SERVER['HTTPS'] ) ) === 'on' ? 'https' : 'http';
             
             // Prepend the protocol to the link
             $link = $protocol . ':' . $link;

@@ -60,17 +60,17 @@ class BLNOTIFIER_SCAN {
      */
     public function ajax() {
         // Verify nonce
-        if ( !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
+        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
             exit( 'No naughty business please.' );
-        }
+        }        
 
         // Initiate helpers
         $HELPERS = new BLNOTIFIER_HELPERS;
     
         // Get the ID
-        $link = $HELPERS->sanitize_link( $_REQUEST[ 'link' ] );
-        $post_id = isset( $_REQUEST[ 'postID' ] ) ? absint( $_REQUEST[ 'postID' ] ) : false;
-        $method = isset( $_REQUEST[ 'method' ] ) ? sanitize_key( $_REQUEST[ 'method' ] ) : false;
+        $link     = isset( $_REQUEST[ 'link' ] ) ? $HELPERS->sanitize_link( wp_unslash( $_REQUEST[ 'link' ] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        $post_id  = isset( $_REQUEST[ 'postID' ] ) ? absint( wp_unslash( $_REQUEST[ 'postID' ] ) ) : false;
+        $method   = isset( $_REQUEST[ 'method' ] ) ? sanitize_key( wp_unslash( $_REQUEST[ 'method' ] ) ) : false;
 
         // Make sure we have a source URL
         if ( $link ) {
@@ -108,10 +108,11 @@ class BLNOTIFIER_SCAN {
         }
     
         // Echo the result or redirect
-        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) == 'xmlhttprequest' ) {
+        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( wp_unslash( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) ) === 'xmlhttprequest' ) {
             echo wp_json_encode( $result );
         } else {
-            header( 'Location: '.filter_var( $_SERVER[ 'HTTP_REFERER' ], FILTER_SANITIZE_URL ) );
+            $referer = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? filter_var( wp_unslash( $_SERVER[ 'HTTP_REFERER' ] ), FILTER_SANITIZE_URL ) : '';
+            header( 'Location: ' . $referer );
         }
     
         // We're done here
@@ -140,12 +141,28 @@ class BLNOTIFIER_SCAN {
         $options_page = 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN;
         $tab = (new BLNOTIFIER_HELPERS)->get_tab();
 
-        if ( ( $screen == $options_page && $tab == 'scan-single' && isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_scan_single' ) && isset( $_REQUEST[ 'scan' ] ) && sanitize_text_field( $_REQUEST[ 'scan' ] ) ) || ( $screen == 'edit.php' && isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_blinks' ) && isset( $_REQUEST[ 'blinks' ] ) && sanitize_key( $_REQUEST[ 'blinks' ] ) == 'true' ) ) {
+        $is_scan_single_page = (
+            $screen === $options_page &&
+            $tab === 'scan-single' &&
+            isset( $_REQUEST[ '_wpnonce' ], $_REQUEST[ 'scan' ] ) &&
+            wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_scan_single' ) &&
+            sanitize_text_field( wp_unslash( $_REQUEST[ 'scan' ] ) )
+        );
+        
+        $is_blinks_page = (
+            $screen === 'edit.php' &&
+            isset( $_REQUEST[ '_wpnonce' ], $_REQUEST[ 'blinks' ] ) &&
+            wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_blinks' ) &&
+            sanitize_key( wp_unslash( $_REQUEST[ 'blinks' ] ) ) === 'true'
+        );        
+
+        if ( $is_scan_single_page || $is_blinks_page ) {
             if ( !$tab ) {
                 $tab = 'scan-multi';
             }
+
             if ( $tab == 'scan-single' ) {
-                $post_id = url_to_postid( filter_var( $_REQUEST[ 'scan' ], FILTER_SANITIZE_URL ) );
+                $post_id = url_to_postid( filter_var( wp_unslash( $_REQUEST[ 'scan' ] ), FILTER_SANITIZE_URL ) );
             } else {
                 $post_id = false;
             }
@@ -156,7 +173,7 @@ class BLNOTIFIER_SCAN {
             // Register, localize, and enqueue
             $handle = 'blnotifier_'.str_replace( '-', '_', $tab ).'_script';
             wp_enqueue_script( 'jquery' );
-            wp_register_script( $handle, site_url().BLNOTIFIER_PLUGIN_JS_PATH.$tab.'.js', [ 'jquery' ], BLNOTIFIER_VERSION );
+            wp_register_script( $handle, site_url().BLNOTIFIER_PLUGIN_JS_PATH.$tab.'.js', [ 'jquery' ], BLNOTIFIER_VERSION, true );
             wp_localize_script( $handle, 'blnotifier_'.str_replace( '-', '_', $tab ), [
                 'post_id' => $post_id, 
                 'nonce'   => $nonce,

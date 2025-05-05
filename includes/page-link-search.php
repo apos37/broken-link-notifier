@@ -2,9 +2,9 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly    
 
 // ID
-if ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_link_search' ) &&
-     isset( $_GET[ 'search' ] ) && sanitize_text_field( $_GET[ 'search' ] ) ) {
-    $s = sanitize_text_field( $_GET[ 'search' ] );
+if ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_link_search' ) &&
+     isset( $_GET[ 'search' ] ) && sanitize_text_field( wp_unslash( $_GET[ 'search' ] ) ) ) {
+    $s = sanitize_text_field( wp_unslash( $_GET[ 'search' ] ) );
 } else {
     $s = '';
 }
@@ -61,7 +61,7 @@ if ( $s != '' ) {
         WHERE post_content LIKE %s
     ", '%' . $wpdb->esc_like( $s ) . '%');
 
-    $posts = $wpdb->get_results( $query );
+    $posts = $wpdb->get_results( $query ); // phpcs:ignore 
 
     $post_statuses = [
         'publish' => 'Published',

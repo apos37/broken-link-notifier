@@ -197,7 +197,7 @@ class BLNOTIFIER_FULL_SCAN {
                         // Process shortcodes and expand them in the content
                         $content = apply_filters( 'the_content', $get_the_content );
                     } catch ( Exception $e ) {
-                        error_log( 'Error processing shortcodes: ' . $e->getMessage() );
+                        error_log( 'Error processing shortcodes: ' . $e->getMessage() ); // phpcs:ignore 
                         $redirect_detected = true;
                     }
 

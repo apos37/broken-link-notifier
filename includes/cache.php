@@ -71,7 +71,7 @@ class BLNOTIFIER_CACHE {
 
         global $wpdb;
 
-        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$this->table}'" ) !== $this->table ) {
+        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$this->table}'" ) !== $this->table ) { // phpcs:ignore 
             require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
             $charset_collate = $wpdb->get_charset_collate();
@@ -110,7 +110,7 @@ class BLNOTIFIER_CACHE {
     public function delete_cache_table() {
         global $wpdb;
 
-        $wpdb->query( "DROP TABLE IF EXISTS {$this->table}" );
+        $wpdb->query( "DROP TABLE IF EXISTS {$this->table}" ); // phpcs:ignore 
     } // End delete_cache_table()
 
 
@@ -126,7 +126,7 @@ class BLNOTIFIER_CACHE {
 
         $expiration_time = gmdate( 'Y-m-d H:i:s', time() - $this->cache_time_in_seconds );
 
-        $wpdb->query( $wpdb->prepare(
+        $wpdb->query( $wpdb->prepare( // phpcs:ignore 
             "DELETE FROM {$this->table} WHERE last_checked < %s",
             $expiration_time
         ) );
@@ -146,7 +146,7 @@ class BLNOTIFIER_CACHE {
 
         global $wpdb;
 
-        $row = $wpdb->get_row( $wpdb->prepare(
+        $row = $wpdb->get_row( $wpdb->prepare( // phpcs:ignore 
             "SELECT * FROM {$this->table} WHERE link = %s AND last_checked >= %s LIMIT 1",
             $link,
             gmdate( 'Y-m-d H:i:s', time() - $this->cache_time_in_seconds )
@@ -186,7 +186,7 @@ class BLNOTIFIER_CACHE {
 
         global $wpdb;
 
-        $wpdb->replace(
+        $wpdb->replace( // phpcs:ignore 
             $this->table,
             [
                 'link'         => $status[ 'link' ],

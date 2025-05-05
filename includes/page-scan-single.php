@@ -2,9 +2,9 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly    
 
 // ID
-if ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_scan_single' ) &&
-     isset( $_GET[ 'scan' ] ) && sanitize_text_field( $_GET[ 'scan' ] ) ) {
-    $s = sanitize_text_field( $_GET[ 'scan' ] );
+if ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_scan_single' ) &&
+     isset( $_GET[ 'scan' ] ) && sanitize_text_field( wp_unslash( $_GET[ 'scan' ] ) ) ) {
+    $s = sanitize_text_field( wp_unslash( $_GET[ 'scan' ] ) );
 } else {
     $s = '';
 }
