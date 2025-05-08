@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.2.5.2
+Stable tag: 1.2.5.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -113,7 +113,7 @@ Yes, there are plenty. The following hooks are available:
 Join our [Discord support server](https://discord.gg/3HnzNEJVnR)
 
 == Demo ==
-https://youtu.be/B2FwRrDJLGs
+https://youtu.be/gM9Qy0HLplU
 
 == Screenshots ==
 1. Page load scan results on back-end
@@ -127,6 +127,10 @@ https://youtu.be/B2FwRrDJLGs
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.2.5.3 =
+* Fix: Link search not finding some URLS
+* Fix: Undefined array key "min"
+
 = 1.2.5.2 =
 * Fix: Function wpdb::prepare was called incorrectly. Unsupported value type (array).
 

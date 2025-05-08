@@ -3,8 +3,8 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 // ID
 if ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_link_search' ) &&
-     isset( $_GET[ 'search' ] ) && sanitize_text_field( wp_unslash( $_GET[ 'search' ] ) ) ) {
-    $s = sanitize_text_field( wp_unslash( $_GET[ 'search' ] ) );
+     isset( $_GET[ 'search' ] ) && !empty( wp_unslash( $_GET[ 'search' ] ) ) ) {
+    $s = filter_var( $_GET[ 'search' ], FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 } else {
     $s = '';
 }
@@ -53,15 +53,28 @@ table.page-scan tr td a {
 // Results
 if ( $s != '' ) {
 
-    // The query
     global $wpdb;
+
+    // Normalize the search string
+    $s_decoded  = rawurldecode( $s );
+    $s_trimmed  = untrailingslashit( $s_decoded );
+    $s_trailing = trailingslashit( $s_trimmed );
+    $s_encoded  = rawurlencode( $s_trimmed );
+
+    // Build the query with multiple LIKE conditions
     $query = $wpdb->prepare("
         SELECT ID, post_title, post_status, post_type
         FROM $wpdb->posts 
         WHERE post_content LIKE %s
-    ", '%' . $wpdb->esc_like( $s ) . '%');
+           OR post_content LIKE %s
+           OR post_content LIKE %s
+    ",
+        '%' . $wpdb->esc_like( $s_trimmed ) . '%',
+        '%' . $wpdb->esc_like( $s_trailing ) . '%',
+        '%' . $wpdb->esc_like( $s_encoded ) . '%'
+    );
 
-    $posts = $wpdb->get_results( $query ); // phpcs:ignore 
+    $posts = $wpdb->get_results( $query ); // phpcs:ignore
 
     $post_statuses = [
         'publish' => 'Published',
@@ -70,7 +83,7 @@ if ( $s != '' ) {
         'private' => 'Private',
         'trash'   => 'Trash'
     ];
-    
+
     $post_types = get_post_types( [], 'objects' );
     ?>
 

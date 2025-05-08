@@ -439,6 +439,7 @@ class BLNOTIFIER_MENU {
                 'class'    => $cache_option_name,
                 'name'     => $cache_option_name,
                 'default'  => 0,
+                'min'      => 0,
                 'comments' => 'Use 0 to disable caching. If you are experienced performance issues, you can set the value to 28800 (8 hours), 43200 (12 hours), 86400 (24 hours) or whatever you feel is best. Broken and warning links will never be cached. Deactivating or uninstalling the plugin will clear the cache completely.'
             ]
         );
