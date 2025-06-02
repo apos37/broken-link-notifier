@@ -3,13 +3,13 @@
  * Plugin Name:         Broken Link Notifier
  * Plugin URI:          https://github.com/apos37/broken-link-notifier
  * Description:         Get notified when someone loads a page with a broken link
- * Version:             1.2.5.3
+ * Version:             1.3.0
  * Requires at least:   5.9
  * Tested up to:        6.8
  * Requires PHP:        7.4
  * Author:              PluginRx
  * Author URI:          https://pluginrx.com/
- * Support URI:         https://discord.gg/3HnzNEJVnR
+ * Discord URI:         https://discord.gg/3HnzNEJVnR
  * Text Domain:         broken-link-notifier
  * License:             GPLv2 or later
  * License URI:         http://www.gnu.org/licenses/gpl-2.0.txt
@@ -33,7 +33,7 @@ $plugin_data = get_file_data( __FILE__, [
     'textdomain'   => 'Text Domain',
     'author'       => 'Author',
     'author_uri'   => 'Author URI',
-    'support_uri'  => 'Support URI',
+    'discord_uri'  => 'Discord URI',
 ] );
 
 // Versions
@@ -45,7 +45,10 @@ define( 'BLNOTIFIER_NAME', $plugin_data[ 'name' ] );
 define( 'BLNOTIFIER_TEXTDOMAIN', $plugin_data[ 'textdomain' ] );
 define( 'BLNOTIFIER_AUTHOR_NAME', $plugin_data[ 'author' ] );
 define( 'BLNOTIFIER_AUTHOR_URL', $plugin_data[ 'author_uri' ] );
-define( 'BLNOTIFIER_DISCORD_SUPPORT_URL', $plugin_data[ 'support_uri' ] );
+define( 'BLNOTIFIER_GUIDE_URL', BLNOTIFIER_AUTHOR_URL . 'guide/plugin/' . BLNOTIFIER_TEXTDOMAIN . '/' );
+define( 'BLNOTIFIER_DOCS_URL', BLNOTIFIER_AUTHOR_URL . 'docs/plugin/' . BLNOTIFIER_TEXTDOMAIN . '/' );
+define( 'BLNOTIFIER_SUPPORT_URL', BLNOTIFIER_AUTHOR_URL . 'support/plugin/' . BLNOTIFIER_TEXTDOMAIN . '/' );
+define( 'BLNOTIFIER_DISCORD_URL', $plugin_data[ 'discord_uri' ] );
 
 // Prevent loading the plugin if PHP version is not minimum
 if ( version_compare( PHP_VERSION, BLNOTIFIER_MIN_PHP_VERSION, '<=' ) ) {

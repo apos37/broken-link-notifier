@@ -1571,6 +1571,243 @@ class BLNOTIFIER_HELPERS {
         return $permalink;
     } // End get_clean_permalink()    
 
+
+    /**
+     * Get all of the results
+     *
+     * @param string $type
+     * @return array
+     */
+    public function get_links( $type = 'broken' ) {
+        $links = [];
+    
+        if ( $type === 'broken' ) {
+            $links = $this->get_broken_links();
+    
+        } elseif ( $type === 'cached' ) {
+            $links = $this->get_broken_links();
+
+            global $wpdb;
+            $table = $wpdb->prefix . 'blnotifier_cache';
+    
+            $rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY last_checked DESC", ARRAY_A );
+
+            $na = '--';
+    
+            foreach ( $rows as $row ) {
+                $links[] = [
+                    'date'           => mysql2date( 'Y-m-d H:i:s', $row[ 'last_checked' ] ),
+                    'type'           => $row[ 'type' ],
+                    'code'           => $row[ 'http_code' ],
+                    'message'        => $row[ 'status_text' ],
+                    'link'           => $row[ 'link' ],
+                    'source_name'    => $na,
+                    'source_link'    => $na,
+                    'location'       => $na,
+                    'user'           => $na,
+                    'method'         => $na,
+                ];
+            }
+    
+        } elseif ( $type === 'links' ) {
+            $all_links = $this->get_all_links();
+    
+            foreach ( $all_links as $item ) {
+                $links[] = [
+                    'link'            => sanitize_text_field( $item[ 'link' ] ),
+                    'location'        => ucwords( $item[ 'location' ] ),
+                    'source_name'     => get_the_title( $item[ 'post_id' ] ),
+                    'source_link'     => get_permalink( $item[ 'post_id' ] ),
+                    'source_posttype' => get_post_type( $item[ 'post_id' ] ),
+                ];
+            }
+    
+            $location_order = [ 'Header' => 0, 'Footer' => 1, 'Content' => 2 ];
+
+            // Sort
+            usort( $links, function( $a, $b ) use ( $location_order ) {
+                $location_a = $location_order[ $a[ 'location' ] ] ?? 99;
+                $location_b = $location_order[ $b[ 'location' ] ] ?? 99;
+
+                if ( $location_a === $location_b ) {
+                    if ( $a[ 'location' ] === 'Content' ) {
+                        return strcasecmp( $a[ 'source_name' ], $b[ 'source_name' ] );
+                    }
+
+                    return 0; // Maintain order for header/footer
+                }
+
+                return $location_a <=> $location_b;
+            } );
+
+        }
+    
+        return $links;
+    } // End get_links()
+
+
+    /**
+     * Get all the broken links
+     *
+     * @return array
+     */
+    public function get_broken_links() {
+        $links = [];
+
+        $results = new BLNOTIFIER_RESULTS();
+        $post_type = $results->post_type;
+
+        $posts = get_posts( [
+            'post_type'      => $post_type,
+            'posts_per_page' => -1,
+            'post_status'    => 'publish',
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+        ] );
+
+        $methods = [
+            'visit'   => __( 'Front-End Visit', 'broken-link-notifier' ),
+            'multi'   => __( 'Multi-Scan', 'broken-link-notifier' ),
+            'single'  => __( 'Page Scan', 'broken-link-notifier' ),
+        ];
+
+        foreach ( $posts as $post ) {
+            $source_link = sanitize_url( get_post_meta( $post->ID, 'source', true ) );
+            $location = sanitize_key( get_post_meta( $post->ID, 'location', true ) );
+            $type_meta = sanitize_key( get_post_meta( $post->ID, 'type', true ) );
+            $code = absint( get_post_meta( $post->ID, 'code', true ) );
+            $user_id = $post->post_author;
+            $user = $user_id ? get_userdata( $user_id ) : null;
+            $method = sanitize_key( get_post_meta( $post->ID, 'method', true ) );
+
+            $links[] = [
+                'date'        => gmdate( 'Y-m-d H:i:s', strtotime( $post->post_date ) ),
+                'type'        => ucwords( $type_meta ),
+                'code'        => $code,
+                'message'     => $post->post_content,
+                'link'        => $post->post_title,
+                'source_name' => $source_link ? get_the_title( url_to_postid( $source_link ) ) : 'Unknown',
+                'source_link' => $source_link,
+                'location'    => ucwords( $location ),
+                'user'        => $user ? $user->display_name : 'Guest',
+                'method'      => isset( $methods[ $method ] ) ? $methods[ $method ] : __( 'Unknown', 'broken-link-notifier' ),
+            ];
+        }
+
+        usort( $links, function( $a, $b ) {
+            $date_compare = strtotime( $b[ 'date' ] ) <=> strtotime( $a[ 'date' ] );
+        
+            if ( $date_compare === 0 ) {
+                return strcasecmp( $a[ 'link' ], $b[ 'link' ] );
+            }
+        
+            return $date_compare;
+        } );
+
+        return $links;
+    } // End get_broken_links()
+
+
+    /**
+     * Get all links on the site
+     *
+     * @return array
+     */
+    public function get_all_links() {
+        $links = [];
+    
+        // Add header/footer links
+        $links = array_merge( $links, $this->get_header_footer_links() );
+    
+        $paged = 1;
+        $per_page = 50;
+    
+        do {
+            $posts = get_posts( [
+                'post_type'      => 'any',
+                'post_status'    => 'publish',
+                'posts_per_page' => $per_page,
+                'fields'         => 'ids',
+                'paged'          => $paged,
+            ] );
+    
+            if ( empty( $posts ) ) {
+                break;
+            }
+    
+            foreach ( $posts as $post_id ) {
+    
+                $post_url = get_the_permalink( $post_id );
+                if ( ( new BLNOTIFIER_OMITS )->is_omitted( $post_url, 'pages' ) ) {
+                    continue;
+                }
+    
+                $raw_content = get_the_content( null, false, $post_id );
+    
+                if ( strpos( $raw_content, '[redirect_this_page' ) !== false ) {
+                    continue;
+                }
+    
+                $content = apply_filters( 'the_content', $raw_content );
+                $extracted_links = $this->extract_links( $content );
+    
+                if ( !empty( $extracted_links ) ) {
+                    foreach ( $extracted_links as $extracted_link ) {
+                        $links[] = [
+                            'link'     => $extracted_link,
+                            'location' => 'content',
+                            'post_id'  => $post_id,
+                        ];
+                    }
+                }
+            }
+    
+            $paged++;
+        } while ( true );
+    
+        return $links;
+    } // End get_all_links()    
+
+
+    /**
+     * Get the header and footer links from nav menus
+     *
+     * @return array
+     */
+    public function get_header_footer_links() {
+        $links = [];
+    
+        // Get all registered menus
+        $locations = get_nav_menu_locations();
+    
+        foreach ( $locations as $location => $menu_id ) {
+            $menu_items = wp_get_nav_menu_items( $menu_id );
+            if ( ! $menu_items ) {
+                continue;
+            }
+    
+            if ( strpos( $location, 'header' ) !== false ) {
+                $location_label = 'header';
+            } elseif ( strpos( $location, 'footer' ) !== false ) {
+                $location_label = 'footer';
+            } else {
+                $location_label = 'menu';
+            }            
+    
+            foreach ( $menu_items as $item ) {
+                if ( ! empty( $item->url ) ) {
+                    $links[] = [
+                        'link'     => esc_url_raw( $item->url ),
+                        'location' => $location_label,
+                        'post_id'  => 0,
+                    ];
+                }
+            }
+        }
+    
+        return $links;
+    } // End get_header_footer_links()
+
 }
 
 

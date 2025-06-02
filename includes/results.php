@@ -459,6 +459,8 @@ class BLNOTIFIER_RESULTS {
                 echo '<div class="bln-type broken">' . esc_html( __( 'Broken', 'broken-link-notifier' ) ) . '</div>';
             } elseif ( $post->type == 'warning' ) {
                 echo '<div class="bln-type warning">' . esc_html( __( 'Warning', 'broken-link-notifier' ) ) . '</div>';
+            } elseif ( $post->type == 'good' ) {
+                echo '<div class="bln-type good">' . esc_html( __( 'Good', 'broken-link-notifier' ) ) . '</div>';
             }
             $code = $post->code;
             if ( $code != 0 && $code != 666 ) {
@@ -936,6 +938,7 @@ class BLNOTIFIER_RESULTS {
             $bad_status_codes = $HELPERS->get_bad_status_codes();
             $warning_status_codes = $HELPERS->get_warning_status_codes();
             $notify_status_codes = array_merge( $bad_status_codes, $warning_status_codes );
+            $show_good_links_in_results = get_option( 'blnotifier_enable_good_links' );
 
             // Start timing
             $start = $HELPERS->start_timer();
@@ -944,6 +947,7 @@ class BLNOTIFIER_RESULTS {
             $notify = [];
             $count_links = 0;
             $count_notify = 0;
+            $good_links = [];
 
             // Header links
             if ( !empty( $header_links ) ) {
@@ -954,6 +958,8 @@ class BLNOTIFIER_RESULTS {
                     if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
                         $count_notify++;
                         $notify[ 'header' ][] = $status;
+                    } else {
+                        $good_links[ 'header' ][] = $status;
                     }
                 }
             }
@@ -967,6 +973,8 @@ class BLNOTIFIER_RESULTS {
                     if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
                         $count_notify++;
                         $notify[ 'content' ][] = $status;
+                    } else {
+                        $good_links[ 'content' ][] = $status;
                     }
                 }
             }
@@ -980,6 +988,8 @@ class BLNOTIFIER_RESULTS {
                     if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
                         $count_notify++;
                         $notify[ 'footer' ][] = $status;
+                    } else {
+                        $good_links[ 'footer' ][] = $status;
                     }
                 }
             }
@@ -1001,6 +1011,24 @@ class BLNOTIFIER_RESULTS {
                         'location' => $location,
                         'method'   => 'visit'
                     ] );
+                }
+            }
+
+            // Add posts
+            if ( $show_good_links_in_results ) {
+                foreach ( $good_links as $location => $gl ) {
+                    foreach ( $gl as $status ) {
+                        $this->add( [
+                            'type'     => $status[ 'type' ],
+                            'code'     => $status[ 'code' ],
+                            'text'     => $status[ 'text' ],
+                            'link'     => $status[ 'link' ],
+                            'source'   => $source_url,
+                            'author'   => get_current_user_id(),
+                            'location' => $location,
+                            'method'   => 'visit'
+                        ] );
+                    }
                 }
             }
 

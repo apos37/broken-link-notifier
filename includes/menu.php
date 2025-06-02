@@ -52,8 +52,9 @@ class BLNOTIFIER_MENU {
             'omit-pages'  => [ __( 'Omitted Pages', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-pages&post_type=blnotifier-results' ],
             'scan-single' => [ __( 'Page Scan', 'broken-link-notifier' ) ],
             'scan-multi'  => [ __( 'Multi-Scan', 'broken-link-notifier' ) ],
-            'settings'    => [ __( 'Settings', 'broken-link-notifier' ) ],
             'link-search' => [ __( 'Link Search', 'broken-link-notifier' ) ],
+            'export'      => [ __( 'Export', 'broken-link-notifier' ) ],
+            'settings'    => [ __( 'Settings', 'broken-link-notifier' ) ],
             'help'        => [ __( 'Help', 'broken-link-notifier' ) ],
         ];
 
@@ -370,6 +371,12 @@ class BLNOTIFIER_MENU {
                 'label'    => 'Enable Warnings',
                 'default'  => true,
                 'comments' => 'Includes warnings in all scans'
+            ],
+            [ 
+                'name'     => 'enable_good_links',
+                'label'    => 'Show Good Links in Results',
+                'default'  => false,
+                'comments' => 'Includes good links on results page for verification purposes only (more performance heavy and will be omitted immediately unless you pause results auto-verification)'
             ],
             [ 
                 'name'     => 'enable_delete_source',

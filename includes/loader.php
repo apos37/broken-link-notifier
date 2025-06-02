@@ -78,13 +78,44 @@ class BLNOTIFIER_LOADER {
      * @return array
      */
     public function plugin_row_meta( $links, $file ) {
-        if ( BLNOTIFIER_TEXTDOMAIN.'/'.BLNOTIFIER_TEXTDOMAIN.'.php' == $file ) {
-            $row_meta = [
-                // 'docs' => '<a href="'.esc_url( BLNOTIFIER_AUTHOR_URL.'wordpress-broken-link-notifier/' ).'" target="_blank" aria-label="'.esc_attr__( 'Plugin Website Link', 'broken-link-notifier' ).'">'.esc_html__( 'Website', 'broken-link-notifier' ).'</a>',
-                'discord' => '<a href="'.esc_url( BLNOTIFIER_DISCORD_SUPPORT_URL ).'" target="_blank" aria-label="'.esc_attr__( 'Plugin Support on Discord', 'broken-link-notifier' ).'">'.esc_html__( 'Discord Support', 'broken-link-notifier' ).'</a>'
+        $text_domain = BLNOTIFIER_TEXTDOMAIN;
+        if ( $text_domain . '/' . $text_domain . '.php' == $file ) {
+
+            $guide_url = BLNOTIFIER_GUIDE_URL;
+            $docs_url = BLNOTIFIER_DOCS_URL;
+            $support_url = BLNOTIFIER_SUPPORT_URL;
+            $plugin_name = BLNOTIFIER_NAME;
+
+            $our_links = [
+                'guide' => [
+                    // translators: Link label for the plugin's user-facing guide.
+                    'label' => __( 'How-To Guide', 'broken-link-notifier' ),
+                    'url'   => $guide_url
+                ],
+                'docs' => [
+                    // translators: Link label for the plugin's developer documentation.
+                    'label' => __( 'Developer Docs', 'broken-link-notifier' ),
+                    'url'   => $docs_url
+                ],
+                'support' => [
+                    // translators: Link label for the plugin's support page.
+                    'label' => __( 'Support', 'broken-link-notifier' ),
+                    'url'   => $support_url
+                ],
             ];
+
+            $row_meta = [];
+            foreach ( $our_links as $key => $link ) {
+                // translators: %1$s is the link label, %2$s is the plugin name.
+                $aria_label = sprintf( __( '%1$s for %2$s', 'broken-link-notifier' ), $link[ 'label' ], $plugin_name );
+                $row_meta[ $key ] = '<a href="' . esc_url( $link[ 'url' ] ) . '" target="_blank" aria-label="' . esc_attr( $aria_label ) . '">' . esc_html( $link[ 'label' ] ) . '</a>';
+            }
+
+            // Add the links
             return array_merge( $links, $row_meta );
         }
+
+        // Return the links
         return (array) $links;
     } // End plugin_row_meta()
 
@@ -105,6 +136,7 @@ class BLNOTIFIER_LOADER {
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'msteams.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'results.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'integrations.php';
+        require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'export.php';
         
     } // End load_dependencies()
 

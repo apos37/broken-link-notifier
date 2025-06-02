@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.2.5.3
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -43,7 +43,6 @@ This plugin is a must-have for website owners, developers, and SEO enthusiasts w
 5. Go to `Broken Link Notifier > Omitted Pages`, and add any pages that you don't want to scan, such as pages you know won't have any links on them. This will speed up the multi-scan option.
 5. Page load scans are enabled automatically, so it's recommended that you test it out by deliberately making some broken links on a test page and then visiting the page. The results should show up on the `Broken Link Notifier > Results` page, and notify you if you have enabled email, Discord, or Microsoft Teams notifications. Reloading the page will not submit them twice. For testing, you should delete them from the results so they get reported again.
 6. It is suggested to run a Multi-Scan on each of your public-facing post types to quickly see if there are any broken links before others encounter them. Also to omit some links that will be reported as false positives. You can omit individual links quickly from the results, or you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain. See screenshots for examples.
-7. If you have any questions, please reach out on our [Discord support server](https://discord.gg/3HnzNEJVnR). We are happy to assist you or fix any issues you might have with the plugin.
 
 == Frequently Asked Questions == 
 = Will this plugin slow down my site? =
@@ -61,7 +60,7 @@ Adjust this based on your site's traffic and how frequently your links change.
 = Why do some links show as broken when they are not? =
 If the link works fine and it's still being flagged as broken, then it is likely either redirecting to another page or there is an issue with the page's response headers, and there's nothing we can do about it. If it is a redirect on your own site due to permalink modification, then it's better to fix the link instead of unnecessarily redirecting. You may use the Omit option to omit false positives from future scans as well. If you are seeing a pattern with multiple links from the same domain, you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain.
 
-If you feel that there is another issue at hand, We are happy to look into it further with you. You can join our [Discord support server](https://discord.gg/3HnzNEJVnR) or use the [support forum](https://wordpress.org/support/plugin/broken-link-notifier/) here on WP.org.
+If you feel that there is another issue at hand, We are happy to look into it further with you.
 
 = What causes a link to give a warning? =
 Warnings mean the link was found, but they may be unsecure or slow to respond. If you are getting too many warnings due to timeouts, try increasing your timeout in Settings. This will just result in longer wait times, but with more accuracy. You can also disable warnings if you have too many of them.
@@ -110,7 +109,8 @@ Yes, there are plenty. The following hooks are available:
 * `blnotifier_force_head_file_types` (Array $file_types, Boolean $docs_use_head) — Filter the list of file types that should force a HEAD request, with the $docs_use_head variable determining whether document types should be included
 
 = Where can I request features and get further support? =
-Join our [Discord support server](https://discord.gg/3HnzNEJVnR)
+We recommend using our [website support forum](https://pluginrx.com/support/plugin/broken-link-notifier/) as the primary method for requesting features and getting help. You can also reach out via our [Discord support server](https://discord.gg/3HnzNEJVnR) or the [WordPress.org support forum](https://wordpress.org/support/plugin/broken-link-notifier/), but please note that WordPress.org doesn’t always notify us of new posts, so it’s not ideal for time-sensitive issues.
+
 
 == Demo ==
 https://youtu.be/gM9Qy0HLplU
@@ -127,6 +127,16 @@ https://youtu.be/gM9Qy0HLplU
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.3.0 =
+* Update: New support links
+
+= 1.2.6.1 =
+* Fix: Option in settings to show good links on results page was set to true by default; turned it off
+
+= 1.2.6 =
+* Update: Added an option in settings to show good links on results page (props to @colnago1 for suggestion)
+* Update: Added an export page (props to @colnago1 for suggestion)
+
 = 1.2.5.3 =
 * Fix: Link search not finding some URLS
 * Fix: Undefined array key "min"

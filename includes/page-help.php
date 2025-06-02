@@ -204,12 +204,14 @@ section .plugin-card div {
 
 <section>
     <h2><?php esc_html_e( 'Plugin Support', 'broken-link-notifier' ); ?></h2>
-
-    <br><img class="discord-logo" src="<?php echo esc_url( BLNOTIFIER_PLUGIN_IMG_PATH ); ?>discord.png" width="auto" height="100">
-    <p>If you need assistance with this plugin or have suggestions for improving it, please join the Discord server below.</p>
-    <a class="button button-primary" href="<?php echo esc_url( BLNOTIFIER_DISCORD_SUPPORT_URL ); ?>" target="_blank">Join Our Support Server »</a>
+    <a class="button button-primary" href="<?php echo esc_url( BLNOTIFIER_GUIDE_URL ); ?>" target="_blank">How-To Guide »</a>
     <br><br>
-    <p>Or if you would rather get support on WordPress.org, you can do so here:</p>
+    <a class="button button-primary" href="<?php echo esc_url( BLNOTIFIER_DOCS_URL ); ?>" target="_blank">Developer Docs »</a>
+    <br><br>
+    <a class="button button-primary" href="<?php echo esc_url( BLNOTIFIER_SUPPORT_URL ); ?>" target="_blank">Website Support Forum »</a>
+    <br><br>
+    <a class="button button-primary" href="<?php echo esc_url( BLNOTIFIER_DISCORD_URL ); ?>" target="_blank">Discord Support Server »</a>
+    <br><br>
     <a class="button button-primary" href="https://wordpress.org/support/plugin/<?php echo esc_attr( BLNOTIFIER_TEXTDOMAIN ); ?>/" target="_blank">WordPress.org Plugin Support Page »</a>
 </section>
 
