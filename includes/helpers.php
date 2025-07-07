@@ -1300,6 +1300,78 @@ class BLNOTIFIER_HELPERS {
 
 
     /**
+     * Determine if a URL is unsafe and return reason if so.
+     *
+     * @param string $url
+     * @return array|false
+     */
+    protected function is_url_unsafe( $url ) {
+        $parts = wp_parse_url( $url );
+
+        if ( ! isset( $parts[ 'scheme' ], $parts[ 'host' ] ) ) {
+            return [
+                'type' => 'broken',
+                'code' => 0,
+                'text' => 'Blocked: invalid or malformed URL',
+                'link' => $url
+            ];
+        }
+
+        $scheme = strtolower( $parts[ 'scheme' ] );
+        if ( ! in_array( $scheme, [ 'http', 'https' ], true ) ) {
+            return [
+                'type' => 'broken',
+                'code' => 0,
+                'text' => 'Blocked: unsupported URL scheme',
+                'link' => $url
+            ];
+        }
+
+        $host = $parts[ 'host' ];
+        $records = @dns_get_record( $host, DNS_A + DNS_AAAA );
+        $ips = [];
+
+        if ( is_array( $records ) && count( $records ) ) {
+            foreach ( $records as $record ) {
+                if ( isset( $record[ 'type' ] ) && $record[ 'type' ] === 'A' && ! empty( $record[ 'ip' ] ) ) {
+                    $ips[] = $record[ 'ip' ];
+                }
+                if ( isset( $record[ 'type' ] ) && $record[ 'type' ] === 'AAAA' && ! empty( $record[ 'ipv6' ] ) ) {
+                    $ips[] = $record[ 'ipv6' ];
+                }
+            }
+        } else {
+            $resolved = gethostbyname( $host );
+            if ( $resolved && $resolved !== $host ) {
+                $ips[] = $resolved;
+            }
+        }
+
+        if ( empty( $ips ) ) {
+            return [
+                'type' => 'broken',
+                'code' => 0,
+                'text' => 'Blocked: host could not be resolved',
+                'link' => $url
+            ];
+        }
+
+        foreach ( $ips as $ip ) {
+            if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) === false ) {
+                return [
+                    'type' => 'broken',
+                    'code' => 0,
+                    'text' => 'Blocked: resolved to internal or reserved IP address',
+                    'link' => $url
+                ];
+            }
+        }
+
+        return false; // Safe
+    } // End is_url_unsafe()
+
+
+    /**
      * Check a URL to see if it Exists
      *
      * @param string $url
@@ -1334,6 +1406,12 @@ class BLNOTIFIER_HELPERS {
             $link = home_url().$url;
         } else {
             $link = $url;
+        }
+
+        // Block SSRF to private/reserved ranges
+        $unsafe = $this->is_url_unsafe( $link );
+        if ( $unsafe ) {
+            return apply_filters( 'blnotifier_status', $unsafe );
         }
 
         // Check if from youtube

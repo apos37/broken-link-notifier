@@ -99,6 +99,21 @@ class BLNOTIFIER_EXPORT {
 
 
     /**
+     * Escape CSV values to prevent injection (Excel formula injection).
+     *
+     * @param string $value
+     * @return string
+     */
+    protected function escape_csv_value( $value ) {
+        $value = trim( (string) $value );
+        if ( preg_match( '/^[=+\-@]/', $value ) ) {
+            return "'" . $value;
+        }
+        return $value;
+    } // End escape_csv_value()
+
+
+    /**
      * Output CSV content to browser.
      *
      * @param array $data
@@ -121,7 +136,14 @@ class BLNOTIFIER_EXPORT {
         fputcsv( $output, $header_row );
 
         foreach ( $data as $row ) {
-            fputcsv( $output, $row );
+            $escaped_row = [];
+
+            foreach ( $header_keys as $key ) {
+                $value = isset( $row[ $key ] ) ? $row[ $key ] : '';
+                $escaped_row[] = $this->escape_csv_value( $value );
+            }
+
+            fputcsv( $output, $escaped_row );
         }
 
         fclose( $output );
