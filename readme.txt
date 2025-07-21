@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.3.1
+Stable tag: 1.3.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -127,6 +127,9 @@ https://youtu.be/gM9Qy0HLplU
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.3.1.1 =
+* Fix: preg_replace() deprecation error (props @venutius)
+
 = 1.3.1 =
 * Fix: Improper Neutralization of Formula Elements in a CSV File (props @jfriedli/WordFence)
 * Fix: SSRF vulnerability by validating all URLs before remote requests using is_url_safe() (props @jfriedli/WordFence)

@@ -820,11 +820,15 @@ class BLNOTIFIER_HELPERS {
      * @return boolean
      */
     public function is_x_link( $link ) {
-        if ( ! $link ) {
+        if ( !$link ) {
             return false;
         }
     
         $host = wp_parse_url( $link, PHP_URL_HOST );
+        if ( !$host ) {
+            return false;
+        }
+
         $host = strtolower( preg_replace( '/^www\./', '', $host ) );
     
         $possible_links = [
