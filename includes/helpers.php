@@ -22,23 +22,7 @@ class BLNOTIFIER_HELPERS {
     public function get_tab() {
         return isset( $_GET[ 'tab' ] ) ? sanitize_key( $_GET[ 'tab' ] ) : false; // phpcs:ignore
     } // End get_tab()
-
-
-    /**
-     * Get post type name
-     *
-     * @param string $post_type
-     * @return string
-     */
-    public function get_post_type_name( $post_type, $singular = false ) {
-        $post_type_obj = get_post_type_object( $post_type );
-        if ( $singular ) {
-            return $post_type_obj->labels->singular_name;
-        } else {
-            return $post_type_obj->labels->name;
-        }
-    } // End get_post_type_name()
-    
+   
 
     /**
      * Check if we are pausing frontend scanning
@@ -143,15 +127,55 @@ class BLNOTIFIER_HELPERS {
 
 
     /**
+     * Get post type name
+     *
+     * @param string $post_type
+     * @return string
+     */
+    public function get_post_type_name( $post_type, $singular = false ) {
+        $post_type_obj = get_post_type_object( $post_type );
+
+        if ( ! $post_type_obj || ! isset( $post_type_obj->labels ) ) {
+            return $post_type; // fallback to post type slug
+        }
+
+        if ( $singular ) {
+            if ( isset( $post_type_obj->labels->singular_name ) ) {
+                return $post_type_obj->labels->singular_name;
+            } else {
+                return $post_type;
+            }
+        } else {
+            if ( isset( $post_type_obj->labels->name ) ) {
+                return $post_type_obj->labels->name;
+            } else {
+                return $post_type;
+            }
+        }
+    } // End get_post_type_name()
+
+
+    /**
      * Get post types to include in settings
      *
      * @return array
      */
     public function get_post_types() {
         $post_types = get_post_types( [ 'show_ui' => true ], 'names' );
-        unset( $post_types[ (new BLNOTIFIER_RESULTS)->post_type ] );
-        if ( isset( $post_types[ 'help-docs' ] ) ) { unset( $post_types[ 'help-docs' ] ); }
-        if ( isset( $post_types[ 'help-doc-imports' ] ) ) { unset( $post_types[ 'help-doc-imports' ] ); }
+        if ( ! is_array( $post_types ) ) {
+            return [];
+        }
+
+        unset( $post_types[ ( new BLNOTIFIER_RESULTS )->post_type ] );
+
+        if ( isset( $post_types[ 'help-docs' ] ) ) {
+            unset( $post_types[ 'help-docs' ] );
+        }
+
+        if ( isset( $post_types[ 'help-doc-imports' ] ) ) {
+            unset( $post_types[ 'help-doc-imports' ] );
+        }
+
         return $post_types;
     } // End get_post_types()
 

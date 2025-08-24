@@ -3,7 +3,7 @@
  * Plugin Name:         Broken Link Notifier
  * Plugin URI:          https://pluginrx.com/plugin/broken-link-notifier/
  * Description:         Get notified when someone loads a page with a broken link
- * Version:             1.3.1.1
+ * Version:             1.3.3
  * Requires at least:   5.9
  * Tested up to:        6.8
  * Requires PHP:        7.4
@@ -79,6 +79,20 @@ define( 'BLNOTIFIER_PLUGIN_IMG_PATH', BLNOTIFIER_PLUGIN_DIR.'includes/img/' );  
  * Load the files
  */
 require BLNOTIFIER_PLUGIN_INCLUDES_PATH . 'loader.php';
+
+
+/**
+ * Initialize the plugin loader
+ */
+$blnotifier_loader_instance = new BLNOTIFIER_LOADER();
+
+
+/**
+ * Register activation and deactivation hooks for role/capability management.
+ * These hooks must be called in the main plugin file and target methods of your plugin instance.
+ */
+register_activation_hook( __FILE__, [ $blnotifier_loader_instance, 'plugin_activate' ] );
+register_deactivation_hook( __FILE__, [ $blnotifier_loader_instance, 'plugin_deactivate' ] );
 
 
 /**

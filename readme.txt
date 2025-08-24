@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.3.1.1
+Stable tag: 1.3.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -96,7 +96,6 @@ Yes, there are plenty. The following hooks are available:
 * `blnotifier_http_request_args` ( Array $args, String $link ) — Filter the http request args
 * `blnotifier_remove_source_qs` ( Array $query_strings ) — Filter the query strings to remove from source url on page load scans
 * `blnotifier_url_schemes` ( Array $schemes ) — Filter the URL Schemes skipped during pre-checks
-* `blnotifier_capability` ( String $capability ) — Change the user capability for viewing the plugin reports and settings on the back-end
 * `blnotifier_suggested_offsite_checkers` ( Array $checkers ) — Filter the list of suggested offsite checkers on Multi-Scan page
 * `blnotifier_notify` ( Array $flagged, Int $flagged_count, Array $all_links, String $source_url ) — Action hook that fires when notifying you of new broken links and warning links that are found on page load
 * `blnotifier_email_emails` ( String|Array $emails, Array $flagged, String $source_url ) — Filter the emails that the email notifications are sent to
@@ -127,6 +126,12 @@ https://youtu.be/gM9Qy0HLplU
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.3.3 =
+* Fix: Settings error causing missing fields and submit button (props @DLLHell)
+
+= 1.3.2 =
+* Update: Added support for additional roles to have capability of managing broken links; removed blnotifier_capability hook
+
 = 1.3.1.1 =
 * Fix: preg_replace() deprecation error (props @venutius)
 

@@ -41,6 +41,14 @@ class BLNOTIFIER_MENU {
 
 
     /**
+     * The capability required to access the menu
+     *
+     * @var string
+     */
+    public $capability = 'manage_broken_links';
+
+
+    /**
 	 * Constructor
 	 */
 	public function __construct() {
@@ -69,6 +77,9 @@ class BLNOTIFIER_MENU {
         // Add the menu
         add_action( 'admin_menu', [ $this, 'admin_menu' ] );
 
+        // Update role after sett
+        add_action( 'admin_init', [ $this, 'update_roles' ] );
+
         // Fix the Manage link to show active
         add_filter( 'parent_file', [ $this, 'submenus' ] );
 
@@ -87,8 +98,35 @@ class BLNOTIFIER_MENU {
      * @return void
      */
     public function admin_menu() {
-        // Capability
-        $capability = sanitize_key( apply_filters( 'blnotifier_capability', 'manage_options' ) );
+        // Get the current user's roles
+        $current_user = wp_get_current_user();
+        $user_roles = (array) $current_user->roles;
+
+        $capability = 'do_not_allow';
+        $show_menu = false;
+
+        if ( in_array( 'administrator', $user_roles ) ) {
+            $capability = 'manage_options';
+            $show_menu = true;
+
+        } else {
+            $allowed_roles = get_option( 'blnotifier_editable_roles', [] );
+            if ( is_array( $allowed_roles ) && !empty( $allowed_roles ) ) {
+                foreach ( $allowed_roles as $role_slug => $value ) {
+                    $role_slug = sanitize_key( $role_slug );
+
+                    if ( in_array( $role_slug, $user_roles ) ) {
+                        $capability = $this->capability;
+                        $show_menu = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ( !$show_menu ) {
+            return;
+        }
 
         // Count broken links
         $count = (new BLNOTIFIER_HELPERS)->count_broken_links();
@@ -111,6 +149,43 @@ class BLNOTIFIER_MENU {
             $submenu[ BLNOTIFIER_TEXTDOMAIN ][] = [ $menu_item[0], $capability, $link ];
         }
     } // End admin_menu()
+
+
+    /**
+     * Update user roles
+     *
+     * @return void
+     */
+    public function update_roles() {
+        if ( isset( $_GET[ 'settings-updated' ] ) && $_GET[ 'settings-updated' ] == 'true' ) {
+
+            $allowed_roles = get_option( 'blnotifier_editable_roles', [] );
+            if ( is_array( $allowed_roles ) && !empty( $allowed_roles ) ) {
+                $saniotized_allowed_roles = [];
+                foreach ( $allowed_roles as $role_slug => $value ) {
+                    $saniotized_allowed_roles[] = sanitize_key( $role_slug );
+                }
+                $allowed_roles = $saniotized_allowed_roles;
+            }
+
+            $editable_roles = $this->get_editable_roles_choices();
+            if ( !empty( $editable_roles ) && is_array( $editable_roles ) ) {
+                
+                foreach ( $editable_roles as $editable_role_slug => $label ) {
+                    $role = get_role( $editable_role_slug );
+                    if ( !$role ) {
+                        continue;
+                    }
+
+                    if ( in_array( $editable_role_slug, $allowed_roles ) && ! $role->has_cap( $this->capability ) ) {
+                        $role->add_cap( $this->capability );
+                    } elseif ( $role->has_cap( $this->capability ) ) {
+                        $role->remove_cap( $this->capability );
+                    }
+                }
+            }
+        }
+    } // End update_roles()
 
 
     /**
@@ -451,6 +526,22 @@ class BLNOTIFIER_MENU {
             ]
         );
 
+        // User Roles for Editing Links
+        $roles_option_name = 'blnotifier_editable_roles';
+        register_setting( $this->page_slug, $roles_option_name, [ $this, 'sanitize_checkboxes' ] );
+        add_settings_field(
+            $roles_option_name,
+            'Allow These Additional Roles to Manage Broken Links',
+            [ $this, 'field_checkboxes' ],
+            $this->page_slug,
+            'general',
+            [
+                'class'    => $roles_option_name,
+                'name'     => $roles_option_name,
+                'options'  => $this->get_editable_roles_choices(),
+            ]
+        );
+
         // Post types
         $post_types_option_name = 'blnotifier_post_types';
         register_setting( $this->page_slug, $post_types_option_name, [ $this, 'sanitize_checkboxes' ] );
@@ -573,22 +664,23 @@ class BLNOTIFIER_MENU {
      */
     public function field_checkboxes( $args ) {
         $value = get_option( $args[ 'name' ] );
+
         if ( get_option( 'blnotifier_has_updated_settings' ) ) {
-            $value = !empty( $value ) ? array_keys( $value ) : [];
+            $value = ! empty( $value ) && is_array( $value ) ? array_keys( $value ) : [];
         } else {
-            $value = $args[ 'default' ];
+            $value = isset( $args[ 'default' ] ) && is_array( $args[ 'default' ] ) ? $args[ 'default' ] : [];
         }
-        
-        if ( isset( $args[ 'options' ] ) ) {
+
+        if ( isset( $args[ 'options' ] ) && is_array( $args[ 'options' ] ) ) {
             foreach ( $args[ 'options' ] as $key => $label ) {
                 $checked = in_array( $key, $value ) ? 'checked' : '';
                 printf(
                     '<input type="checkbox" id="%s" name="%s[%s]" value="1" %s/> <label for="%s">%s</label><br>',
-                    esc_html( $args[ 'name' ].'_'.$key ),
+                    esc_html( $args[ 'name' ] . '_' . $key ),
                     esc_html( $args[ 'name' ] ),
                     esc_attr( $key ),
                     esc_html( $checked ),
-                    esc_html( $args[ 'name' ].'_'.$key ),
+                    esc_html( $args[ 'name' ] . '_' . $key ),
                     esc_html( $label )
                 );
             }
@@ -783,13 +875,42 @@ class BLNOTIFIER_MENU {
     public function get_post_type_choices() {
         $HELPERS = new BLNOTIFIER_HELPERS;
         $results = [];
+
         $post_types = $HELPERS->get_post_types();
+
+        if ( ! is_array( $post_types ) || empty( $post_types ) ) {
+            return $results; // return empty array if no post types found
+        }
+
         foreach ( $post_types as $post_type ) {
             $post_type_name = $HELPERS->get_post_type_name( $post_type );
+            if ( $post_type_name === null ) {
+                $post_type_name = $post_type; // fallback to post type slug
+            }
             $results[ $post_type ] = $post_type_name;
         }
+
         return $results;
     } // End get_post_type_choices()
+
+
+    /**
+     * Get editable roles choices
+     *
+     * @return array
+     */
+    public function get_editable_roles_choices() {
+        global $wp_roles;
+        $results = [];
+        $roles = $wp_roles->get_names();
+        foreach ( $roles as $role_slug => $role_name ) {
+            if ( $role_slug == 'administrator' ) {
+                continue;
+            }
+            $results[ $role_slug ] = $role_name;
+        }
+        return $results;
+    } // End get_editable_roles_choices()
 
 
     /**

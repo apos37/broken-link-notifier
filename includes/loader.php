@@ -10,16 +10,21 @@ if ( !defined( 'ABSPATH' ) ) {
 
 
 /**
- * Initialize the class
- */
-
-new BLNOTIFIER_LOADER();
-
-
-/**
  * Main plugin class.
  */
 class BLNOTIFIER_LOADER {
+
+    /**
+     * Define your custom capability
+     */
+    public $capability = 'manage_broken_links';
+
+
+    /**
+     * Define your custom role slug
+     */
+    public $role_slug = 'blnotifier_link_manager';
+
 
     /**
 	 * Constructor
@@ -31,6 +36,9 @@ class BLNOTIFIER_LOADER {
 			$this->load_admin_dependencies();
 		}
         $this->load_dependencies();
+
+        // Add custom capability to the admin
+        add_action( 'admin_init', [ $this, 'add_custom_capability_to_admin' ] );
         
 	} // End __construct()
 
@@ -139,5 +147,49 @@ class BLNOTIFIER_LOADER {
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'export.php';
         
     } // End load_dependencies()
+
+
+    /**
+     * Plugin activation hook callback
+     */
+    public function plugin_activate() {
+        $admin_role = get_role( 'administrator' );
+        if ( $admin_role ) {
+            $admin_role->add_cap( $this->capability );
+        }
+
+        add_role(
+            $this->role_slug,
+            __( 'Broken Link Manager', 'broken-link-notifier' ),
+            [
+                'read' => true,
+                $this->capability  => true,
+            ]
+        );
+    } // End plugin_activate()
+
+
+    /**
+     * Plugin deactivation hook callback
+     */
+    public function plugin_deactivate() {
+        $admin_role = get_role( 'administrator' );
+        if ( $admin_role ) {
+            $admin_role->remove_cap( $this->capability );
+        }
+
+        remove_role( $this->role_slug );
+    } // End plugin_deactivate()
+
+
+    /**
+     * Ensures the custom capability exists for administrators on admin_init
+     */
+    public function add_custom_capability_to_admin() {
+        $role = get_role( 'administrator' );
+        if ( $role && !$role->has_cap( $this->capability ) ) {
+            $role->add_cap( $this->capability );
+        }
+    } // End add_custom_capability_to_admin()
 
 }
