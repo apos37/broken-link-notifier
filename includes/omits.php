@@ -71,7 +71,9 @@ class BLNOTIFIER_OMITS {
         $taxonomies = array_keys( $this->taxonomies );
         add_filter( 'manage_edit-'.$taxonomies[0].'_columns', [ $this, 'admin_columns_links' ] );
         add_filter( 'manage_edit-'.$taxonomies[1].'_columns', [ $this, 'admin_columns_pages' ] );
-        add_filter( 'manage_'.$taxonomies[1].'_custom_column', [ $this, 'admin_column_content_pages' ], 10, 3);
+        add_filter( 'manage_'.$taxonomies[1].'_custom_column', [ $this, 'admin_column_content_pages' ], 10, 3 );
+        add_filter( $taxonomies[0].'_row_actions', [ $this, 'modify_term_actions' ], 10, 2 );
+        add_filter( $taxonomies[1].'_row_actions', [ $this, 'modify_term_actions' ], 10, 2 );
 
         // Ajax
         add_action( 'wp_ajax_'.$this->ajax_key, [ $this, 'ajax' ] );
@@ -242,6 +244,23 @@ class BLNOTIFIER_OMITS {
         }
         return;
     } // End admin_column_content_pages()
+
+
+    /**
+     * Modify the action links on taxonomy term rows.
+     *
+     * @param array   $actions Array of action links.
+     * @param WP_Term $term    The current term object.
+     *
+     * @return array
+     */
+    public function modify_term_actions( $actions, $term ) {
+        if ( isset( $actions[ 'delete' ] ) ) {
+            $actions[ 'delete' ] = str_replace( 'Delete', 'Remove Omission', $actions[ 'delete' ] );
+        }
+
+        return $actions;
+    } // End modify_term_actions()
 
 
     /**

@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.3.3
+Stable tag: 1.3.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -126,6 +126,10 @@ https://youtu.be/gM9Qy0HLplU
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.3.4 =
+* Tweak: Change "Delete" action link on omitted links/pages to "Remove Omission" (props Diane for suggestion)
+* Tweak: Highlighted the admin bar count red
+
 = 1.3.3 =
 * Fix: Settings error causing missing fields and submit button (props @DLLHell)
 

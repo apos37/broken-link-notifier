@@ -639,11 +639,14 @@ class BLNOTIFIER_RESULTS {
      * @return void
      */
     public function admin_bar( $wp_admin_bar ) {
+        $count = ( new BLNOTIFIER_HELPERS )->count_broken_links();
+        $count_class = $count > 0 ? ' blnotifier-count-indicator' : '';
+
         // Add the node
         $wp_admin_bar->add_node( [
             'id'    => 'blnotifier-notify',
-            'title' => '<span class="ab-icon dashicons dashicons-editor-unlink"></span> <span class="awaiting-mod">'.(new BLNOTIFIER_HELPERS)->count_broken_links().'</span>',
-            'href'  => (new BLNOTIFIER_MENU)->get_plugin_page( 'results' )
+            'title' => '<span class="ab-icon dashicons dashicons-editor-unlink"></span> <span class="ab-count' . $count_class . '">' . $count . '</span>',
+            'href'  => ( new BLNOTIFIER_MENU )->get_plugin_page( 'results' )
         ] );
 
         // Add some CSS
@@ -660,6 +663,16 @@ class BLNOTIFIER_RESULTS {
         }
         #wp-admin-bar-blnotifier-notify .ab-icon:before {
             font-size: 16px;
+        }
+        #wp-admin-bar-blnotifier-notify .ab-count {
+            margin: 0 0 0 2px !important;
+        }
+        #wp-admin-bar-blnotifier-notify .blnotifier-count-indicator {
+            display: inline-block;
+            margin: 0 0 0 2px !important;
+            padding: 0 5px;
+            background-color: #dc3232;
+            color: #fff;
         }
         </style>';
     } // End admin_bar()
@@ -1332,7 +1345,6 @@ class BLNOTIFIER_RESULTS {
 
     /**
      * Enque the JavaScript
-     * // TODO: Reminder to swap version number after testing
      *
      * @return void
      */
@@ -1368,7 +1380,6 @@ class BLNOTIFIER_RESULTS {
 
     /**
      * Enque the JavaScript
-     * // TODO: Reminder to swap version number after testing
      *
      * @return void
      */

@@ -420,6 +420,13 @@ class BLNOTIFIER_HELPERS {
         return $time;
     } // End start_timer()
 
+
+    /**
+     * Stop the timer and return the total time
+     *
+     * @param int $start
+     * @return int
+     */
     public function stop_timer( $start ) {
         $time = microtime();
         $time = explode( ' ', $time );
