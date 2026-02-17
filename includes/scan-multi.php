@@ -47,6 +47,21 @@ class BLNOTIFIER_FULL_SCAN {
 
 
     /**
+     * Does the current user have access to this feature?
+     *
+     * @return boolean
+     */
+    public function has_access() {
+        $roles = get_option( 'blnotifier_editable_roles', [] );
+        $roles[] = 'administrator';
+        if ( !is_user_logged_in() || !array_intersect( wp_get_current_user()->roles, $roles ) ) {
+            return false;
+        }
+        return true;
+    } // End has_access()
+
+
+    /**
      * Should we do stuff?
      *
      * @return boolean
@@ -63,6 +78,10 @@ class BLNOTIFIER_FULL_SCAN {
      * @return void
      */
     public function run_scan_button() {
+        if ( !$this->has_access() ) {
+            return;
+        }
+
         global $current_screen;
         $post_types = get_option( 'blnotifier_post_types' );
         $post_types = !empty( $post_types ) ? array_keys( $post_types ) : [ 'post', 'page' ];
@@ -98,6 +117,10 @@ class BLNOTIFIER_FULL_SCAN {
      * @return array
      */
     public function row_actions( $actions, $post ) {
+        if ( !$this->has_access() ) {
+            return $actions;
+        }
+        
         // The link
         $link = get_the_permalink( $post );
 
@@ -131,7 +154,7 @@ class BLNOTIFIER_FULL_SCAN {
      * @return array
      */
     public function column( $columns ) {
-        if ( $this->do_stuff() ) {
+        if ( $this->do_stuff() && $this->has_access() ) {
             $columns[ 'blinks' ] = __( 'Broken Links', 'broken-link-notifier' );
         }
         return $columns;
@@ -146,6 +169,10 @@ class BLNOTIFIER_FULL_SCAN {
      * @return void
      */
     public function column_content( $column, $post_id ) {
+        if ( !$this->has_access() ) {
+            return;
+        }
+
         // Initiate helpers class
         $HELPERS = new BLNOTIFIER_HELPERS;
 
@@ -288,7 +315,7 @@ class BLNOTIFIER_FULL_SCAN {
      */
     public function css() {
         // Only add it if the query string exists
-        if ( $this->do_stuff() ) {
+        if ( $this->do_stuff() && $this->has_access() ) {
             echo '<style type="text/css">
             .bln-count-cont {
                 margin: 30px 0px;

@@ -642,6 +642,12 @@ class BLNOTIFIER_RESULTS {
         $count = ( new BLNOTIFIER_HELPERS )->count_broken_links();
         $count_class = $count > 0 ? ' blnotifier-count-indicator' : '';
 
+        $roles = get_option( 'blnotifier_editable_roles', [] );
+        $roles[] = 'administrator';
+        if ( !is_user_logged_in() || !array_intersect( wp_get_current_user()->roles, $roles ) ) {
+            return;
+        }
+
         // Add the node
         $wp_admin_bar->add_node( [
             'id'    => 'blnotifier-notify',
@@ -793,6 +799,8 @@ class BLNOTIFIER_RESULTS {
                 $emails = sanitize_text_field( get_option( 'blnotifier_emails', '' ) );
                 if ( $emails != '' ) {
 
+                    $emails = array_map( 'trim', explode( ',', $emails ) );
+
                     // Headers
                     $headers[] = 'From: '.BLNOTIFIER_NAME.' <'.get_bloginfo( 'admin_email' ).'>';
                     $headers[] = 'Content-Type: text/html; charset=UTF-8';
@@ -802,6 +810,7 @@ class BLNOTIFIER_RESULTS {
 
                     // Message
                     $message = 'The following broken links were found today on '.$source_url.':<br><br>';
+                    
                     $broken_links = [];
                     foreach ( $flagged as $key => $section ) {
                         $message .= strtoupper( $key ).':<br><br>';
@@ -815,8 +824,11 @@ class BLNOTIFIER_RESULTS {
                     // Verify before sending
                     if ( !empty( $broken_links ) ) {
 
+                        // Results page link
+                        $results_page_link = '<br><br>You can see all broken links here:<br>'.(new BLNOTIFIER_MENU)->get_plugin_page( 'results' ).'<br><br>';
+
                         // Add links and footer
-                        $message .= implode( '<br><br>', $broken_links ).'<br><br><hr><br>'.get_bloginfo( 'name' ).'<br><em>'.BLNOTIFIER_NAME.' Plugin<br></em>';
+                        $message .= implode( '<br><br>', $broken_links ).$results_page_link.'<br><br><hr><br>'.get_bloginfo( 'name' ).'<br><em>'.BLNOTIFIER_NAME.' Plugin<br></em>';
                         
                         // Filters
                         $emails = apply_filters( 'blnotifier_email_emails', $emails, $flagged, $source_url );
@@ -825,7 +837,7 @@ class BLNOTIFIER_RESULTS {
                         $headers = apply_filters( 'blnotifier_email_headers', $headers, $flagged, $source_url );
 
                         // Try or log
-                        if ( !wp_mail( $emails, $subject, $message, $headers ) ) {
+                        if ( ! wp_mail( $emails, $subject, $message, $headers ) ) {
                             error_log( BLNOTIFIER_NAME.' email could not be sent. Please check for issues with WP Mailer.' ); // phpcs:ignore 
                         }
                     }
