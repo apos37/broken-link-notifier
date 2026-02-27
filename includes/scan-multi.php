@@ -52,12 +52,7 @@ class BLNOTIFIER_FULL_SCAN {
      * @return boolean
      */
     public function has_access() {
-        $roles = get_option( 'blnotifier_editable_roles', [] );
-        $roles[] = 'administrator';
-        if ( !is_user_logged_in() || !array_intersect( wp_get_current_user()->roles, $roles ) ) {
-            return false;
-        }
-        return true;
+        return (new BLNOTIFIER_HELPERS)->user_can_manage_broken_links();
     } // End has_access()
 
 

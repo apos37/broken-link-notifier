@@ -45,7 +45,6 @@ class BLNOTIFIER_SCAN {
 
         // Ajax
         add_action( 'wp_ajax_'.$this->ajax_key, [ $this, 'ajax' ] );
-        add_action( 'wp_ajax_nopriv_'.$this->ajax_key, [ $this, 'must_login' ] );
         
         // Enqueue script
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
@@ -63,6 +62,11 @@ class BLNOTIFIER_SCAN {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
             exit( 'No naughty business please.' );
         }        
+
+        // Check permissions
+        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+            exit( 'Unauthorized access.' );
+        }
 
         // Initiate helpers
         $HELPERS = new BLNOTIFIER_HELPERS;
@@ -118,16 +122,6 @@ class BLNOTIFIER_SCAN {
         // We're done here
         die();
     } // End ajax()
-
-
-    /**
-     * What to do if they are not logged in
-     *
-     * @return void
-     */
-    public function must_login() {
-        die();
-    } // End must_login()
 
 
     /**

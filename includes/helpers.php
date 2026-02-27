@@ -15,6 +15,40 @@ if ( !defined( 'ABSPATH' ) ) {
 class BLNOTIFIER_HELPERS {
 
     /**
+     * Check if the current user can manage Broken Link Notifier.
+     *
+     * @return bool True if user has permission, false otherwise.
+     */
+    public function user_can_manage_broken_links() : bool {
+        if ( ! is_user_logged_in() ) {
+            return false;
+        }
+
+        $current_user = wp_get_current_user();
+        $user_roles   = (array) $current_user->roles;
+
+        // Administrators always have access
+        if ( in_array( 'administrator', $user_roles, true ) ) {
+            return true;
+        }
+
+        // Check against allowed roles stored in plugin options
+        $allowed_roles = get_option( 'blnotifier_editable_roles', [] );
+
+        if ( is_array( $allowed_roles ) && ! empty( $allowed_roles ) ) {
+            foreach ( $allowed_roles as $role_slug => $value ) {
+                $role_slug = sanitize_key( $role_slug );
+                if ( in_array( $role_slug, $user_roles, true ) ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    } // End user_can_manage_broken_links()
+
+
+    /**
      * Get the current tab
      *
      * @return string|false

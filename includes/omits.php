@@ -77,7 +77,6 @@ class BLNOTIFIER_OMITS {
 
         // Ajax
         add_action( 'wp_ajax_'.$this->ajax_key, [ $this, 'ajax' ] );
-        add_action( 'wp_ajax_nopriv_'.$this->ajax_key, [ $this, 'must_login' ] );
         
         // Enqueue script
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
@@ -371,6 +370,9 @@ class BLNOTIFIER_OMITS {
         if ( !wp_verify_nonce( $nonce, $this->nonce ) ) {
             exit( 'No naughty business please.' );
         }
+        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+            exit( 'Unauthorized access.' );
+        }
     
         // Get parameters safely
         $link = isset( $_REQUEST[ 'link' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'link' ] ) ) : '';
@@ -404,16 +406,6 @@ class BLNOTIFIER_OMITS {
     
         die();
     } // End ajax()    
-
-
-    /**
-     * What to do if they are not logged in
-     *
-     * @return void
-     */
-    public function must_login() {
-        die();
-    } // End must_login()
 
 
     /**

@@ -2,9 +2,9 @@
 Contributors: apos37
 Tags: broken, link, links, checker, notify
 Requires at least: 5.9
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.3.5
+Stable tag: 1.3.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -126,6 +126,10 @@ https://youtu.be/gM9Qy0HLplU
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.3.6 =
+* Update: Added option for Max Links Per Page to help prevent attacks and timeouts
+* Fix: Unauthorized access vulnerability (props Nabil Irawan/Patchstack)
+
 = 1.3.5 =
 * Tweak: Added results page link to the email notifications (props @nazrinn for suggestion)
 * Fix: Removed broken link indicator from admin bar if role does not have access
@@ -144,8 +148,8 @@ https://youtu.be/gM9Qy0HLplU
 * Fix: preg_replace() deprecation error (props @venutius)
 
 = 1.3.1 =
-* Fix: Improper Neutralization of Formula Elements in a CSV File (props @jfriedli/WordFence)
-* Fix: SSRF vulnerability by validating all URLs before remote requests using is_url_safe() (props @jfriedli/WordFence)
+* Fix: Improper Neutralization of Formula Elements in a CSV File (props @jfriedli/Wordfence)
+* Fix: SSRF vulnerability by validating all URLs before remote requests using is_url_safe() (props @jfriedli/Wordfence)
 
 = 1.3.0 =
 * Update: New support links

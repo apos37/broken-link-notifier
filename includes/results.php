@@ -108,14 +108,9 @@ class BLNOTIFIER_RESULTS {
         add_action( 'wp_ajax_'.$this->ajax_key_blinks, [ $this, 'ajax_blinks' ] );
         add_action( 'wp_ajax_nopriv_'.$this->ajax_key_blinks, [ $this, 'ajax_blinks' ] );
         add_action( 'wp_ajax_'.$this->ajax_key_rescan, [ $this, 'ajax_rescan' ] );
-        add_action( 'wp_ajax_nopriv_'.$this->ajax_key_rescan, [ $this, 'ajax_rescan' ] );
-
         add_action( 'wp_ajax_'.$this->ajax_key_replace_link, [ $this, 'ajax_replace_link' ] );
-        add_action( 'wp_ajax_nopriv_'.$this->ajax_key_replace_link, [ $this, 'ajax_unauthorized' ] );
         add_action( 'wp_ajax_'.$this->ajax_key_delete_result, [ $this, 'ajax_delete_result' ] );
-        add_action( 'wp_ajax_nopriv_'.$this->ajax_key_delete_result, [ $this, 'ajax_unauthorized' ] );
         add_action( 'wp_ajax_'.$this->ajax_key_delete_source, [ $this, 'ajax_delete_source' ] );
-        add_action( 'wp_ajax_nopriv_'.$this->ajax_key_delete_source, [ $this, 'ajax_unauthorized' ] );
         
         // Enqueue scripts
         add_action( 'wp_enqueue_scripts', [ $this, 'front_script_enqueuer' ] );
@@ -948,6 +943,31 @@ class BLNOTIFIER_RESULTS {
         $content_links = isset( $_REQUEST[ 'content_links' ] ) ? wp_unslash( $_REQUEST[ 'content_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
         $footer_links  = isset( $_REQUEST[ 'footer_links' ] ) ? wp_unslash( $_REQUEST[ 'footer_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
+        // Enforce max links per page
+        $max_links = absint( get_option( 'blnotifier_max_links_per_page', 200 ) );
+        $total_links = count( $header_links ) + count( $content_links ) + count( $footer_links );
+        if ( $total_links > $max_links ) {
+            $result = [
+                'type' => 'error',
+                'msg'  => sprintf( 'Too many links in one scan. Max allowed: %d', $max_links )
+            ];
+            self::send_ajax_or_redirect( $result );
+        }
+
+        // Rate limit per IP only for non-link-managers
+        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+            $ip = $_SERVER[ 'REMOTE_ADDR' ];
+            $transient_key = 'bln_rate_' . md5( $ip );
+            if ( get_transient( $transient_key ) ) {
+                $result = [
+                    'type' => 'error',
+                    'msg'  => 'Scan rate limit exceeded'
+                ];
+                self::send_ajax_or_redirect( $result );
+            }
+            set_transient( $transient_key, 1, 10 ); // 10-second cooldown
+        }
+
         // Make sure we have a source URL
         if ( $source_url ) {
 
@@ -1079,15 +1099,7 @@ class BLNOTIFIER_RESULTS {
         }
     
         // Echo the result or redirect
-        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( wp_unslash( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) ) === 'xmlhttprequest' ) {
-            echo wp_json_encode( $result );
-        } else {
-            $referer = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? filter_var( wp_unslash( $_SERVER[ 'HTTP_REFERER' ] ), FILTER_SANITIZE_URL ) : '';
-            header( 'Location: ' . $referer );
-        }
-    
-        // We're done here
-        die();
+        self::send_ajax_or_redirect( $result );
     } // End ajax_blinks()
 
 
@@ -1100,6 +1112,11 @@ class BLNOTIFIER_RESULTS {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_rescan ) ) {
             exit( 'No naughty business please.' );
+        }
+
+        // Check permissions
+        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+            exit( 'Unauthorized access.' );
         }
     
         // Get the ID
@@ -1197,27 +1214,8 @@ class BLNOTIFIER_RESULTS {
         }
     
         // Echo the result or redirect
-        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( wp_unslash( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) ) === 'xmlhttprequest' ) {
-            echo wp_json_encode( $result );
-        } else {
-            $referer = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? filter_var( wp_unslash( $_SERVER[ 'HTTP_REFERER' ] ), FILTER_SANITIZE_URL ) : '';
-            header( 'Location: ' . $referer );
-        }
-    
-        // We're done here
-        die();
+        self::send_ajax_or_redirect( $result );
     } // End ajax_rescan()
-
-
-    /**
-     * Unauthorized ajax
-     *
-     * @return void
-     */
-    public function ajax_unauthorized() {
-        wp_send_json_error( 'Unauthorized access.', 403 );
-        exit;
-    } // End ajax_unauthorized()
 
 
     /**
@@ -1229,6 +1227,10 @@ class BLNOTIFIER_RESULTS {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_replace ) ) {
             exit( 'No naughty business please.' );
+        }
+
+        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+            exit( 'Unauthorized access.' );
         }
     
         // Get the vars
@@ -1282,6 +1284,10 @@ class BLNOTIFIER_RESULTS {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_delete ) ) {
             exit( 'No naughty business please.' );
         }
+
+        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+            exit( 'Unauthorized access.' );
+        }
     
         // Get the ID
         $post_id = isset( $_REQUEST[ 'postID' ] ) ? absint( $_REQUEST[ 'postID' ] ) : false;
@@ -1309,6 +1315,11 @@ class BLNOTIFIER_RESULTS {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_delete ) ) {
             exit( 'No naughty business please.' );
+        }
+
+        // Check permissions
+        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+            exit( 'Unauthorized access.' );
         }
 
         // Make sure we are allowed to delete the source
@@ -1353,6 +1364,25 @@ class BLNOTIFIER_RESULTS {
         // Failure
         wp_send_json_error( 'Failed to delete.' );
     } // End ajax_delete_source()
+
+
+    /**
+     * Send JSON result or redirect for non-AJAX requests.
+     *
+     * @param array $result The result array to return.
+     *
+     * @return void
+     */
+    public static function send_ajax_or_redirect( $result ) {
+        if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( wp_unslash( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) ) === 'xmlhttprequest' ) {
+            header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+            echo wp_json_encode( $result );
+        } else {
+            $referer = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? filter_var( wp_unslash( $_SERVER[ 'HTTP_REFERER' ] ), FILTER_SANITIZE_URL ) : '';
+            header( 'Location: ' . $referer );
+        }
+        die();
+    } // End send_ajax_or_redirect()
 
 
     /**

@@ -400,7 +400,14 @@ class BLNOTIFIER_MENU {
                 'default'  => 5,
                 'min'      => 0,
                 'comments' => 'Maximum number of redirects before giving up on a link (will only be used if you allow redirects below)'
-            ]
+            ],
+            [ 
+                'name'     => 'max_links_per_page',
+                'label'    => 'Max Links Per Page',
+                'default'  => 200,
+                'min'      => 0,
+                'comments' => 'Maximum number of links to check per page (0 for unlimited) - this is to prevent attacks and timeouts on pages with a large number of links'
+            ],
         ];
 
         // Loop through the array to add number fields
