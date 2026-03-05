@@ -20,7 +20,7 @@ add_action( 'init', function() {
 
 
 /**
- * Main plugin class.
+ * Results class.
  */
 class BLNOTIFIER_RESULTS {
 
@@ -29,7 +29,7 @@ class BLNOTIFIER_RESULTS {
      * 
      * @var string
      */ 
-    public $post_type = 'blnotifier-results';
+    public $table_name = 'blnotifier_results';
 
 
     /**
@@ -61,42 +61,12 @@ class BLNOTIFIER_RESULTS {
      */
     public function init() {
 
-        // Register the post type
-        $this->register_post_type();
+        // Maybe create the database table
+        $this->maybe_create_db();
 
         // Add the header to the top of the admin list page
         add_action( 'load-edit.php', [ $this, 'add_header' ] );
         add_action( 'load-edit-tags.php', [ $this, 'add_header' ] );
-
-        // Add instructions to top of page
-        add_action( 'admin_notices', [ $this, 'description_notice' ] );
-
-        // Redirect
-        add_filter( 'get_edit_post_link', [ $this, 'redirect' ], 10, 3 );
-
-        // Remove Edit from Bulk Actions
-        add_filter( 'bulk_actions-edit-'.$this->post_type, [ $this, 'remove_from_bulk_actions' ] );
-
-        // Remove post states
-        add_filter( 'display_post_states', [ $this, 'remove_post_states' ], 999, 2 );
-
-        // Remove Edit and Quick Edit links, and add ignore link
-        add_action( 'post_row_actions', [ $this, 'row_actions' ], 10, 2 );
-
-        // Skip trash and auto delete
-        add_action( 'trashed_post', [ $this, 'skip_trash' ] );
-
-        // Add a type filter
-        add_action( 'restrict_manage_posts', [ $this, 'admin_filters' ], 10, 2 );
-        add_action( 'pre_get_posts', [ $this, 'admin_filters_query' ] );
-
-        // Add admin columns
-        add_filter( 'manage_'.$this->post_type.'_posts_columns', [ $this, 'admin_columns' ] );
-        add_action( 'manage_'.$this->post_type.'_posts_custom_column', [ $this, 'admin_column_content' ], 10, 2 );
-
-        // Make admin columns sortable
-        add_filter( 'manage_edit-'.$this->post_type.'_sortable_columns', [ $this, 'sort_columns' ] );
-        add_action( 'pre_get_posts', [ $this, 'sort_columns_query' ] );
 
         // Add notifications to admin bar
         add_action( 'admin_bar_menu', [ $this, 'admin_bar' ], 999 );
@@ -117,52 +87,6 @@ class BLNOTIFIER_RESULTS {
         add_action( 'admin_enqueue_scripts', [ $this, 'back_script_enqueuer' ] );
 
     } // End init()
-
-    
-    /**
-     * Register the post type
-     */
-    public function register_post_type() {
-        // Set the labels
-        $labels = [
-            'name'                  => _x( 'Links', 'Post Type General Name', 'broken-link-notifier' ),
-            'singular_name'         => _x( 'Link', 'Post Type Singular Name', 'broken-link-notifier' ),
-            'menu_name'             => __( 'Links', 'broken-link-notifier' ),
-            'name_admin_bar'        => __( 'Links', 'broken-link-notifier' ),
-            'search_items'          => __( 'Search links', 'broken-link-notifier' ),
-            'not_found'             => __( 'Not found', 'broken-link-notifier' ),
-            'not_found_in_trash'    => __( 'Not found in Trash', 'broken-link-notifier' ),
-            'filter_items_list'     => __( 'Filter link list', 'broken-link-notifier' ),
-        ];
-    
-        // Set the CPT args
-        $args = [
-            'label'                 => __( 'Links', 'broken-link-notifier' ),
-            'description'           => __( 'Links', 'broken-link-notifier' ),
-            'labels'                => $labels,
-            'supports'              => [],
-            'taxonomies'            => [],
-            'public'                => false,
-            'show_ui'               => true,
-            'show_in_menu'          => false,
-            'show_in_admin_bar'     => false,
-            'show_in_nav_menus'     => false,
-            'can_export'            => true,
-            'has_archive'           => false,
-            'exclude_from_search'   => true,
-            'publicly_queryable'    => false,
-            'query_var'             => $this->post_type,
-            'capability_type'       => 'post',
-            'capabilities'          => [
-                'create_posts'      => 'do_not_allow',
-            ],
-            'map_meta_cap'          => true, 
-            'show_in_rest'          => true,
-        ];
-    
-        // Register the CPT
-        register_post_type( $this->post_type, $args );
-    } // End register_post_type()
 
 
     /**
@@ -234,400 +158,6 @@ class BLNOTIFIER_RESULTS {
 
 
     /**
-     * Add a description notice
-     * 
-     * @return void
-     */
-    public function description_notice() {
-        global $current_screen;
-        if ( 'edit-'.$this->post_type === $current_screen->id ) {
-            echo '<div class="notice notice-info" >
-                <p>' . esc_html__( 'This page shows the results of your scans. It automatically rechecks the links themselves to see if they are still broken, but it does not remove the links from the pages or rescan the pages to see if broken links have been fixed. After fixing a broken link, you will need to clear the result below. Then when you rescan the page it should not show up here again. Note that the plugin will still find broken links if you simply hide them on the page.', 'broken-link-notifier' ) . '</p>
-            </div>';
-        }
-    } // End description_notice()
-
-
-    /**
-     * Redirect the edit link
-     *
-     * @param string $url
-     * @param int $post_id
-     * @param [type] $context
-     * @return string
-     */
-    public function redirect( $url, $post_id, $context ) {
-        if ( get_post_type( $post_id ) == $this->post_type ) {
-            return sanitize_text_field( get_the_title( $post_id ) );
-        } else {
-            return $url;
-        }
-    } // End redirect()
-  
-
-    /**
-     * Remove Edit from Bulk Actions
-     *
-     * @param array $actions
-     * @return array
-     */
-    public function remove_from_bulk_actions( $actions ) {
-        unset( $actions[ 'edit' ] );
-        return $actions;
-    } // End remove_from_bulk_actions()
-
-
-    /**
-     * Remove states
-     *
-     * @param array $states
-     * @param WP_Post $post
-     * @return void
-     */
-    public function remove_post_states( $states, $post ) {
-        if ( get_post_type( $post ) == $this->post_type ) {
-            return false;
-        }
-        return $states;
-    } // End remove_post_states()
-
-
-    /**
-     * Action links
-     *
-     * @param array $actions
-     * @param object $post
-     * @return array
-     */
-    public function row_actions( $actions, $post ) {
-        if ( $this->post_type == $post->post_type ) {
-            $actions = [];
-
-            $actions[ 'clear' ] = '<a class="clear-result" href="#" data-post-id="' . $post->ID . '">' . __( 'Clear Result', 'broken-link-notifier' ) . '</a></span>';
-
-            $permalink = get_the_title( $post );
-            if ( !(new BLNOTIFIER_OMITS)->is_omitted( $permalink, 'links' ) ) {
-                $actions[ 'omit' ] = '<a class="omit-link" href="#" data-link="' . $permalink . '" data-post-id="' . $post->ID . '">' . __( 'Omit Link', 'broken-link-notifier' ) . '</a>';
-            }
-
-            $source_url = get_post_meta( $post->ID, 'source', true );
-            if ( $source_url ) {
-                $source_url = filter_var( $source_url, FILTER_SANITIZE_URL );
-                
-                if ( $source_id = url_to_postid( $source_url ) ) {
-                    $actions[ 'replace' ] = '<a class="replace-link" href="#" data-link="' . $permalink . '" data-post-id="' . $post->ID . '" data-source-id="' . $source_id . '">' . __( 'Replace Link', 'broken-link-notifier' ) . '</a></span>';
-                }
-            }
-        }
-        return $actions;
-    } // End row_actions()
-
-
-    /**
-     * Skip trash and auto delete
-     *
-     * @param int $post_id
-     * @return void
-     */
-    public function skip_trash( $post_id ) {
-        if ( get_post_type( $post_id ) == $this->post_type ) {
-            wp_delete_post( $post_id, true );
-        }
-    } // End skip_trash()
-
-
-    /**
-     * Type filter
-     *
-     * @return void
-     */
-    public function admin_filters( $post_type, $which ) {
-        $screen = get_current_screen();
-        if ( $screen && $screen->id == 'edit-'.$this->post_type ) {
-
-            // Link type
-            if ( isset( $_REQUEST[ 'link-type' ] ) ) {  // phpcs:ignore
-                $s = sanitize_key( $_REQUEST[ 'link-type' ] ); // phpcs:ignore
-            } else {
-                $s = '';
-            }
-            $HELPERS = new BLNOTIFIER_HELPERS;
-            echo '<select id="link-type-filter" name="link-type">
-                <option value=""'.esc_html( $HELPERS->is_selected( $s, '' ) ).'>All Link Types</option>
-                <option value="broken"'.esc_html( $HELPERS->is_selected( $s, 'broken' ) ).'>Broken Links</option>
-                <option value="warning"'.esc_html( $HELPERS->is_selected( $s, 'warning' ) ).'>Warning Links</option>
-            </select>';
-
-            // Status code
-            $bad_codes = $HELPERS->get_bad_status_codes();
-            $warning_codes = $HELPERS->get_warning_status_codes();
-            $all_codes = array_unique( array_merge( $bad_codes, $warning_codes ) );
-            sort( $all_codes );
-
-            if ( isset( $_GET[ 'code' ] ) && sanitize_text_field( $_GET[ 'code' ] ) != '' ) { // phpcs:ignore
-                $s = absint( $_GET[ 'code' ] ); // phpcs:ignore
-            } else {
-                $s = '';
-            }
-            $HELPERS = new BLNOTIFIER_HELPERS;
-            echo '<select id="code-filter" name="code">
-                <option value=""'.esc_html( $HELPERS->is_selected( $s, '' ) ).'>All Status Codes</option>';
-
-                foreach ( $all_codes as $code ) {
-                    echo '<option value="'.esc_attr( $code ).'"'.esc_html( $HELPERS->is_selected( $s, $code ) ).'>'.esc_attr( $code ).'</option>';
-                }
-
-            echo '</select>';
-        }
-    } // End admin_filters()
-
-
-    /**
-     * The type filter query
-     *
-     * @param object $query
-     * @return void
-     */
-    public function admin_filters_query( $query ) {
-        $post_type = $query->get( 'post_type' );
-        if ( $post_type == $this->post_type ) {
-
-            // Link type
-            if ( isset( $_REQUEST[ 'link-type' ] ) && sanitize_text_field( $_REQUEST[ 'link-type' ] ) != '' ) { // phpcs:ignore
-                $type = sanitize_key( $_REQUEST[ 'link-type' ] ); // phpcs:ignore
-                if ( $type != '' ) {
-                    $meta_query[] = [
-                        'key'     => 'type',
-                        'value'   => $type,
-                    ];
-                    $query->set( 'meta_query', $meta_query );
-                }
-
-            // Status code
-            } elseif ( isset( $_REQUEST[ 'code' ] ) && sanitize_text_field( $_REQUEST[ 'code' ] ) != '' ) { // phpcs:ignore
-                $code = absint( $_REQUEST[ 'code' ] ); // phpcs:ignore
-                if ( $code != '' ) {
-                    $meta_query[] = [
-                        'key'     => 'code',
-                        'value'   => $code,
-                    ];
-                    $query->set( 'meta_query', $meta_query );
-                }
-            }
-        }
-    } // End admin_filters_query()
-
-    
-    /**
-     * Admin columns
-     *
-     * @param array $columns
-     * @return array
-     */
-    public function admin_columns( $columns ) {
-        return [
-            'cb'            => '<input type="checkbox"/>',
-            'bln_type'      => __( 'Type', 'broken-link-notifier' ),
-            'title'         => __( 'Link', 'broken-link-notifier' ),
-            'bln_source'    => __( 'Source', 'broken-link-notifier' ),
-            'bln_source_pt' => __( 'Source Post Type', 'broken-link-notifier' ),
-            'bln_date'      => __( 'Date', 'broken-link-notifier' ),
-            'bln_author'    => __( 'User', 'broken-link-notifier' ),
-            'bln_method'    => __( 'Method', 'broken-link-notifier' ),
-            'bln_verify'    => __( 'Verify', 'broken-link-notifier' ),
-        ];
-    } // End admin_columns()
-
-
-    /**
-     * Admin column content
-     *
-     * @param string $column
-     * @param int $post_id
-     * @return void
-     */
-    public function admin_column_content( $column, $post_id ) {
-        // Type
-        if ( 'bln_type' === $column ) {
-            $post = get_post( $post_id );
-            if ( $post->type == 'broken' ) {
-                echo '<div class="bln-type broken">' . esc_html( __( 'Broken', 'broken-link-notifier' ) ) . '</div>';
-            } elseif ( $post->type == 'warning' ) {
-                echo '<div class="bln-type warning">' . esc_html( __( 'Warning', 'broken-link-notifier' ) ) . '</div>';
-            } elseif ( $post->type == 'good' ) {
-                echo '<div class="bln-type good">' . esc_html( __( 'Good', 'broken-link-notifier' ) ) . '</div>';
-            }
-            $code = $post->code;
-            if ( $code != 0 && $code != 666 ) {
-                $code = '<a href="https://http.dev/'.$code.'" target="_blank">'.$code.'</a>';
-            }
-            if ( $code == 666 ) {
-                $incl_title = ' title="' . __( 'A status code of 666 is a code we use to force invalid URL code 0 to be a broken link. It is not an official status code.', 'broken-link-notifier' ) . '"';
-            } elseif ( $code == 0 ) {
-                $incl_title = ' title="' . __( 'A status code of 0 means there was no response and it can occur for various reasons, like request time outs. It almost always means something is randomly interfering with the user\'s connection, like a proxy server / firewall / load balancer / laggy connection / network congestion, etc.', 'broken-link-notifier' ) . '"';
-            } else {
-                $incl_title = '';
-            }
-            echo '<code'.wp_kses_post( $incl_title ).'>Code: '.wp_kses_post( $code ).'</code> <span class="message">'.esc_html( $post->post_content ).'</span>';
-        }
-
-        // Source
-        if ( 'bln_source' === $column ) {
-            $source_url = get_post_meta( $post_id, 'source', true );
-            if ( $source_url ) {
-                $source_url = filter_var( $source_url, FILTER_SANITIZE_URL );
-                $source_url = remove_query_arg( (new BLNOTIFIER_HELPERS)->get_qs_to_remove_from_source(), $source_url );
-                $actions = [
-                    '<span class="view"><a href="'.add_query_arg( 'blink', urlencode( strtok( get_the_title( $post_id ), '?' ) ), $source_url ).'" target="_blank">' . __( 'View Page', 'broken-link-notifier' ) . '</a></span>'
-                ];
-                if ( $source_id = url_to_postid( $source_url ) ) {
-                    if ( !(new BLNOTIFIER_OMITS)->is_omitted( $source_url, 'pages' ) ) {
-                        $actions[] = '<span class="omit"><a class="omit-page" href="#" data-link="'.$source_url.'">' . __( 'Omit Page', 'broken-link-notifier' ) . '</a></span>';
-                    }
-                    $scan_nonce = wp_create_nonce( 'blnotifier_scan_single' );
-                    $actions[] = '<span class="scan"><a class="scan-page" href="'.(new BLNOTIFIER_MENU)->get_plugin_page( 'scan-single' ).'&scan='.$source_url.'&_wpnonce='.$scan_nonce.'" target="_blank">Scan Page</a></span>';
-                    $actions[] = '<span class="edit"><a href="'.admin_url( 'post.php' ).'?post='.$source_id.'&action=edit">' . __( 'Edit Page', 'broken-link-notifier' ) . '</a></span>';
-                    if ( is_plugin_active( 'cornerstone/cornerstone.php' ) ) {
-                        $actions[] = '<span class="edit-in-cornerstone"><a href="'.home_url( '/cornerstone/edit/'.$source_id ).'">' . __( 'Edit in Cornerstone', 'broken-link-notifier' ) . '</a></span>';
-                    }
-
-                    $title = get_the_title( $source_id );
-                    $source_url = '<strong><a class="source-url" href="'.$source_url.'">'.$title.'</a></strong>';
-
-                    if ( get_option( 'blnotifier_enable_delete_source' ) ) {
-                        $actions[] = '<span class="delete"><a class="delete-source" href="#" data-source-title="' . $title . '" data-source-id="' . $source_id . '">' . __( 'Trash Page', 'broken-link-notifier' ) . '</a></span>';
-                    }
-                }
-
-                echo wp_kses_post( $source_url ).'<div class="row-actions" data-source-id="' . esc_attr( $source_id ) . '">'.wp_kses_post( implode( ' | ', $actions ) ).'</div>';
-            } else {
-                echo esc_html__( 'No source found...', 'broken-link-notifier' );
-            }
-        }
-
-        // Source URL
-        if ( 'bln_source_pt' === $column ) {
-            $url = get_post_meta( $post_id, 'source', true );
-            if ( $url ) {
-                $url = filter_var( $url, FILTER_SANITIZE_URL );
-                if ( $source_id = url_to_postid( $url ) ) {
-                    $post_type = get_post_type( $source_id );
-                    $post_type_name = (new BLNOTIFIER_HELPERS)->get_post_type_name( $post_type, true );
-                } else {
-                    $post_type_name = '--';
-                }
-                echo esc_html( $post_type_name );
-            }
-        }
-
-        // Date
-        if ( 'bln_date' === $column ) {
-            $date = get_the_date( 'F j, Y g:i A', $post_id );
-            $location = get_post_meta( $post_id, 'location', true );
-            echo 'Discovered in '.esc_html( ucwords( $location ) ).'<br>'.esc_html( $date );
-        }
-
-        // Author
-        if ( 'bln_author' === $column ) {
-            $post = get_post( $post_id );
-            if ( isset( $post->guest ) && $post->guest ) {
-                $display_name = 'Guest';
-            } elseif ( $author = $post->post_author ) {
-                $user = get_user_by( 'ID', $author );
-                $display_name = $user->display_name;
-            } else {
-                $display_name = 'Guest';
-            }
-            echo esc_html( $display_name );
-        }
-
-        // Method
-        if ( 'bln_method' === $column ) {
-            $post = get_post( $post_id );
-            if ( isset( $post->method ) && $post->method ) {
-
-                switch ( sanitize_key( $post->method ) ) {
-                    case 'visit':
-                        $method = __( 'Front-End Visit', 'broken-link-notifier' );
-                        break;
-                    case 'multi':
-                        $method = __( 'Multi-Scan', 'broken-link-notifier' );
-                        break;
-                    case 'single':
-                        $method = __( 'Page Scan', 'broken-link-notifier' );
-                        break;
-                    default:
-                        $method = __( 'Unknown', 'broken-link-notifier' );
-                }
-            } else {
-                $method = __( 'Unknown', 'broken-link-notifier' );
-            }
-            echo esc_html( $method );
-        }
-
-        // Verify
-        if ( 'bln_verify' === $column ) {
-
-            if ( !(new BLNOTIFIER_HELPERS ())->is_results_verification_paused() ) {
-                $link = get_the_title( $post_id );
-                $post = get_post( $post_id );
-                $code = absint( $post->code );
-                $type = sanitize_text_field( $post->type );
-                $source_url = filter_var( $post->source, FILTER_SANITIZE_URL );
-                $source_url = remove_query_arg( (new BLNOTIFIER_HELPERS)->get_qs_to_remove_from_source(), $source_url );
-                $source_id = url_to_postid( $source_url );
-                $method = $post->method ? sanitize_key( $post->method ) : 'unknown';
-
-                echo '<span id="bln-verify-'.esc_attr( $post_id ).'" class="bln-verify" data-type="' . esc_attr( $type ) . '" data-post-id="'.esc_attr( $post_id ).'" data-link="'.esc_html( $link ).'" data-code="'.esc_attr( $code ).'" data-source-id="'.esc_attr( $source_id ).'" data-method="'.esc_attr( $method ).'">' . esc_html__( 'Pending', 'broken-link-notifier' ) . '</span>';
-
-            } else {
-                echo esc_html__( 'Auto-verification is paused in settings.', 'broken-link-notifier' );
-            }
-
-        }
-    } // End admin_column_content()
-    
-
-    /**
-     * Make admin columns sortable
-     *
-     * @param array $columns
-     * @return array
-     */
-    public function sort_columns( $columns ) {
-        $columns[ 'bln_type' ]      = 'bln_type';
-        $columns[ 'bln_source' ]    = 'bln_source';
-        $columns[ 'bln_source_pt' ] = 'bln_source_pt';
-        $columns[ 'bln_date' ]      = 'bln_date';
-        return $columns;
-    } // End sort_columns()
-
-
-    /**
-     * Sort the order column properly
-     *
-     * @param object $query
-     * @return void
-     */
-    public function sort_columns_query( $query ) {
-        global $current_screen;
-        if ( is_admin() && isset( $current_screen ) && $current_screen->id === 'edit-'.$this->post_type ) {
-            $orderby = $query->get( 'orderby' );
-            if ( 'bln_type' == $orderby ) {
-                $query->set( 'meta_key', 'type' );
-                $query->set( 'orderby', 'meta_value' );
-            } elseif ( 'bln_source' == $orderby ) {
-                $query->set( 'meta_key', 'bln_source' );
-                $query->set( 'orderby', 'meta_value' );
-            } elseif ( 'bln_date' == $orderby ) {
-                // $query->set( 'meta_key', 'date' );
-                $query->set( 'orderby', 'date' );
-            }
-        }
-    } // End sort_columns_query()
-
-
-    /**
      * Add an online user count to the admin bar
      *
      * @param [type] $wp_admin_bar
@@ -680,76 +210,157 @@ class BLNOTIFIER_RESULTS {
 
 
     /**
+     * Create the database table if it doesn't exist.
+     *
+     * @return void
+     */
+    public function maybe_create_db() {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . $this->table_name;
+        
+        if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) !== $table_name ) {
+            require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+            $charset_collate = $wpdb->get_charset_collate();
+
+            $sql = "CREATE TABLE $table_name (
+                id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+                link varchar(2048) NOT NULL,
+                link_hash char(32) NOT NULL,
+                text varchar(255) NOT NULL,
+                type varchar(20) NOT NULL,
+                code smallint(5) unsigned NOT NULL,
+                source varchar(2048) NOT NULL,
+                location varchar(50) NOT NULL,
+                method varchar(20) NOT NULL,
+                guest tinyint(1) NOT NULL DEFAULT 0,
+                author_id bigint(20) unsigned NOT NULL DEFAULT 0,
+                created_at datetime NOT NULL,
+                PRIMARY KEY (id),
+                UNIQUE KEY link_hash (link_hash),
+                KEY code (code),
+                KEY created_at (created_at)
+            ) $charset_collate;";
+
+            dbDelta( $sql );
+
+            // Migrate old posts if they exist
+            $old_posts = get_posts( [
+                'post_type'      => 'blnotifier-results',
+                'posts_per_page' => -1,
+                'post_status'    => 'publish',
+                'fields'         => 'ids',
+            ] );
+
+            if ( ! empty( $old_posts ) ) {
+                foreach ( $old_posts as $post_id ) {
+                    $code     = absint( get_post_meta( $post_id, 'code', true ) );
+                    $location = get_post_meta( $post_id, 'location', true );
+                    $method   = get_post_meta( $post_id, 'method', true );
+                    $source   = get_post_meta( $post_id, 'source', true );
+                    $type     = get_post_meta( $post_id, 'type', true );
+
+                    $post    = get_post( $post_id );
+                    $link    = $post ? $post->post_title : '';
+                    $text    = $post ? $post->post_content : '';
+                    $author  = $post ? $post->post_author : 0;
+                    $created = $post ? $post->post_date : current_time( 'mysql' );
+
+                    $this->add( [
+                        'link'   => $link,
+                        'text'   => $text,
+                        'type'   => $type,
+                        'code'   => $code,
+                        'source' => $source,
+                        'location' => $location,
+                        'method' => $method,
+                        'author' => $author,
+                        'created_at' => $created,
+                    ] );
+
+                    // Delete the old post
+                    wp_delete_post( $post_id, true );
+                }
+            }
+        }
+    } // End maybe_create_db()
+
+
+    /**
      * Check if the link has already been added
      *
      * @param string $link
      * @return boolean
      */
     public function already_added( $link ) {
-        return post_exists( sanitize_text_field( $link ), '', '', $this->post_type );
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . $this->table_name;
+        $link_clean = sanitize_text_field( $link );
+        $link_hash = md5( strtolower( untrailingslashit( $link_clean ) ) );
+
+        $exists = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT id FROM $table_name WHERE link_hash = %s LIMIT 1",
+                $link_hash
+            )
+        );
+
+        return !empty( $exists );
     } // End already_added()
 
 
     /**
      * Add a new broken or warning link
-     * $args = [
-     *      'broken'   => true,
-     *      'warning'  => false,
-     *      'code'     => 404,
-     *      'text'     => 'Not found',
-     *      'link'     => 'https://brokenlink.com',
-     *      'source'   => 'https://source-url.com',
-     *      'author'   => 1,
-     *      'location' => 'content'
-     * ]
      *
      * @param array $args
      * @return void
      */
     public function add( $args ) {
-        // If already added, no need to add again
-        if ( $this->already_added( $args[ 'link' ] ) ) {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . $this->table_name;
+
+        $link = sanitize_text_field( $args[ 'link' ] );
+        $link_normalized = strtolower( untrailingslashit( $link ) );
+        $link_hash = md5( $link_normalized );
+
+        if ( $this->already_added( $link ) ) {
             return 'Link already added';
         }
 
-        // Validate source
-        $source_url = remove_query_arg( (new BLNOTIFIER_HELPERS)->get_qs_to_remove_from_source(), filter_var( $args[ 'source' ], FILTER_SANITIZE_URL ) );
+        $source_url = remove_query_arg(
+            ( new BLNOTIFIER_HELPERS )->get_qs_to_remove_from_source(),
+            filter_var( $args[ 'source' ], FILTER_SANITIZE_URL )
+        );
+
         if ( !$source_url ) {
             return __( 'Invalid source:', 'broken-link-notifier' ) . ' ' . $source_url;
         }
 
-        // Args
-        $data = [
-            'post_title'    => sanitize_text_field( $args[ 'link' ] ),
-            'post_content'  => sanitize_text_field( $args[ 'text' ] ),
-            'post_status'   => 'publish',
-            'post_type'     => $this->post_type,
-            'meta_input'    => [
-                'type'     => sanitize_key( $args[ 'type' ] ),
-                'code'     => absint( $args[ 'code' ] ),
-                'source'   => $source_url,
-                'location' => sanitize_key( $args[ 'location' ] ),
-                'guest'    => false,
-                'method'   => sanitize_key( $args[ 'method' ] )
+        $inserted = $wpdb->insert(
+            $table_name,
+            [
+                'link'       => $link,
+                'link_hash'  => $link_hash,
+                'text'       => sanitize_text_field( $args[ 'text' ] ),
+                'type'       => sanitize_key( $args[ 'type' ] ),
+                'code'       => absint( $args[ 'code' ] ),
+                'source'     => esc_url_raw( $source_url ),
+                'location'   => sanitize_key( $args[ 'location' ] ),
+                'method'     => sanitize_key( $args[ 'method' ] ),
+                'guest'      => ( absint( $args[ 'author' ] ) === 0 ) ? 1 : 0,
+                'author_id'  => absint( $args[ 'author' ] ),
+                'created_at' => current_time( 'mysql' ),
             ],
-        ];
+            [ '%s','%s','%s','%s','%d','%s','%s','%s','%d','%d','%s' ]
+        );
 
-        // Guest or not?
-        if ( $args[ 'author' ] == 0 ) {
-            $data[ 'meta_input' ][ 'guest' ] = true;
-        } else {
-            $data[ 'post_author' ] = absint( $args[ 'author' ] );
+        if ( $inserted ) {
+            return $wpdb->insert_id;
         }
 
-        // Add it
-        $link_id = wp_insert_post( $data );
-        if ( !is_wp_error( $link_id ) ) {
-            return $link_id;
-        } else {
-            $error = $link_id->get_error_message();
-            error_log( $error ); // phpcs:ignore 
-            return $error;
-        }
+        return 'Insert failed';
     } // End add()
 
 
@@ -759,18 +370,19 @@ class BLNOTIFIER_RESULTS {
      * @param string $link
      * @return boolean
      */
-    public function remove( $link, $link_id = false ) {
-        if ( !$link_id ) {
-            $link_id = post_exists( $link, '', '', $this->post_type );
-        }
-        if ( $link_id ) {
-            if ( get_post_type( $link_id ) == $this->post_type ) {
-                if ( wp_delete_post( $link_id ) ) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    public function remove( $link ) {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . $this->table_name;
+        $link_hash = md5( strtolower( untrailingslashit( sanitize_text_field( $link ) ) ) );
+
+        $deleted = $wpdb->delete(
+            $table_name,
+            [ 'link_hash' => $link_hash ],
+            [ '%s' ]
+        );
+
+        return ( $deleted > 0 );
     } // End remove()
 
 
@@ -927,17 +539,33 @@ class BLNOTIFIER_RESULTS {
 
 
     /**
-     * Ajax call for front end
+     * Public AJAX endpoint used by the front-end scanner.
      *
-     * @return void
+     * This endpoint intentionally allows unauthenticated requests because the
+     * plugin scans links from publicly accessible pages visited by guests.
+     *
+     * Security protections implemented:
+     * - Nonce verification to prevent CSRF
+     * - Rate limiting per IP via transient
+     * - Maximum links per scan enforced
+     * - URLs sanitized before processing
+     * - Only HTTP/HTTPS sources allowed
+     *
+     * No privileged actions are performed. The endpoint only scans links and
+     * records results in a custom table that is not publicly accessible.
      */
     public function ajax_blinks() {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce_blinks ) ) {
             exit( 'No naughty business please.' );
         }
+
+        // Public endpoint: allow guests, but validate capability for logged-in users.
+        if ( is_user_logged_in() && ! current_user_can( 'read' ) ) {
+            wp_send_json_error( 'Permission denied' );
+        }
     
-        // Get the ID
+        // Get the source and links
         $source_url    = isset( $_REQUEST[ 'source_url' ] ) ? filter_var( wp_unslash( $_REQUEST[ 'source_url' ] ), FILTER_SANITIZE_URL ) : '';
         $header_links  = isset( $_REQUEST[ 'header_links' ] ) ? wp_unslash( $_REQUEST[ 'header_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
         $content_links = isset( $_REQUEST[ 'content_links' ] ) ? wp_unslash( $_REQUEST[ 'content_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
@@ -1115,13 +743,14 @@ class BLNOTIFIER_RESULTS {
         }
 
         // Check permissions
-        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+        $HELPERS = new BLNOTIFIER_HELPERS;
+        if ( !$HELPERS->user_can_manage_broken_links() ) {
             exit( 'Unauthorized access.' );
         }
     
-        // Get the ID
+        // Get the data
         $link      = isset( $_REQUEST[ 'link' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'link' ] ) ) : false;
-        $post_id   = isset( $_REQUEST[ 'postID' ] ) ? absint( wp_unslash( $_REQUEST[ 'postID' ] ) ) : false;
+        $link_id   = isset( $_REQUEST[ 'linkID' ] ) ? absint( wp_unslash( $_REQUEST[ 'linkID' ] ) ) : false;
         $code      = isset( $_REQUEST[ 'code' ] ) ? absint( wp_unslash( $_REQUEST[ 'code' ] ) ) : false;
         $type      = isset( $_REQUEST[ 'type' ] ) ? sanitize_key( wp_unslash( $_REQUEST[ 'type' ] ) ) : false;
         $source_id = isset( $_REQUEST[ 'sourceID' ] ) ? absint( wp_unslash( $_REQUEST[ 'sourceID' ] ) ) : false;
@@ -1130,12 +759,9 @@ class BLNOTIFIER_RESULTS {
         // Make sure we have a source URL
         if ( $link ) {
 
-            // Initiate helpers
-            $HELPERS = new BLNOTIFIER_HELPERS;
-
             // If the source no longer exists, auto remove it
             if ( !$source_id || !get_post( $source_id ) ) {
-                $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $post_id );
+                $remove = $this->remove( $HELPERS->str_replace_on_link( $link ) );
                 $status = [
                     'type' => 'n/a',
                     'code' => $code,
@@ -1147,7 +773,7 @@ class BLNOTIFIER_RESULTS {
                     $result[ 'type' ] = 'success';
                     $result[ 'status' ] = $status;
                     $result[ 'link' ] = $link;
-                    $result[ 'post_id' ] = $post_id;
+                    $result[ 'link_id' ] = $link_id;
                 } else {
                     $result[ 'type' ] = 'error';
                     $result[ 'msg' ] = __( 'Could not auto-remove link.', 'broken-link-notifier' );
@@ -1161,12 +787,12 @@ class BLNOTIFIER_RESULTS {
                 
                 // If it's good now, remove the old post
                 if ( $status[ 'type' ] == 'good' || $status[ 'type' ] == 'omitted' ) {
-                    $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $post_id );
+                    $remove = $this->remove( $HELPERS->str_replace_on_link( $link ) );
                     if ( $remove ) {
                         $result[ 'type' ] = 'success';
                         $result[ 'status' ] = $status;
                         $result[ 'link' ] = $link;
-                        $result[ 'post_id' ] = $post_id;
+                        $result[ 'link_id' ] = $link_id;
                     } else {
                         $result[ 'type' ] = 'error';
                         // translators: the status type
@@ -1177,12 +803,12 @@ class BLNOTIFIER_RESULTS {
     
                 // If it's still not good, but doesn't have the same code or type, update it
                 } elseif ( $code !== $status[ 'code' ] || $type !== $status[ 'type' ] ) {
-                    $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $post_id );
+                    $remove = $this->remove( $HELPERS->str_replace_on_link( $link ) );
                     if ( $remove ) {
                         $result[ 'type' ] = 'success';
                         $result[ 'status' ] = $status;
                         $result[ 'link' ] = $link;
-                        $result[ 'post_id' ] = $post_id;
+                        $result[ 'link_id' ] = $link_id;
     
                         // Re-add it with new data
                         $this->add( [
@@ -1190,7 +816,7 @@ class BLNOTIFIER_RESULTS {
                             'code'     => $status[ 'code' ],
                             'text'     => $status[ 'text' ],
                             'link'     => $status[ 'link' ],
-                            'source'   => get_the_permalink( $post_id ),
+                            'source'   => get_the_permalink( $source_id ),
                             'author'   => get_current_user_id(),
                             'location' => 'content',
                             'method'   => $method
@@ -1203,7 +829,7 @@ class BLNOTIFIER_RESULTS {
                     $result[ 'type' ] = 'success';
                     $result[ 'status' ] = $status;
                     $result[ 'link' ] = $link;
-                    $result[ 'post_id' ] = $post_id;
+                    $result[ 'link_id' ] = $link_id;
                 }
             }
 
@@ -1229,17 +855,17 @@ class BLNOTIFIER_RESULTS {
             exit( 'No naughty business please.' );
         }
 
-        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+        $HELPERS = new BLNOTIFIER_HELPERS;
+        if ( !$HELPERS->user_can_manage_broken_links() ) {
             exit( 'Unauthorized access.' );
         }
     
         // Get the vars
-        $result_id  = isset( $_REQUEST[ 'resultID' ] ) ? absint( wp_unslash( $_REQUEST[ 'resultID' ] ) ) : false;
         $oldLink    = isset( $_REQUEST[ 'oldLink' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'oldLink' ] ) ) : false;
         $newLink    = isset( $_REQUEST[ 'newLink' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'newLink' ] ) ) : false;
         $source_id  = isset( $_REQUEST[ 'sourceID' ] ) ? absint( wp_unslash( $_REQUEST[ 'sourceID' ] ) ) : false;
 
-        if ( $result_id && $oldLink && $newLink && $source_id && get_post( $source_id ) ) {
+        if ( $oldLink && $newLink && $source_id && get_post( $source_id ) ) {
 
             // Get the current post content
             $post_content = get_post_field( 'post_content', $source_id );
@@ -1258,9 +884,7 @@ class BLNOTIFIER_RESULTS {
             if ( !is_wp_error( $result ) ) {
 
                 // Let's also delete the result
-                if ( get_post_type( $result_id ) == $this->post_type ) {
-                    wp_delete_post( $result_id );
-                }
+                $this->remove( $HELPERS->str_replace_on_link( $oldLink ) );
 
                 // Respond
                 wp_send_json_success();
@@ -1285,20 +909,16 @@ class BLNOTIFIER_RESULTS {
             exit( 'No naughty business please.' );
         }
 
-        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+        $HELPERS = new BLNOTIFIER_HELPERS;
+        if ( !$HELPERS->user_can_manage_broken_links() ) {
             exit( 'Unauthorized access.' );
         }
     
-        // Get the ID
-        $post_id = isset( $_REQUEST[ 'postID' ] ) ? absint( $_REQUEST[ 'postID' ] ) : false;
-        if ( $post_id ) {
-
-            // Delete it
-            if ( get_post_type( $post_id ) == $this->post_type ) {
-                if ( wp_delete_post( $post_id ) ) {
-                    wp_send_json_success();
-                }
-            }
+        // Remove the link
+        $link = isset( $_REQUEST[ 'link' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'link' ] ) ) : false;
+        if ( $link ) {
+            $this->remove( $HELPERS->str_replace_on_link( $link ) );
+            wp_send_json_success();
         }
 
         // Failure
@@ -1332,27 +952,17 @@ class BLNOTIFIER_RESULTS {
         if ( $source_id ) {
 
             // Delete all links with this source
+            global $wpdb;
+
             $source_url = (new BLNOTIFIER_HELPERS)->get_clean_permalink( $source_id );
             if ( $source_url ) {
-                $query = new WP_Query( [
-                    'post_type'      => $this->post_type,
-                    'meta_query'     => [ // phpcs:ignore 
-                        [
-                            'key'   => 'source',
-                            'value' => $source_url,
-                        ]
-                    ],
-                    'fields'         => 'ids',
-                    'posts_per_page' => -1,
-                ] );
-    
-                if ( !empty( $query->posts ) ) {
-                    foreach ( $query->posts as $post_id ) {
-                        if ( get_post_type( $post_id ) == $this->post_type ) {
-                            wp_delete_post( $post_id, true );
-                        }
-                    }
-                }
+                $table_name = $wpdb->prefix . $this->table_name;
+
+                $wpdb->delete(
+                    $table_name,
+                    [ 'source' => $source_url ],
+                    [ '%s' ]
+                );
             }
 
             // Trash the source itself
@@ -1426,10 +1036,9 @@ class BLNOTIFIER_RESULTS {
      * @return void
      */
     public function back_script_enqueuer( $screen ) {
-        $post_type = get_post_type();
-        if ( $screen == 'edit.php' && $post_type == 'blnotifier-results' ) {
+        if ( $screen == 'toplevel_page_' . BLNOTIFIER_TEXTDOMAIN ) {
             $handle = 'blnotifier_results_back_end_script';
-            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-back.js', [ 'jquery' ], BLNOTIFIER_VERSION, true );
+            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-back.js', [ 'jquery' ], time(), true );
             wp_localize_script( $handle, 'blnotifier_back_end', [
                 'verifying'     => !(new BLNOTIFIER_HELPERS())->is_results_verification_paused(),
                 'nonce_rescan'  => wp_create_nonce( $this->nonce_rescan ),

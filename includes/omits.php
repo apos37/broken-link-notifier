@@ -122,7 +122,7 @@ class BLNOTIFIER_OMITS {
         }
 
         // Register it as a new taxonomy
-        register_taxonomy( $taxonomy, 'blnotifier-results', [
+        register_taxonomy( $taxonomy, [], [
             // 'hierarchical'       => false,
             'labels'             => $labels,
             'show_ui'            => true,
@@ -291,11 +291,7 @@ class BLNOTIFIER_OMITS {
 
             // Also delete it from results
             if ( $page && $page == 'scan-results' ) {
-                if ( $post_id = post_exists( $link ) ) {
-                    if ( get_post_type( $post_id ) == (new BLNOTIFIER_RESULTS())->post_type ) {
-                        wp_delete_post( $post_id, true );
-                    }
-                }
+                (new BLNOTIFIER_RESULTS)->remove( $link );
             }
             return true;
         } else {
@@ -418,9 +414,21 @@ class BLNOTIFIER_OMITS {
         // Only on these pages
         $options_page = 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN;
         $tab = (new BLNOTIFIER_HELPERS)->get_tab();
-        $post_type = get_post_type();
-        if ( ( $screen == $options_page && $tab == 'scan-single' ) || ( $screen == 'edit.php' && ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_blinks' ) && isset( $_GET[ 'blinks' ] ) && sanitize_key( $_GET[ 'blinks' ] ) == 'true' )  || $post_type == 'blnotifier-results' ) ) {
-            if ( !$tab && $post_type == 'blnotifier-results' ) {
+
+        if ( 
+            ( $screen == $options_page && $tab == 'scan-single' ) || 
+            ( $screen == $options_page && $tab == 'results' ) ||
+            ( $screen == 'edit.php' && 
+                ( 
+                    isset( $_REQUEST[ '_wpnonce' ] ) && 
+                    wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_blinks' ) && 
+                    isset( $_GET[ 'blinks' ] ) && 
+                    sanitize_key( $_GET[ 'blinks' ] ) == 'true' 
+                ) 
+            ) 
+        ) {
+        
+        if ( $tab == 'results' ) {
                 $tab = 'scan-results';
             } elseif ( !$tab ) {
                 $tab = 'scan-multi';

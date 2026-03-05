@@ -6,15 +6,16 @@ jQuery( $ => {
 
     // Scan type
     const scanType = blnotifier_omit.scan_type;
+    const omitEl = scanType == 'scan-results' ? '.omit-link a' : '.omit-link';
 
     // Listen for omitting links
-    $( '.omit-link' ).on( 'click', function( e ) {
+    $( omitEl ).on( 'click', function( e ) {
         e.preventDefault();
         var row;
         var link;
         if ( scanType == 'scan-results' ) {
-            const postID = $( this ).data( 'post-id' );
-            $( `#post-${postID}` ).addClass( 'omitted' );
+            const linkID = $( this ).closest( 'tr' ).data( 'link-id' );
+            $( `#link-${linkID}` ).addClass( 'omitted' );
             $( this ).replaceWith( 'Omitted' );
             link = $( this ).data( 'link' );
         } else if ( scanType == 'scan-single' ) {

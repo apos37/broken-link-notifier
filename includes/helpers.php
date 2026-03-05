@@ -200,8 +200,6 @@ class BLNOTIFIER_HELPERS {
             return [];
         }
 
-        unset( $post_types[ ( new BLNOTIFIER_RESULTS )->post_type ] );
-
         if ( isset( $post_types[ 'help-docs' ] ) ) {
             unset( $post_types[ 'help-docs' ] );
         }
@@ -404,19 +402,17 @@ class BLNOTIFIER_HELPERS {
      * @return void
      */
     public function count_broken_links() {
-        $broken_links = get_posts( [
-            'posts_per_page'    => -1,
-            'post_status'       => 'publish',
-            'post_type'         => 'blnotifier-results',
-            'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-                [
-                    'key'   => 'type',
-                    'value' => 'broken',
-                ]
-            ],
-            'fields' => 'ids'
-        ] );
-        return count( $broken_links );
+        global $wpdb;
+        $table = $wpdb->prefix . 'blnotifier_results';
+
+        $count = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(*) FROM {$table} WHERE type = %s",
+                'broken'
+            )
+        );
+
+        return absint( $count );
     } // End count_broken_links()
 
 
@@ -1562,7 +1558,11 @@ class BLNOTIFIER_HELPERS {
         $link = apply_filters( 'blnotifier_link_before_prechecks', $link );
 
         // String replace
-        $link = $this->str_replace_on_link( $link );
+        if ( is_array( $link ) && isset( $link[ 'link' ] ) ) {
+            $link[ 'link' ] = $this->str_replace_on_link( $link[ 'link' ] );
+        } elseif ( is_string( $link ) ) {
+            $link = $this->str_replace_on_link( $link );
+        }
 
         // Check for cached link only if the link is not an array
         if ( !is_array( $link ) ) {
@@ -1799,57 +1799,65 @@ class BLNOTIFIER_HELPERS {
      * @return array
      */
     public function get_broken_links() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'blnotifier_results';
+
+        $rows = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT link, text, type, code, source, location, method, author_id, created_at FROM {$table} WHERE type = %s ORDER BY created_at DESC",
+                'broken'
+            ),
+            ARRAY_A
+        );
+
         $links = [];
-
-        $results = new BLNOTIFIER_RESULTS();
-        $post_type = $results->post_type;
-
-        $posts = get_posts( [
-            'post_type'      => $post_type,
-            'posts_per_page' => -1,
-            'post_status'    => 'publish',
-            'orderby'        => 'date',
-            'order'          => 'DESC',
-        ] );
+        $source_cache = []; // stores [ 'post_id' => ..., 'title' => ... ] for each source URL
 
         $methods = [
-            'visit'   => __( 'Front-End Visit', 'broken-link-notifier' ),
-            'multi'   => __( 'Multi-Scan', 'broken-link-notifier' ),
-            'single'  => __( 'Page Scan', 'broken-link-notifier' ),
+            'visit'  => __( 'Front-End Visit', 'broken-link-notifier' ),
+            'multi'  => __( 'Multi-Scan', 'broken-link-notifier' ),
+            'single' => __( 'Page Scan', 'broken-link-notifier' ),
         ];
 
-        foreach ( $posts as $post ) {
-            $source_link = sanitize_url( get_post_meta( $post->ID, 'source', true ) );
-            $location = sanitize_key( get_post_meta( $post->ID, 'location', true ) );
-            $type_meta = sanitize_key( get_post_meta( $post->ID, 'type', true ) );
-            $code = absint( get_post_meta( $post->ID, 'code', true ) );
-            $user_id = $post->post_author;
-            $user = $user_id ? get_userdata( $user_id ) : null;
-            $method = sanitize_key( get_post_meta( $post->ID, 'method', true ) );
+        foreach ( $rows as $row ) {
+
+            $source_url = $row[ 'source' ];
+
+            if ( isset( $source_cache[ $source_url ] ) ) {
+                $source_post_id = $source_cache[ $source_url ][ 'post_id' ];
+                $source_title   = $source_cache[ $source_url ][ 'title' ];
+            } else {
+                $source_post_id = url_to_postid( $source_url );
+                $source_title   = $source_post_id ? get_the_title( $source_post_id ) : __( 'Unknown', 'broken-link-notifier' );
+                $source_cache[ $source_url ] = [
+                    'post_id' => $source_post_id,
+                    'title'   => $source_title,
+                ];
+            }
+
+            $user = $row[ 'author_id' ] ? get_userdata( $row[ 'author_id' ] ) : null;
 
             $links[] = [
-                'date'        => gmdate( 'Y-m-d H:i:s', strtotime( $post->post_date ) ),
-                'type'        => ucwords( $type_meta ),
-                'code'        => $code,
-                'message'     => $post->post_content,
-                'link'        => $post->post_title,
-                'source_name' => $source_link ? get_the_title( url_to_postid( $source_link ) ) : 'Unknown',
-                'source_link' => $source_link,
-                'location'    => ucwords( $location ),
-                'user'        => $user ? $user->display_name : 'Guest',
-                'method'      => isset( $methods[ $method ] ) ? $methods[ $method ] : __( 'Unknown', 'broken-link-notifier' ),
+                'date'        => mysql2date( 'Y-m-d H:i:s', $row[ 'created_at' ] ),
+                'type'        => ucwords( sanitize_text_field( $row[ 'type' ] ) ),
+                'code'        => absint( $row[ 'code' ] ),
+                'message'     => sanitize_text_field( $row[ 'text' ] ),
+                'link'        => esc_url( $row[ 'link' ] ),
+                'source_name' => $source_title,
+                'source_link' => esc_url( $source_url ),
+                'location'    => ucwords( sanitize_key( $row[ 'location' ] ) ),
+                'user'        => $user ? $user->display_name : __( 'Guest', 'broken-link-notifier' ),
+                'method'      => isset( $methods[ $row[ 'method' ] ] ) ? $methods[ $row[ 'method' ] ] : __( 'Unknown', 'broken-link-notifier' ),
             ];
         }
 
         usort( $links, function( $a, $b ) {
             $date_compare = strtotime( $b[ 'date' ] ) <=> strtotime( $a[ 'date' ] );
-        
             if ( $date_compare === 0 ) {
                 return strcasecmp( $a[ 'link' ], $b[ 'link' ] );
             }
-        
             return $date_compare;
-        } );
+        });
 
         return $links;
     } // End get_broken_links()

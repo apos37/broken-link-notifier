@@ -55,9 +55,9 @@ class BLNOTIFIER_MENU {
 
         // The menu items
         $this->menu_items = [
-            'results'     => [ __( 'Results', 'broken-link-notifier' ), 'edit.php?post_type=blnotifier-results' ],
-            'omit-links'  => [ __( 'Omitted Links', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-links&post_type=blnotifier-results' ],
-            'omit-pages'  => [ __( 'Omitted Pages', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-pages&post_type=blnotifier-results' ],
+            'results'     => [ __( 'Results', 'broken-link-notifier' ) ],
+            'omit-links'  => [ __( 'Omitted Links', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-links' ],
+            'omit-pages'  => [ __( 'Omitted Pages', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-pages' ],
             'scan-single' => [ __( 'Page Scan', 'broken-link-notifier' ) ],
             'scan-multi'  => [ __( 'Multi-Scan', 'broken-link-notifier' ) ],
             'link-search' => [ __( 'Link Search', 'broken-link-notifier' ) ],
@@ -205,16 +205,11 @@ class BLNOTIFIER_MENU {
 
         // Taxonomies first
         } elseif ( $current_screen->id == 'edit-omit-links' ) {
-            $submenu_file = 'edit-tags.php?taxonomy=omit-links&post_type=blnotifier-results';
+            $submenu_file = 'edit-tags.php?taxonomy=omit-links';
             $parent_file = $this->get_plugin_page_short_path( null );
         } elseif ( $current_screen->id == 'edit-omit-pages' ) {
-            $submenu_file = 'edit-tags.php?taxonomy=omit-pages&post_type=blnotifier-results';
+            $submenu_file = 'edit-tags.php?taxonomy=omit-pages';
             $parent_file = $this->get_plugin_page_short_path( null );
-        
-        // Post Type
-        } elseif ( $current_screen->post_type == 'blnotifier-results' ) {
-            $submenu_file = 'edit.php?post_type=blnotifier-results';
-            $parent_file = $this->get_plugin_page_short_path();
         }
 
         // Return
@@ -581,6 +576,23 @@ class BLNOTIFIER_MENU {
                 'options'  => (new BLNOTIFIER_HELPERS)->get_status_codes(),
             ]
         );   
+
+        // Uninstall database cleanup
+        $uninstall_cleanup_option_name = 'blnotifier_uninstall_cleanup';
+        register_setting( $this->page_slug, $uninstall_cleanup_option_name, [ $this, 'sanitize_checkbox' ] );
+        add_settings_field(
+            $uninstall_cleanup_option_name,
+            'Remove Data on Uninstall',
+            [ $this, 'field_checkbox' ],
+            $this->page_slug,
+            'general',
+            [
+                'class'    => $uninstall_cleanup_option_name,
+                'name'     => $uninstall_cleanup_option_name,
+                'default'  => false,
+                'comments' => 'Enable this option to automatically remove the database table that the links are stored in and all options when the plugin is uninstalled.'
+            ]
+        );
     } // End settings_fields()
 
 
@@ -980,10 +992,8 @@ class BLNOTIFIER_MENU {
      * @return string
      */
     public function get_plugin_page( $tab = 'settings' ) {
-        if ( $tab == 'results' ) {
-            return admin_url( 'edit.php?post_type=blnotifier-results' );
-        } elseif ( $tab == 'omit-links' || $tab == 'omit-pages' ) {
-            return admin_url( 'edit-tags.php?taxonomy='.$tab.'&post_type=blnotifier-results' );
+        if ( $tab == 'omit-links' || $tab == 'omit-pages' ) {
+            return admin_url( 'edit-tags.php?taxonomy='.$tab );
         } else {
             return admin_url( 'admin.php?page='.BLNOTIFIER_TEXTDOMAIN ).'&tab='.sanitize_key( $tab );
         }

@@ -1,17 +1,6 @@
 jQuery( $ => {
     // console.log( 'Broken Link Notifier JS Loaded...' );
 
-    // Add target _blank to title links
-    $( 'a.row-title' ).attr( 'target', '_blank' );
-
-    // Clear filters
-    $( '#link-type-filter' ).on( 'change', function( e ) {
-        $( '#code-filter' ).val( '' );
-    } );
-    $( '#code-filter' ).on( 'change', function( e ) {
-        $( '#link-type-filter' ).val( '' );
-    } );
-
     // Nonces
     var nonceRescan = blnotifier_back_end.nonce_rescan;
     var nonceReplace = blnotifier_back_end.nonce_replace;
@@ -23,11 +12,11 @@ jQuery( $ => {
      */
    
     // Scan an individual link
-    const scanLink = async ( link, postID, code, type, sourceID, method ) => {
+    const scanLink = async ( link, linkID, code, type, sourceID, method ) => {
         console.log( `Scanning link (${link})...` );
 
         // Say it started
-        var span = $( `#bln-verify-${postID}` );
+        var span = $( `#bln-verify-${linkID}` );
         span.addClass( 'scanning' ).html( `<em>Verifying</em>` );
 
         // Run the scan
@@ -39,7 +28,7 @@ jQuery( $ => {
                 action: 'blnotifier_rescan', 
                 nonce: nonceRescan,
                 link: link,
-                postID: postID,
+                linkID: linkID,
                 code: code,
                 type: type,
                 sourceID: sourceID,
@@ -57,14 +46,14 @@ jQuery( $ => {
         // First count all the link for the button
         for ( const linkSpan of linkSpans ) {
             const link = linkSpan.dataset.link;
-            const postID = linkSpan.dataset.postId;
+            const linkID = linkSpan.dataset.linkId;
             const code = linkSpan.dataset.code;
             const type = linkSpan.dataset.type;
             const sourceID = linkSpan.dataset.sourceId;
             const method = linkSpan.dataset.method;
 
             // Scan it
-            const data = await scanLink( link, postID, code, type, sourceID, method );
+            const data = await scanLink( link, linkID, code, type, sourceID, method );
             console.log( data );
 
             // Status
@@ -90,15 +79,15 @@ jQuery( $ => {
                     text = '<em>Link is ' + statusType + ', removing from list...</em>';
                 }
                 
-                $( `#post-${postID}` ).addClass( 'omitted' );
-                $( `#post-${postID} .bln-type` ).addClass( statusType ).text( statusType );
-                $( `#post-${postID} .bln_type code` ).html( 'Code: ' + statusCode );
-                $( `#post-${postID} .bln_type .message` ).text( statusText );
-                $( `#post-${postID} .title .row-actions` ).remove();
-                $( `#post-${postID} .bln_source .row-actions` ).remove();
+                $( `#link-${linkID}` ).addClass( 'omitted' );
+                $( `#link-${linkID} .bln-type` ).addClass( statusType ).text( statusType );
+                $( `#link-${linkID} .bln_type code` ).html( 'Code: ' + statusCode );
+                $( `#link-${linkID} .bln_type .message` ).text( statusText );
+                $( `#link-${linkID} .link .row-actions` ).remove();
+                $( `#link-${linkID} .source .row-actions` ).remove();
 
                 // Also reduce count in admin bar
-                reduceAdminBarCount();
+                reduceCount();
 
             } else if ( code != statusCode || type != statusType ) {
                 if ( statusCode == 'ERR_FAILED' ) {
@@ -108,19 +97,19 @@ jQuery( $ => {
                 } else {
                     text = `Link is still bad, but showing a different type. Old type was ${type}; new type is ${statusType}.`;
                 }
-                $( `#post-${postID} .bln-type` ).attr( 'class', `bln-type ${statusType}`).text( statusType );
+                $( `#link-${linkID} .bln-type` ).attr( 'class', `bln-type ${statusType}`).text( statusType );
                 var codeLink = 'Code: ' + statusCode;
                 if ( statusCode != 0 && statusCode != 666 ) {
                     codeLink = `<a href="https://http.dev/${statusCode}" target="_blank">Code: ${statusCode}</a>`;
                 }
-                $( `#post-${postID} .bln_type code` ).html( codeLink );
-                $( `#post-${postID} .bln_type message` ).text( statusText );
+                $( `#link-${linkID} .bln_type code` ).html( codeLink );
+                $( `#link-${linkID} .bln_type .message` ).text( statusText );
             } else {
                 text = `Still showing ${statusType}.`;
             }
 
             // Update the page
-            $( `#bln-verify-${postID}` ).removeClass( 'scanning' ).addClass( statusType ).html( text );
+            $( `#bln-verify-${linkID}` ).removeClass( 'scanning' ).addClass( statusType ).html( text );
         }
 
         return console.log( 'Done with all links' );
@@ -136,13 +125,13 @@ jQuery( $ => {
      * REPLACE LINK
      */
 
-    $( document ).on( 'click', '.replace-link', function ( e ) {
+    $( document ).on( 'click', '.replace-link a', function ( e ) {
         e.preventDefault();
     
-        let linkElement = $( this ).closest( 'td' ).find( '.row-title' );
-        let oldLink = linkElement.attr( 'href' );
-        let postID = $( this ).data( 'post-id' );
-        let sourceID = $( this ).data( 'source-id' );
+        let linkElement = $( this ).closest( 'td' ).find( '.link-url' );
+        let oldLink = $( this ).data( 'link' );
+        let linkID = $( this ).closest( 'tr' ).data( 'link-id' );
+        let sourceID = $( this ).closest( 'tr' ).find( '.source' ).data( 'source-id' );
     
         // Get the current link text
         let currentLink = linkElement.text();
@@ -158,7 +147,7 @@ jQuery( $ => {
     
         // Handle input field blur (when user clicks outside)
         inputField.on( 'blur', function () {
-            saveLink( $(this), oldLink, sourceID, postID );
+            saveLink( $(this), oldLink, sourceID, linkID );
         } );
     
         // Handle Enter key press
@@ -170,18 +159,17 @@ jQuery( $ => {
     } );
     
     // Function to save the link and replace the input field with a new link
-    function saveLink( inputField, oldLink, sourceID, postID ) {
+    function saveLink( inputField, oldLink, sourceID, linkID ) {
         let newLink = inputField.val().trim();
     
         // If the new link is empty, revert to the original
         if ( newLink === '' || newLink === oldLink || !sourceID ) {
-            inputField.replaceWith( `<a class="row-title" href="${oldLink}" target="_blank">${oldLink}</a>` );
+            inputField.replaceWith( `<a href="${oldLink}" class="link-url" target="_blank" rel="noopener">${oldLink}</a>` );
             return;
         }
-        console.log( oldLink, newLink );
     
         // Create a new link element with the updated text
-        let newLinkElement = $( `<a class="row-title" href="${newLink}" target="_blank">${newLink}</a>` );
+        let newLinkElement = $( `<a href="${newLink}" class="link-url" target="_blank" rel="noopener">${newLink}</a>` );
     
         // Replace the input field with the new link
         inputField.replaceWith( newLinkElement );
@@ -194,7 +182,6 @@ jQuery( $ => {
             data: {
                 action: 'blnotifier_replace_link', 
                 nonce: nonceReplace,
-                resultID: postID,
                 oldLink: oldLink,
                 newLink: newLink,
                 sourceID: sourceID
@@ -203,32 +190,35 @@ jQuery( $ => {
                 if ( response.success ) {
                     console.log( 'Link updated successfully.' );
 
+                    // Replace the old data-link in the Replace Link attribute
+                    $( `#link-${linkID} .link .row-actions .replace-link a` ).data( 'link', newLink ).attr( 'data-link', newLink );
+
                     // Replace the source blink
-                    let viewPageLink = $( `tr#post-${postID} .column-bln_source .row-actions .view a` );
+                    let viewPageLink = $( `tr#link-${linkID} .source .row-actions .view a` );
                     let currentHref = viewPageLink.attr( 'href' );
                     let newBlinkUrl = encodeURIComponent( newLink );
                     let updatedHref = currentHref.replace( /(blink=)[^\&]*/, `$1${newBlinkUrl}` );
                     viewPageLink.attr( 'href', updatedHref ); 
 
                     // Update the type
-                    $( `#post-${postID} .bln-type` ).addClass( 'fixed' ).text( 'Replaced' );
-                    $( `#post-${postID} .bln_type code` ).remove();
-                    $( `#post-${postID} .bln_type .message` ).html( `The old link has been replaced. Result will be removed.<br>Old link: ${oldLink}` );
+                    $( `#link-${linkID} .bln-type` ).addClass( 'fixed' ).text( 'Replaced' );
+                    $( `#link-${linkID} .bln_type code` ).remove();
+                    $( `#link-${linkID} .bln_type .message` ).html( `The old link has been replaced. Result will be removed.<br>Old link: ${oldLink}` );
 
                     // Remove omit link action
-                    $( `#post-${postID} .column-title .row-actions .clear` ).remove();
-                    $( `#post-${postID} .column-title .row-actions .omit` ).remove();
+                    $( `#link-${linkID} .link .row-actions .clear-result` ).remove();
+                    $( `#link-${linkID} .link .row-actions .omit-link` ).remove();
 
                     // Update the Verify column
-                    $( `#bln-verify-${postID}` ).text( `N/A` );
+                    $( `#bln-verify-${linkID}` ).text( `N/A` );
 
-                    let rowActions = $( `#post-${postID} .column-title .row-actions` );
+                    let rowActions = $( `#link-${linkID} .link .row-actions` );
                     if ( rowActions.children().length === 1 ) {
                         rowActions.html( rowActions.html().replace(' | ', '' ) );
                     }
 
                     // Reduce admin bar count
-                    reduceAdminBarCount();
+                    reduceCount();
                     
                 } else {
                     alert( response.data );
@@ -245,11 +235,11 @@ jQuery( $ => {
      * CLEAR RESULT ACTION
      */
 
-    $( document ).on( 'click', '.clear-result', function ( e ) {
+    $( document ).on( 'click', '.clear-result a', function ( e ) {
         e.preventDefault();
 
         let button = $( this );
-        let postID = button.data( 'post-id' );
+        let link = button.data( 'link' );
 
         $.ajax( {
             type: 'post',
@@ -258,16 +248,14 @@ jQuery( $ => {
             data: { 
                 action: 'blnotifier_delete_result',
                 nonce: nonceDelete,
-                postID: postID
+                link: link
             },
             success: function ( response ) {
                 if ( response.success ) {
                     button.closest( 'tr' ).fadeOut( 'fast', function () {
                         $( this ).remove();
+                        reduceCount();
                     } );
-
-                    // Reduce admin bar count
-                    reduceAdminBarCount();
 
                 } else {
                     alert( response.data );
@@ -289,7 +277,6 @@ jQuery( $ => {
 
         let button = $( this );
         let sourceID = button.data( 'source-id' );
-        console.log( sourceID );
         let postTitle = button.data( 'source-title' );
 
         // Show confirmation dialog
@@ -310,15 +297,13 @@ jQuery( $ => {
                 if ( response.success ) {
                     $( 'tr' ).each( function () {
                         let row = $( this );
-                        let rowSourceID = row.find( '.row-actions[data-source-id]' ).attr( 'data-source-id' );
+                        let rowSourceID = row.find( '.source[data-source-id]' ).attr( 'data-source-id' );
     
                         if ( rowSourceID == sourceID ) {
                             row.fadeOut( 'fast', function () {
                                 $( this ).remove();
+                                reduceCount();
                             } );
-
-                            // Reduce admin bar count
-                            reduceAdminBarCount();
                         }
                     } );
                 } else {
@@ -336,16 +321,46 @@ jQuery( $ => {
      * REDUCE COUNT IN ADMIN BAR
      */
 
-    function reduceAdminBarCount() {
+    function reduceCount() {
+        // Count broken links currently on the page
+        var countBroken = $( 'tr .bln-type.broken' ).length;
+        var countAll = $( 'tr .bln-type' ).length;
+
+        // Update admin bar
         var adminBarEl = $( '#wp-admin-bar-blnotifier-notify' );
         if ( adminBarEl.length ) {
-            var adminBarCountEl = adminBarEl.find( '.awaiting-mod' );
-            var adminBarCount = parseInt( adminBarCountEl.text(), 10 );
-    
-            if ( !isNaN( adminBarCount ) && adminBarCount > 0 ) {
-                adminBarCountEl.text( adminBarCount - 1 );
-            }
+            adminBarEl.find( '.blnotifier-count-indicator' ).text( countBroken );
+        }
+
+        // Update admin menu
+        var adminMenuEl = $( 'li.toplevel_page_broken-link-notifier' );
+        if ( adminMenuEl.length ) {
+            adminMenuEl.find( '.awaiting-mod' ).text( countBroken );
+        }
+
+        // Update page total counter
+        var pageCountEl = $( '#bln-total-broken-links' );
+        if ( pageCountEl.length ) {
+            pageCountEl.text( countAll );
         }
     }
-    
+
+
+    /**
+     * TRASH SELECTED BUTTON
+     */
+    function updateDeleteButton() {
+        const checkedCount = $( '.bln-row-checkbox:checked' ).length;
+        $( '#bln-delete-selected' ).prop( 'disabled', checkedCount === 0 );
+    }
+
+    $( document ).on( 'change', '.bln-row-checkbox', function() {
+        updateDeleteButton();
+    } );
+
+    $( '#cb-select-all-1' ).on( 'change', function() {
+        const checked = $( this ).prop( 'checked' );
+        $( '.bln-row-checkbox' ).prop( 'checked', checked );
+        updateDeleteButton();
+    } );
 } )

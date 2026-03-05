@@ -17,7 +17,7 @@ new BLNOTIFIER_CACHE();
 
 
 /**
- * Main plugin class.
+ * Cache class.
  */
 class BLNOTIFIER_CACHE {
 
