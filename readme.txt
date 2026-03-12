@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.3.7
+Stable tag: 1.3.7.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -126,6 +126,11 @@ https://youtu.be/gM9Qy0HLplU
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.3.7.1 =
+* Tweak: Skipping internal pagination and reply links
+* Tweak: Performance update to not call get_current_user_id() on every link
+* Fix: Reporting sources that don't exist if bots are trying to go somewhere that don't exist and get a 404 page without redirecting
+
 = 1.3.7 =
 * Update: Changed storage of broken links from custom post type to custom database table
 * Update: Add option to cleanup on uninstall

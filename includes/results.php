@@ -294,19 +294,26 @@ class BLNOTIFIER_RESULTS {
      */
     public function already_added( $link ) {
         global $wpdb;
-
         $table_name = $wpdb->prefix . $this->table_name;
         $link_clean = sanitize_text_field( $link );
-        $link_hash = md5( strtolower( untrailingslashit( $link_clean ) ) );
+
+        // 1. New Hash
+        $url_parts = explode( '?', $link_clean );
+        $url_parts[ 0 ] = untrailingslashit( $url_parts[ 0 ] );
+        $new_hash = md5( strtolower( implode( '?', $url_parts ) ) );
+
+        // 2. Old Hash
+        $old_hash = md5( strtolower( untrailingslashit( $link_clean ) ) );
 
         $exists = $wpdb->get_var(
             $wpdb->prepare(
-                "SELECT id FROM $table_name WHERE link_hash = %s LIMIT 1",
-                $link_hash
+                "SELECT id FROM $table_name WHERE link_hash = %s OR link_hash = %s LIMIT 1",
+                $new_hash,
+                $old_hash
             )
         );
 
-        return !empty( $exists );
+        return ! empty( $exists );
     } // End already_added()
 
 
@@ -322,7 +329,10 @@ class BLNOTIFIER_RESULTS {
         $table_name = $wpdb->prefix . $this->table_name;
 
         $link = sanitize_text_field( $args[ 'link' ] );
-        $link_normalized = strtolower( untrailingslashit( $link ) );
+        
+        $url_parts = explode( '?', $link );
+        $url_parts[ 0 ] = untrailingslashit( $url_parts[ 0 ] );
+        $link_normalized = strtolower( implode( '?', $url_parts ) );
         $link_hash = md5( $link_normalized );
 
         if ( $this->already_added( $link ) ) {
@@ -334,7 +344,7 @@ class BLNOTIFIER_RESULTS {
             filter_var( $args[ 'source' ], FILTER_SANITIZE_URL )
         );
 
-        if ( !$source_url ) {
+        if ( ! $source_url ) {
             return __( 'Invalid source:', 'broken-link-notifier' ) . ' ' . $source_url;
         }
 
@@ -353,7 +363,7 @@ class BLNOTIFIER_RESULTS {
                 'author_id'  => absint( $args[ 'author' ] ),
                 'created_at' => current_time( 'mysql' ),
             ],
-            [ '%s','%s','%s','%s','%d','%s','%s','%s','%d','%d','%s' ]
+            [ '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%d', '%d', '%s' ]
         );
 
         if ( $inserted ) {
@@ -372,17 +382,27 @@ class BLNOTIFIER_RESULTS {
      */
     public function remove( $link ) {
         global $wpdb;
-
         $table_name = $wpdb->prefix . $this->table_name;
-        $link_hash = md5( strtolower( untrailingslashit( sanitize_text_field( $link ) ) ) );
+        $link = sanitize_text_field( $link );
 
-        $deleted = $wpdb->delete(
-            $table_name,
-            [ 'link_hash' => $link_hash ],
-            [ '%s' ]
+        // 1. New Normalized Hash
+        $url_parts = explode( '?', $link );
+        $url_parts[ 0 ] = untrailingslashit( $url_parts[ 0 ] );
+        $new_hash = md5( strtolower( implode( '?', $url_parts ) ) );
+
+        // 2. Old Logic Hash (Legacy)
+        $old_hash = md5( strtolower( untrailingslashit( $link ) ) );
+
+        // Try to delete by either hash
+        $deleted = $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM $table_name WHERE link_hash = %s OR link_hash = %s",
+                $new_hash,
+                $old_hash
+            )
         );
 
-        return ( $deleted > 0 );
+        return ( false !== $deleted && $deleted > 0 );
     } // End remove()
 
 
@@ -604,6 +624,26 @@ class BLNOTIFIER_RESULTS {
                 wp_send_json_error( 'Invalid source: ' . $source_url );
             }
 
+            // Validate that the URL belongs to this site and exists
+            $site_url = site_url();
+            if ( ! str_starts_with( $source_url, $site_url ) ) {
+                wp_send_json_error( 'External source URLs are not permitted.' );
+            }
+
+            // Check for Post ID with full URL
+            $post_id = url_to_postid( $source_url );
+
+            // If not found, check without query parameters
+            if ( ! $post_id ) {
+                $clean_url = strtok( $source_url, '?' );
+                $post_id  = url_to_postid( $clean_url );
+            }
+
+            // If it's not a post/page and it's not the homepage, it's likely a 404 or invalid
+            if ( ! $post_id && $source_url !== trailingslashit( $site_url ) && $source_url !== $site_url ) {
+                wp_send_json_error( 'Source URL does not exist on this site.' );
+            }
+
             // Initiate helpers
             $HELPERS = new BLNOTIFIER_HELPERS;
 
@@ -671,6 +711,8 @@ class BLNOTIFIER_RESULTS {
             $all_links = array_merge( $header_links, $content_links, $footer_links );
             $this->notify( $notify, $count_notify, $all_links, $source_url );
 
+            $current_user_id = get_current_user_id();
+
             // Add posts
             foreach ( $notify as $location => $n ) {
                 foreach ( $n as $status ) {
@@ -680,7 +722,7 @@ class BLNOTIFIER_RESULTS {
                         'text'     => $status[ 'text' ],
                         'link'     => $status[ 'link' ],
                         'source'   => $source_url,
-                        'author'   => get_current_user_id(),
+                        'author'   => $current_user_id,
                         'location' => $location,
                         'method'   => 'visit'
                     ] );
@@ -697,7 +739,7 @@ class BLNOTIFIER_RESULTS {
                             'text'     => $status[ 'text' ],
                             'link'     => $status[ 'link' ],
                             'source'   => $source_url,
-                            'author'   => get_current_user_id(),
+                            'author'   => $current_user_id,
                             'location' => $location,
                             'method'   => 'visit'
                         ] );

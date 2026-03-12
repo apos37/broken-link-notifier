@@ -1645,12 +1645,21 @@ class BLNOTIFIER_HELPERS {
             
         // If the match is local, easy check
         } elseif ( str_starts_with( $link, home_url() ) || ( str_starts_with( $link, '/' ) && !str_starts_with( $link, '//' ) ) ) {
+
+            // Skip replytocom and pagination links
+            if ( str_contains( $link, 'replytocom' ) || preg_match( '/\/page\/\d+(\/|$|\?)/', $link ) ) {
+                return [
+                    'type' => 'good',
+                    'code' => 200,
+                    'text' => 'Skipping internal pagination or reply link',
+                    'link' => $link
+                ];
+            }
            
             // Check locally first
             if ( !url_to_postid( $link ) ) {                
 
                 // It may be redirected or an archive page, so let's check status anyway
-                // return $this->check_url_status_code( $link );
                 $status = $this->check_url_status_code( $link );
                 $CACHE->set_cached_link( $status );
                 return $status;
@@ -1668,7 +1677,6 @@ class BLNOTIFIER_HELPERS {
             }
 
             // Return the status
-            // return $this->check_url_status_code( $link );
             $status = $this->check_url_status_code( $link );
             $CACHE->set_cached_link( $status );
             return $status;
