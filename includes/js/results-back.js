@@ -182,6 +182,7 @@ jQuery( $ => {
             data: {
                 action: 'blnotifier_replace_link', 
                 nonce: nonceReplace,
+                linkID: linkID,
                 oldLink: oldLink,
                 newLink: newLink,
                 sourceID: sourceID
@@ -240,6 +241,7 @@ jQuery( $ => {
 
         let button = $( this );
         let link = button.data( 'link' );
+        let linkID = $( this ).closest( 'tr' ).data( 'link-id' );
 
         $.ajax( {
             type: 'post',
@@ -248,7 +250,8 @@ jQuery( $ => {
             data: { 
                 action: 'blnotifier_delete_result',
                 nonce: nonceDelete,
-                link: link
+                link: link,
+                linkID: linkID
             },
             success: function ( response ) {
                 if ( response.success ) {

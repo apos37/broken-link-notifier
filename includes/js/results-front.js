@@ -132,7 +132,8 @@ jQuery( $ => {
 
                 // Failure
                 } else if ( response.type == 'error' ) {
-                    console.log( 'Scan failed. Please contact plugin developer.' );
+                    var errorMsg = response.msg ? response.msg : 'Unknown error occurred.';
+                    console.error( 'Scan failed: ' + errorMsg );
                 }
             }
         } )

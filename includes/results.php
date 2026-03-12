@@ -376,31 +376,45 @@ class BLNOTIFIER_RESULTS {
 
     /**
      * Remove a broken or warning link
-     * 
-     * @param string $link
+     *
+     * @param string   $link
+     * @param int|bool $id Optional link ID for direct deletion
      * @return boolean
      */
-    public function remove( $link ) {
+    public function remove( $link, $id = false ) {
         global $wpdb;
         $table_name = $wpdb->prefix . $this->table_name;
-        $link = sanitize_text_field( $link );
+        $deleted    = 0;
 
-        // 1. New Normalized Hash
-        $url_parts = explode( '?', $link );
-        $url_parts[ 0 ] = untrailingslashit( $url_parts[ 0 ] );
-        $new_hash = md5( strtolower( implode( '?', $url_parts ) ) );
+        // 1. Try deleting by ID first if provided
+        if ( $id ) {
+            $deleted = $wpdb->delete(
+                $table_name,
+                [ 'id' => absint( $id ) ],
+                [ '%d' ]
+            );
+        }
 
-        // 2. Old Logic Hash (Legacy)
-        $old_hash = md5( strtolower( untrailingslashit( $link ) ) );
+        // 2. Fallback to hash lookup if ID didn't work or wasn't provided
+        if ( ! $deleted ) {
+            $link = sanitize_text_field( $link );
 
-        // Try to delete by either hash
-        $deleted = $wpdb->query(
-            $wpdb->prepare(
-                "DELETE FROM $table_name WHERE link_hash = %s OR link_hash = %s",
-                $new_hash,
-                $old_hash
-            )
-        );
+            // New Normalized Hash
+            $url_parts = explode( '?', $link );
+            $url_parts[0] = untrailingslashit( $url_parts[0] );
+            $new_hash = md5( strtolower( implode( '?', $url_parts ) ) );
+
+            // Old Logic Hash (Legacy)
+            $old_hash = md5( strtolower( untrailingslashit( $link ) ) );
+
+            $deleted = $wpdb->query(
+                $wpdb->prepare(
+                    "DELETE FROM $table_name WHERE link_hash = %s OR link_hash = %s",
+                    $new_hash,
+                    $old_hash
+                )
+            );
+        }
 
         return ( false !== $deleted && $deleted > 0 );
     } // End remove()
@@ -582,7 +596,11 @@ class BLNOTIFIER_RESULTS {
 
         // Public endpoint: allow guests, but validate capability for logged-in users.
         if ( is_user_logged_in() && ! current_user_can( 'read' ) ) {
-            wp_send_json_error( 'Permission denied' );
+            $result = [
+                'type' => 'error',
+                'msg'  => 'Permission denied'
+            ];
+            self::send_ajax_or_redirect( $result );
         }
     
         // Get the source and links
@@ -591,19 +609,30 @@ class BLNOTIFIER_RESULTS {
         $content_links = isset( $_REQUEST[ 'content_links' ] ) ? wp_unslash( $_REQUEST[ 'content_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
         $footer_links  = isset( $_REQUEST[ 'footer_links' ] ) ? wp_unslash( $_REQUEST[ 'footer_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
+        // Permissions
+        $user_can_manage = (new BLNOTIFIER_HELPERS)->user_can_manage_broken_links();
+
         // Enforce max links per page
         $max_links = absint( get_option( 'blnotifier_max_links_per_page', 200 ) );
         $total_links = count( $header_links ) + count( $content_links ) + count( $footer_links );
         if ( $total_links > $max_links ) {
+            $error_msg = sprintf( __( 'Too many links in one scan. Max allowed: %d.', 'broken-link-notifier' ), $max_links );
+
+            // If the user is an admin/manager, append the instruction
+            if ( $user_can_manage ) {
+                $error_msg .= ' ' . __( 'You can increase this limit in the plugin settings.', 'broken-link-notifier' );
+            }
+
             $result = [
                 'type' => 'error',
-                'msg'  => sprintf( 'Too many links in one scan. Max allowed: %d', $max_links )
+                'msg'  => $error_msg
             ];
+            
             self::send_ajax_or_redirect( $result );
         }
 
         // Rate limit per IP only for non-link-managers
-        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+        if ( !$user_can_manage ) {
             $ip = $_SERVER[ 'REMOTE_ADDR' ];
             $transient_key = 'bln_rate_' . md5( $ip );
             if ( get_transient( $transient_key ) ) {
@@ -621,13 +650,21 @@ class BLNOTIFIER_RESULTS {
 
             // Only allow webpages, not file:///, etc.
             if ( !str_starts_with( $source_url, 'http' ) ) {
-                wp_send_json_error( 'Invalid source: ' . $source_url );
+                $result = [
+                    'type' => 'error',
+                    'msg'  => 'Invalid source: ' . $source_url
+                ];
+                self::send_ajax_or_redirect( $result );
             }
 
             // Validate that the URL belongs to this site and exists
             $site_url = site_url();
             if ( ! str_starts_with( $source_url, $site_url ) ) {
-                wp_send_json_error( 'External source URLs are not permitted.' );
+                $result = [
+                    'type' => 'error',
+                    'msg'  => 'External source URLs are not permitted.'
+                ];
+                self::send_ajax_or_redirect( $result );
             }
 
             // Check for Post ID with full URL
@@ -641,7 +678,11 @@ class BLNOTIFIER_RESULTS {
 
             // If it's not a post/page and it's not the homepage, it's likely a 404 or invalid
             if ( ! $post_id && $source_url !== trailingslashit( $site_url ) && $source_url !== $site_url ) {
-                wp_send_json_error( 'Source URL does not exist on this site.' );
+                $result = [
+                    'type' => 'error',
+                    'msg'  => 'Source URL does not exist on this site.'
+                ];
+                self::send_ajax_or_redirect( $result );
             }
 
             // Initiate helpers
@@ -803,7 +844,7 @@ class BLNOTIFIER_RESULTS {
 
             // If the source no longer exists, auto remove it
             if ( !$source_id || !get_post( $source_id ) ) {
-                $remove = $this->remove( $HELPERS->str_replace_on_link( $link ) );
+                $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $link_id );
                 $status = [
                     'type' => 'n/a',
                     'code' => $code,
@@ -818,7 +859,7 @@ class BLNOTIFIER_RESULTS {
                     $result[ 'link_id' ] = $link_id;
                 } else {
                     $result[ 'type' ] = 'error';
-                    $result[ 'msg' ] = __( 'Could not auto-remove link.', 'broken-link-notifier' );
+                    $result[ 'msg' ] = __( 'Could not auto-remove link. Link not found in DB.', 'broken-link-notifier' );
                 }
 
             // Source exists
@@ -829,7 +870,7 @@ class BLNOTIFIER_RESULTS {
                 
                 // If it's good now, remove the old post
                 if ( $status[ 'type' ] == 'good' || $status[ 'type' ] == 'omitted' ) {
-                    $remove = $this->remove( $HELPERS->str_replace_on_link( $link ) );
+                    $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $link_id );
                     if ( $remove ) {
                         $result[ 'type' ] = 'success';
                         $result[ 'status' ] = $status;
@@ -845,7 +886,7 @@ class BLNOTIFIER_RESULTS {
     
                 // If it's still not good, but doesn't have the same code or type, update it
                 } elseif ( $code !== $status[ 'code' ] || $type !== $status[ 'type' ] ) {
-                    $remove = $this->remove( $HELPERS->str_replace_on_link( $link ) );
+                    $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $link_id );
                     if ( $remove ) {
                         $result[ 'type' ] = 'success';
                         $result[ 'status' ] = $status;
@@ -903,6 +944,7 @@ class BLNOTIFIER_RESULTS {
         }
     
         // Get the vars
+        $link_id    = isset( $_REQUEST[ 'linkID' ] ) ? absint( wp_unslash( $_REQUEST[ 'linkID' ] ) ) : false;
         $oldLink    = isset( $_REQUEST[ 'oldLink' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'oldLink' ] ) ) : false;
         $newLink    = isset( $_REQUEST[ 'newLink' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'newLink' ] ) ) : false;
         $source_id  = isset( $_REQUEST[ 'sourceID' ] ) ? absint( wp_unslash( $_REQUEST[ 'sourceID' ] ) ) : false;
@@ -926,7 +968,7 @@ class BLNOTIFIER_RESULTS {
             if ( !is_wp_error( $result ) ) {
 
                 // Let's also delete the result
-                $this->remove( $HELPERS->str_replace_on_link( $oldLink ) );
+                $this->remove( $HELPERS->str_replace_on_link( $oldLink ), $link_id );
 
                 // Respond
                 wp_send_json_success();
@@ -958,8 +1000,10 @@ class BLNOTIFIER_RESULTS {
     
         // Remove the link
         $link = isset( $_REQUEST[ 'link' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'link' ] ) ) : false;
+        $link_id = isset( $_REQUEST[ 'linkID' ] ) ? absint( wp_unslash( $_REQUEST[ 'linkID' ] ) ) : false;
+        
         if ( $link ) {
-            $this->remove( $HELPERS->str_replace_on_link( $link ) );
+            $this->remove( $HELPERS->str_replace_on_link( $link ), $link_id );
             wp_send_json_success();
         }
 
