@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 5.9
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.3.7.2
+Stable tag: 1.3.7.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -126,6 +126,10 @@ https://youtu.be/gM9Qy0HLplU
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.3.7.3 =
+* Fix: Undefined properties
+* Fix: Blog pages that are skipped are showing as an invalid source error
+
 = 1.3.7.2 =
 * Tweak: Remove links on rescan by ID instead of link hash lookup
 * Tweak: Added actual error message to front-end scan if there is an error so we can figure out what the actual problem is

@@ -64,10 +64,6 @@ class BLNOTIFIER_RESULTS {
         // Maybe create the database table
         $this->maybe_create_db();
 
-        // Add the header to the top of the admin list page
-        add_action( 'load-edit.php', [ $this, 'add_header' ] );
-        add_action( 'load-edit-tags.php', [ $this, 'add_header' ] );
-
         // Add notifications to admin bar
         add_action( 'admin_bar_menu', [ $this, 'admin_bar' ], 999 );
 
@@ -87,74 +83,6 @@ class BLNOTIFIER_RESULTS {
         add_action( 'admin_enqueue_scripts', [ $this, 'back_script_enqueuer' ] );
 
     } // End init()
-
-
-    /**
-     * Add the header to the top of the admin list page
-     *
-     * @return void
-     */
-    public function add_header() {
-        $screen = get_current_screen();
-
-        // Only edit post screen:
-        if ( 'edit-'.$this->post_type === $screen->id ) {
-
-            // Add the header
-            add_action( 'all_admin_notices', function() {
-                echo '<style>
-                .bln-type {
-                    padding: 5px 10px;
-                    font-weight: bold;
-                    margin-bottom: 10px;
-                    width: 100px;
-                    text-align: center;
-                    text-transform: uppercase;
-                    box-shadow: 0 2px 4px 0 rgba(7, 36, 86, 0.075);
-                    border: 1px solid rgba(7, 36, 86, 0.075);
-                    border-radius: 10px;
-                }
-                .bln-type code {
-                    margin-right: 10px;
-                }
-                .bln-type.broken {
-                    background: red;
-                    color: white;
-                }
-                .bln-type.warning {
-                    background: yellow;
-                    color: black;
-                }
-                .bln-type.good,
-                .bln-type.fixed {
-                    background: green;
-                    color: white;
-                }
-                .source-url {
-                    font-weight: 600;
-                }
-                .bln_source strong {
-                    display: block;
-                    margin-bottom: 0.2em;
-                    font-size: 14px;
-                }
-                .bln_source .row-actions {
-                    padding-top: 2px;
-                }
-                #message {
-                    display: none;
-                }
-                tr.omitted {
-                    opacity: 0.5;
-                }
-                </style>';
-                echo '<div class="admin—title-cont">
-                    <h1><span id="plugin-page-title">'.esc_attr( BLNOTIFIER_NAME ).' — Results</span></h1>
-                </div>
-                <div id="plugin-version">' . esc_html__( 'Version', 'broken-link-notifier' ) . ' '.esc_attr( BLNOTIFIER_VERSION ).'</div>';
-            } );
-        }
-    } // End add_header()
 
 
     /**
@@ -676,11 +604,11 @@ class BLNOTIFIER_RESULTS {
                 $post_id  = url_to_postid( $clean_url );
             }
 
-            // If it's not a post/page and it's not the homepage, it's likely a 404 or invalid
+            // If it's not a post/page and it's not the homepage, it's likely an archive page, 404 or invalid
             if ( ! $post_id && $source_url !== trailingslashit( $site_url ) && $source_url !== $site_url ) {
                 $result = [
-                    'type' => 'error',
-                    'msg'  => 'Source URL does not exist on this site.'
+                    'type' => 'success',
+                    'msg'  => 'Skipping because source URL is not a valid post or page.'
                 ];
                 self::send_ajax_or_redirect( $result );
             }

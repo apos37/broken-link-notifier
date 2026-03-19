@@ -276,7 +276,7 @@ tr.omitted {
                 // Author
                 if ( isset( $link->guest ) && $link->guest ) {
                     $display_name = __( 'Guest', 'broken-link-notifier' );
-                } elseif ( $link->author ) {
+                } elseif ( isset( $link->author ) && $link->author ) {
                     $user = get_user_by( 'ID', $link->author );
                     $display_name = $user ? $user->display_name : __( 'Guest', 'broken-link-notifier' );
                 } else {
@@ -331,7 +331,7 @@ tr.omitted {
                         <?php endif; ?>
                     </td>
                     <td class="source_pt"><?php echo esc_html( $post_type_name ); ?></td>
-                    <td class="date"><?php echo esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $link->date ) ) ); ?></td>
+                    <td class="date"><?php echo isset( $link->date ) ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $link->date ) ) ) : __( 'Date Unknown', 'broken-link-notifier' ); ?></td>
                     <td class="verify">
                         <?php
                         if ( !(new BLNOTIFIER_HELPERS())->is_results_verification_paused() ) {
