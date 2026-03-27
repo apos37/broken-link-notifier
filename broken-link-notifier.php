@@ -3,7 +3,7 @@
  * Plugin Name:         Broken Link Notifier
  * Plugin URI:          https://pluginrx.com/plugin/broken-link-notifier/
  * Description:         Get notified when someone loads a page with a broken link
- * Version:             1.3.7.3
+ * Version:             1.3.7.4
  * Requires at least:   5.9
  * Tested up to:        6.9
  * Requires PHP:        7.4
@@ -70,6 +70,7 @@ if ( version_compare( PHP_VERSION, BLNOTIFIER_MIN_PHP_VERSION, '<=' ) ) {
 define( 'BLNOTIFIER_ADMIN_DIR', str_replace( site_url( '/' ), '', rtrim( admin_url(), '/' ) ) );                //: /wp-admin/
 define( 'BLNOTIFIER_PLUGIN_DIR', plugins_url( '/'.BLNOTIFIER_TEXTDOMAIN.'/' ) );                                //: https://domain.com/wp-content/plugins/broken-link-notifier/
 define( 'BLNOTIFIER_PLUGIN_INCLUDES_PATH', plugin_dir_path( __FILE__ ).'includes/' );                           //: /home/.../public_html/wp-content/plugins/broken-link-notifier/includes/
+define( 'BLNOTIFIER_PLUGIN_JS_ABSPATH', BLNOTIFIER_PLUGIN_INCLUDES_PATH . 'js/' );                              //: /home/.../public_html/wp-content/plugins/broken-link-notifier/includes/js/
 define( 'BLNOTIFIER_PLUGIN_JS_PATH', str_replace( site_url(), '', BLNOTIFIER_PLUGIN_DIR ).'includes/js/' );     //: /wp-content/plugins/broken-link-notifier/includes/js/
 define( 'BLNOTIFIER_PLUGIN_CSS_PATH', str_replace( site_url(), '', BLNOTIFIER_PLUGIN_DIR ).'includes/css/' );   //: /wp-content/plugins/broken-link-notifier/includes/css/
 define( 'BLNOTIFIER_PLUGIN_IMG_PATH', BLNOTIFIER_PLUGIN_DIR.'includes/img/' );                                  //: https://domain.com/wp-content/plugins/broken-link-notifier/includes/img/

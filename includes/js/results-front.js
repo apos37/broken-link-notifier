@@ -107,9 +107,17 @@ jQuery( $ => {
                         // Console
                         console.log( '%c Broken Link Scan Results: ', 'background: #2570AC; color: white' );
                         if ( response.notify ) {
+                            console.log( '%c Bad links found: ', 'background: #222; color: #bada55' );
                             console.error( response.notify );
                         } else {
-                            console.info( 'No broken links found. :)' );
+                            console.info( '%c No broken links found. :)', 'background: #222; color: #bada55' );
+                        }
+                        if ( response.msg ) {
+                            console.log( `%c ${response.msg} `, 'background: #2570AC; color: white' );
+                        }
+                        if ( response.good_links ) {
+                            console.log( '%c Good links found: ', 'background: #222; color: #bada55' );
+                            console.log( response.good_links );
                         }
                         console.log( `%c ${response.timing} `, 'background: #2570AC; color: white' );
                     }

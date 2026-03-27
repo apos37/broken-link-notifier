@@ -319,7 +319,9 @@ tr.omitted {
                     <th scope="row" class="check-column">
                         <input type="checkbox" id="cb-select-<?php echo esc_attr( $link->id ); ?>" class="bln-row-checkbox" name="bln_selected[]" value="<?php echo esc_attr( $link->id ); ?>" />
                     </th>
-                    <td class="type"><?php echo wp_kses_post( $type_label ); ?> <code<?php echo wp_kses_post( $incl_title ); ?>><?php echo esc_html__( 'Code:', 'broken-link-notifier' ); ?> <?php echo wp_kses_post( $code_link ); ?></code> <span class="message"><?php echo esc_html( $link->text ); ?></span></td>
+                    <td class="type">
+                        <?php echo wp_kses_post( $type_label ); ?> <code class="code"<?php echo wp_kses_post( $incl_title ); ?>><?php echo esc_html__( 'Code:', 'broken-link-notifier' ); ?> <?php echo wp_kses_post( $code_link ); ?></code> <span class="message"><?php echo esc_html( $link->text ); ?></span>
+                    </td>
                     <td class="link">
                         <a href="<?php echo esc_url( $link->link ); ?>" class="link-url" target="_blank" rel="noopener"><?php echo esc_html( $link->link ); ?></a>
                         <div class="row-actions"><?php echo implode( ' | ', $link_actions ); ?></div>

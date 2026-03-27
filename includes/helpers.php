@@ -84,7 +84,7 @@ class BLNOTIFIER_HELPERS {
      * @return array
      */
     public function get_bad_status_codes() {
-        $default_codes = [ 666, 308, 400, 404, 408 ];
+        $default_codes = [ 0, 666, 308, 400, 404, 408 ];
 
         $types = filter_var_array( get_option( 'blnotifier_status_codes', [] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
         if ( empty( $types ) ) {

@@ -729,6 +729,7 @@ class BLNOTIFIER_RESULTS {
             // Return
             $result[ 'type' ] = 'success';
             $result[ 'notify' ] = $notify;
+            $result[ 'good_links' ] = $good_links;
             $result[ 'timing' ] = 'Results were generated in '.$total_time.' seconds ('.$sec_per_link.'/link)';
 
         // Nope
@@ -862,51 +863,125 @@ class BLNOTIFIER_RESULTS {
      */
     public function ajax_replace_link() {
         // Verify nonce
-        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_replace ) ) {
-            exit( 'No naughty business please.' );
+        if ( ! isset( $_REQUEST[ 'nonce' ] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce_replace ) ) {
+            wp_send_json_error( [ 'msg' => 'No naughty business please.' ] );
         }
 
-        $HELPERS = new BLNOTIFIER_HELPERS;
-        if ( !$HELPERS->user_can_manage_broken_links() ) {
-            exit( 'Unauthorized access.' );
+        $HELPERS = new BLNOTIFIER_HELPERS();
+        if ( ! $HELPERS->user_can_manage_broken_links() ) {
+            wp_send_json_error( [ 'msg' => 'Unauthorized access.' ] );
         }
-    
-        // Get the vars
-        $link_id    = isset( $_REQUEST[ 'linkID' ] ) ? absint( wp_unslash( $_REQUEST[ 'linkID' ] ) ) : false;
-        $oldLink    = isset( $_REQUEST[ 'oldLink' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'oldLink' ] ) ) : false;
-        $newLink    = isset( $_REQUEST[ 'newLink' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'newLink' ] ) ) : false;
-        $source_id  = isset( $_REQUEST[ 'sourceID' ] ) ? absint( wp_unslash( $_REQUEST[ 'sourceID' ] ) ) : false;
 
-        if ( $oldLink && $newLink && $source_id && get_post( $source_id ) ) {
+        $link_id   = isset( $_REQUEST[ 'linkID' ] ) ? absint( wp_unslash( $_REQUEST[ 'linkID' ] ) ) : false;
+        $old_link  = isset( $_REQUEST[ 'oldLink' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'oldLink' ] ) ) : false;
+        $new_link  = isset( $_REQUEST[ 'newLink' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'newLink' ] ) ) : false;
+        $source_id = isset( $_REQUEST[ 'sourceID' ] ) ? absint( wp_unslash( $_REQUEST[ 'sourceID' ] ) ) : false;
 
-            // Get the current post content
-            $post_content = get_post_field( 'post_content', $source_id );
+        if ( ! $old_link || ! $new_link || ! $source_id ) {
+            wp_send_json_error( [ 'msg' => 'Missing required parameters.' ] );
+        }
 
-            // Replace old link with new link in the content
-            $updated_content = str_replace( $oldLink, $newLink, $post_content );
+        $post = get_post( $source_id );
+        if ( ! $post ) {
+            wp_send_json_error( [ 'msg' => 'Source post not found.' ] );
+        }
 
-            // Update the post content
-            $updated_post = [
+        $updated = false;
+        $fail_reason = 'Link not found in post content or metadata.';
+        $details = [];
+
+        // 1. Standard WordPress Content
+        $post_content = $post->post_content;
+        if ( strpos( $post_content, $old_link ) !== false ) {
+            $details[] = 'Found in standard WordPress post content.';
+            $new_content = str_replace( $old_link, $new_link, $post_content );
+            $result      = wp_update_post( [
                 'ID'           => $source_id,
-                'post_content' => $updated_content,
-            ];
+                'post_content' => $new_content,
+            ] );
 
-            // Update the post in the database
-            $result = wp_update_post( $updated_post );
-            if ( !is_wp_error( $result ) ) {
-
-                // Let's also delete the result
-                $this->remove( $HELPERS->str_replace_on_link( $oldLink ), $link_id );
-
-                // Respond
-                wp_send_json_success();
+            if ( is_wp_error( $result ) ) {
+                $fail_reason = 'WP_Error: ' . $result->get_error_message();
+                $details[] = 'Failed to update standard post content.';
             } else {
-                wp_send_json_error( 'Failed to update the post: ' . $result->get_error_message() );
+
+                // VERIFICATION: Pull fresh from DB
+                $verified_content = get_post_field( 'post_content', $source_id );
+                if ( strpos( $verified_content, $old_link ) === false ) {
+                    $updated   = true;
+                    $details[] = "Verified: Link removed from standard content.";
+                } else {
+                    $details[] = "Critical: Link still exists in standard content after update.";
+                }
+            }
+        } else {
+            $details[] = 'Not found in standard WordPress post content.';
+        }
+
+        // 2. Elementor Data (JSON Meta)
+        if ( is_plugin_active( 'elementor/elementor.php' ) ) {
+            $details[] = 'Checking Elementor data meta...';
+
+            $elementor_data = get_post_meta( $source_id, '_elementor_data', true );
+            if ( ! empty( $elementor_data ) ) {
+                $details[] = 'Found in Elementor data meta.';
+
+                $escaped_old = str_replace( '/', '\/', $old_link );
+                $escaped_new = str_replace( '/', '\/', $new_link );
+
+                $found_raw     = ( strpos( $elementor_data, $old_link ) !== false );
+                $found_escaped = ( strpos( $elementor_data, $escaped_old ) !== false );
+
+                if ( $found_raw ) {
+                    $details[] = 'Old link found in raw form in Elementor data.';
+                } elseif ( $found_escaped ) {
+                    $details[] = 'Old link found in escaped form in Elementor data.';
+                } else {
+                    $details[] = 'Old link not found in raw or escaped form in Elementor data.';
+                }
+
+                if ( $found_raw || $found_escaped ) {
+                    $data = str_replace( $old_link, $new_link, $elementor_data );
+                    $data = str_replace( $escaped_old, $escaped_new, $data );
+
+                    $meta_result = update_post_meta( $source_id, '_elementor_data', wp_slash( $data ) );
+
+                    if ( $meta_result ) {
+
+                        // VERIFICATION: Pull fresh meta
+                        $verified_meta = get_post_meta( $source_id, '_elementor_data', true );
+                        if ( strpos( $verified_meta, $old_link ) === false && strpos( $verified_meta, $escaped_old ) === false ) {
+                            if ( class_exists( '\Elementor\Plugin' ) ) {
+                                \Elementor\Plugin::$instance->posts_css_manager->clear_cache();
+                            }
+                            $updated   = true;
+                            $details[] = "Verified: Link removed from Elementor metadata.";
+                        } else {
+                            $details[] = "Critical: Link still exists in Elementor meta after update.";
+                        }
+                    } else {
+                        $fail_reason = 'Failed to update Elementor meta data.';
+                    }
+                } else {
+                    $fail_reason = 'Link not found in Elementor meta data.';
+                }
+            } else {
+                $fail_reason = 'Not found in Elementor data meta.';
             }
         }
 
-        // Failure
-        wp_send_json_error( 'Failed to delete.' );
+        if ( $updated ) {
+            $this->remove( $HELPERS->str_replace_on_link( $old_link ), $link_id );
+
+            wp_send_json_success( [
+                'linkID'   => $link_id,
+                'msg'      => 'Link replaced successfully.',
+                'details'  => $details
+            ] );
+        }
+
+        // If we reach here, something went wrong
+        wp_send_json_error( [ 'msg' => $fail_reason . "\n" . implode( "\n", $details ) ] );
     } // End ajax_replace_link()
 
 
@@ -1029,7 +1104,12 @@ class BLNOTIFIER_RESULTS {
 
         // Javascript
         $handle = 'front_end_js';
-        wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-front.min.js', [ 'jquery' ], BLNOTIFIER_VERSION, true ); 
+        if ( file_exists( BLNOTIFIER_PLUGIN_JS_ABSPATH.'results-front.min.js' ) ) {
+            $js_path = BLNOTIFIER_PLUGIN_JS_PATH.'results-front.min.js';
+        } else {
+            $js_path = BLNOTIFIER_PLUGIN_JS_PATH.'results-front.js';
+        }
+        wp_register_script( $handle, $js_path, [ 'jquery' ], BLNOTIFIER_VERSION, true ); 
         wp_localize_script( $handle, 'blnotifier_front_end', [
             'show_in_console' => filter_var( get_option( 'blnotifier_show_in_console' ), FILTER_VALIDATE_BOOLEAN ),
             'admin_dir'       => BLNOTIFIER_ADMIN_DIR,

@@ -161,6 +161,7 @@ jQuery( $ => {
     // Function to save the link and replace the input field with a new link
     function saveLink( inputField, oldLink, sourceID, linkID ) {
         let newLink = inputField.val().trim();
+        console.log( `Saving new link (${newLink})...`, { oldLink, sourceID, linkID } );
     
         // If the new link is empty, revert to the original
         if ( newLink === '' || newLink === oldLink || !sourceID ) {
@@ -190,21 +191,26 @@ jQuery( $ => {
             success: function( response ) {
                 if ( response.success ) {
                     console.log( 'Link updated successfully.' );
+                    if ( response.data.details ) {
+                        console.log( 'Details:', response.data.details );
+                    }
 
                     // Replace the old data-link in the Replace Link attribute
                     $( `#link-${linkID} .link .row-actions .replace-link a` ).data( 'link', newLink ).attr( 'data-link', newLink );
 
                     // Replace the source blink
                     let viewPageLink = $( `tr#link-${linkID} .source .row-actions .view a` );
-                    let currentHref = viewPageLink.attr( 'href' );
-                    let newBlinkUrl = encodeURIComponent( newLink );
-                    let updatedHref = currentHref.replace( /(blink=)[^\&]*/, `$1${newBlinkUrl}` );
-                    viewPageLink.attr( 'href', updatedHref ); 
+                    if ( viewPageLink.length ) {
+                        let currentHref = viewPageLink.attr( 'href' );
+                        let newBlinkUrl = encodeURIComponent( newLink );
+                        let updatedHref = currentHref.replace( /(blink=)[^\&]*/, `$1${newBlinkUrl}` );
+                        viewPageLink.attr( 'href', updatedHref ); 
+                    }
 
                     // Update the type
                     $( `#link-${linkID} .bln-type` ).addClass( 'fixed' ).text( 'Replaced' );
-                    $( `#link-${linkID} .bln_type code` ).remove();
-                    $( `#link-${linkID} .bln_type .message` ).html( `The old link has been replaced. Result will be removed.<br>Old link: ${oldLink}` );
+                    $( `#link-${linkID} .type .code` ).remove();
+                    $( `#link-${linkID} .type .message` ).html( `The old link has been replaced. Result will be removed after refresh.<br>Old link: ${oldLink}` );
 
                     // Remove omit link action
                     $( `#link-${linkID} .link .row-actions .clear-result` ).remove();
@@ -222,11 +228,18 @@ jQuery( $ => {
                     reduceCount();
                     
                 } else {
-                    alert( response.data );
+                    // Alert the specific msg from the PHP side
+                    let errorMsg = ( response.data && response.data.msg ) ? response.data.msg : 'Unknown error occurred.';
+                    alert( 'Update Failed: ' + errorMsg );
+                    
+                    // Revert the link text in the UI since the DB didn't update
+                    newLinkElement.replaceWith( `<a href="${oldLink}" class="link-url" target="_blank" rel="noopener">${oldLink}</a>` );
                 }
             },
             error: function() {
-                alert('Something went wrong. Please try again.');
+                alert( 'Something went wrong with the server request. Please try again.' );
+                // Revert the link text in the UI
+                newLinkElement.replaceWith( `<a href="${oldLink}" class="link-url" target="_blank" rel="noopener">${oldLink}</a>` );
             }
         } );
     }
