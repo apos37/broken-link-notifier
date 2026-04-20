@@ -22,6 +22,22 @@ add_action( 'init', function() {
  */
 class BLNOTIFIER_OMITS {
 
+
+    /**
+     * Default omitted links
+     *
+     * @return array
+     */
+    public function default_omitted_links() {
+        return [
+            home_url( '/category/*' ),
+            home_url( '/tag/*' ),
+            home_url( '/wp-login.php*' ),
+            home_url( '/wp-admin/*' ),
+        ];
+    } // End default_omitted_links()
+
+
     /**
      * Taxonomies
      *
@@ -309,6 +325,11 @@ class BLNOTIFIER_OMITS {
     public function get( $type ) {
         $type = sanitize_key( $type );
         $omit_urls = [];
+
+        if ( $type === 'links' ) {
+            $omit_urls = $this->default_omitted_links();
+        }
+
         $omits = get_terms( [
             'taxonomy'   => 'omit-'.$type ,
             'hide_empty' => false,
@@ -318,6 +339,7 @@ class BLNOTIFIER_OMITS {
                 $omit_urls[] = $omit->name;
             }
         }
+        
         $filtered_urls = apply_filters( 'blnotifier_omitted_' . $type, $omit_urls );
         return array_map( 'sanitize_text_field', $filtered_urls );
     } // End get()

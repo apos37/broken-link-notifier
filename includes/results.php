@@ -887,7 +887,6 @@ class BLNOTIFIER_RESULTS {
         }
 
         $updated = false;
-        $fail_reason = 'Link not found in post content or metadata.';
         $details = [];
 
         // 1. Standard WordPress Content
@@ -901,24 +900,53 @@ class BLNOTIFIER_RESULTS {
             ] );
 
             if ( is_wp_error( $result ) ) {
-                $fail_reason = 'WP_Error: ' . $result->get_error_message();
-                $details[] = 'Failed to update standard post content.';
+                $details[] = 'Failed to update standard post content. WP_Error: ' . $result->get_error_message();
             } else {
 
                 // VERIFICATION: Pull fresh from DB
                 $verified_content = get_post_field( 'post_content', $source_id );
                 if ( strpos( $verified_content, $old_link ) === false ) {
                     $updated   = true;
-                    $details[] = "Verified: Link removed from standard content.";
+                    $details[] = "Verified: Old link replaced in standard content.";
                 } else {
-                    $details[] = "Critical: Link still exists in standard content after update.";
+                    $details[] = "Old link still exists in standard content after attempt to update.";
                 }
             }
         } else {
-            $details[] = 'Not found in standard WordPress post content.';
+            $details[] = 'Old link not found in standard WordPress post content.';
         }
 
-        // 2. Elementor Data (JSON Meta)
+        // 2. Cornerstone / X-Theme Data
+        $cornerstone_data = get_post_meta( $source_id, '_cornerstone_data', true );
+        if ( ! empty( $cornerstone_data ) ) {
+            $details[] = 'Checking Cornerstone data...';
+
+            $escaped_old = str_replace( '/', '\/', $old_link );
+            $escaped_new = str_replace( '/', '\/', $new_link );
+
+            if ( strpos( $cornerstone_data, $old_link ) !== false || strpos( $cornerstone_data, $escaped_old ) !== false ) {
+                
+                $updated_cornerstone = str_replace( $old_link, $new_link, $cornerstone_data );
+                $updated_cornerstone = str_replace( $escaped_old, $escaped_new, $updated_cornerstone );
+
+                $cs_result = update_post_meta( $source_id, '_cornerstone_data', wp_slash($updated_cornerstone) );
+
+                if ( $cs_result ) {
+                    $updated = true;
+                    $details[] = "Verified: Link replaced in Cornerstone metadata.";
+                    
+                    // Cornerstone/X-Theme usually requires a cache clear or a 're-save' 
+                    // to update the generated post_content.
+                    if ( class_exists( 'Cornerstone_Common' ) ) {
+                        delete_post_meta( $source_id, '_cornerstone_override' );
+                    }
+                } else {
+                    $details[] = 'Found link in Cornerstone, but failed to update meta.';
+                }
+            }
+        }
+
+        // 3. Elementor Data (JSON Meta)
         if ( is_plugin_active( 'elementor/elementor.php' ) ) {
             $details[] = 'Checking Elementor data meta...';
 
@@ -960,13 +988,13 @@ class BLNOTIFIER_RESULTS {
                             $details[] = "Critical: Link still exists in Elementor meta after update.";
                         }
                     } else {
-                        $fail_reason = 'Failed to update Elementor meta data.';
+                        $details[] = 'Failed to update Elementor meta data.';
                     }
                 } else {
-                    $fail_reason = 'Link not found in Elementor meta data.';
+                    $details[] = 'Old link not found in Elementor meta data.';
                 }
             } else {
-                $fail_reason = 'Not found in Elementor data meta.';
+                $details[] = 'Old link not found in Elementor data meta.';
             }
         }
 
@@ -981,7 +1009,7 @@ class BLNOTIFIER_RESULTS {
         }
 
         // If we reach here, something went wrong
-        wp_send_json_error( [ 'msg' => $fail_reason . "\n" . implode( "\n", $details ) ] );
+        wp_send_json_error( [ 'msg' => implode( "\n", $details ) ] );
     } // End ajax_replace_link()
 
 
