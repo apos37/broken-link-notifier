@@ -1,10 +1,10 @@
 === Broken Link Notifier ===
 Contributors: apos37
 Tags: broken, link, links, checker, notify
-Requires at least: 5.9
-Tested up to: 6.9
+Requires at least: 6.0
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.3.7.5
+Stable tag: 1.3.7.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -126,6 +126,10 @@ https://youtu.be/gM9Qy0HLplU
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.3.7.6 =
+* Compatibility: Increased minimum required WordPress version to 6.0
+* Compatibility: Tested with WordPress 7.0
+
 = 1.3.7.5 =
 * Fix: Automatically omit links: /category/, /tag/, /wp-login.php, /wp-admin/
 * Fix: Added support for Cornerstone when replacing links from results page
