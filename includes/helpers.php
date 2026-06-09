@@ -938,7 +938,7 @@ class BLNOTIFIER_HELPERS {
     /**
      * Extract links from content
      *
-     * @param [type] $content
+     * @param string $content
      * @return array
      */
     public function extract_links( $content ) {
@@ -1981,18 +1981,24 @@ class BLNOTIFIER_HELPERS {
  * @param string $needle
  * @return bool
  */
-if ( version_compare( PHP_VERSION, 8.0, '<=' ) && !function_exists( 'str_starts_with' ) ) {
-    function str_starts_with ( $haystack, $needle ) {
-        return strpos( $haystack , $needle ) === 0;
+if ( version_compare( PHP_VERSION, '8.0', '<' ) ) {
+
+    if ( !function_exists( 'str_starts_with' ) ) {
+        function str_starts_with( $haystack, $needle ) {
+            return strpos( $haystack, $needle ) === 0;
+        }
     }
-}
-if ( version_compare( PHP_VERSION, 8.0, '<=' ) && !function_exists( 'str_ends_with' ) ) {
-    function str_ends_with( $haystack, $needle ) {
-        return $needle !== '' && substr( $haystack, -strlen( $needle ) ) === (string)$needle;
+
+    if ( !function_exists( 'str_ends_with' ) ) {
+        function str_ends_with( $haystack, $needle ) {
+            return $needle !== '' && substr( $haystack, -strlen( $needle ) ) === (string) $needle;
+        }
     }
-} 
-if ( version_compare( PHP_VERSION, 8.0, '<=' ) && !function_exists( 'str_contains' ) ) {
-    function str_contains( $haystack, $needle ) {
-        return $needle !== '' && mb_strpos( $haystack, $needle ) !== false;
+
+    if ( !function_exists( 'str_contains' ) ) {
+        function str_contains( $haystack, $needle ) {
+            return $needle !== '' && mb_strpos( $haystack, $needle ) !== false;
+        }
     }
+
 }

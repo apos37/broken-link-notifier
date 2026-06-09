@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.3.7.6
+Stable tag: 1.3.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -17,7 +17,7 @@ This plugin:
 
 * Scans content when users visit a page after the page fully loads, preventing performance lag
 * Identifies broken links, including 404 errors, timeouts, images, and embedded YouTube videos
-* Notifies you via dashboard notifications, email, Discord, and/or Microsoft Teams
+* Notifies you via dashboard notifications, email, Discord, Slack and/or Microsoft Teams
 * Provides a list of broken links for easy review and correction
 * Allows easy replacement of links straight from the results page (**NEW with Version 1.2.0**)
 * Caches working (good) links to skip rechecking them for a configurable amount of time (**NEW with Version 1.2.5**)
@@ -41,7 +41,7 @@ This plugin is a must-have for website owners, developers, and SEO enthusiasts w
 3. Go to `Broken Link Notifier > Settings` in your admin menu.
 4. Update your notification method(s) and post types.
 5. Go to `Broken Link Notifier > Omitted Pages`, and add any pages that you don't want to scan, such as pages you know won't have any links on them. This will speed up the multi-scan option.
-5. Page load scans are enabled automatically, so it's recommended that you test it out by deliberately making some broken links on a test page and then visiting the page. The results should show up on the `Broken Link Notifier > Results` page, and notify you if you have enabled email, Discord, or Microsoft Teams notifications. Reloading the page will not submit them twice. For testing, you should delete them from the results so they get reported again.
+5. Page load scans are enabled automatically, so it's recommended that you test it out by deliberately making some broken links on a test page and then visiting the page. The results should show up on the `Broken Link Notifier > Results` page, and notify you if you have enabled email, Discord, Slack or Microsoft Teams notifications. Reloading the page will not submit them twice. For testing, you should delete them from the results so they get reported again.
 6. It is suggested to run a Multi-Scan on each of your public-facing post types to quickly see if there are any broken links before others encounter them. Also to omit some links that will be reported as false positives. You can omit individual links quickly from the results, or you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain. See screenshots for examples.
 
 == Frequently Asked Questions == 
@@ -103,6 +103,7 @@ Yes, there are plenty. The following hooks are available:
 * `blnotifier_email_message` ( String $message, Array $flagged, String $source_url ) — Filter the message that the email notifications are sent with
 * `blnotifier_email_headers` ( Array $headers, Array $flagged, String $source_url ) — Filter the headers used in the email notifications
 * `blnotifier_discord_args` ( Array $args, Array $flagged, String $source_url ) — Filter the Discord webhook args
+* `blnotifier_slack_args` ( Array $args, Array $flagged, String $source_url ) — Filter the Slack webhook args
 * `blnotifier_msteams_args` ( Array $args, Array $flagged, String $source_url ) — Filter the Microsoft Teams webhook args
 * `blnotifier_strings_to_replace` ( Array $strings_to_replace ) — Filter the strings to replace on the link
 * `blnotifier_force_head_file_types` (Array $file_types, Boolean $docs_use_head) — Filter the list of file types that should force a HEAD request, with the $docs_use_head variable determining whether document types should be included
@@ -126,6 +127,12 @@ https://youtu.be/gM9Qy0HLplU
 9. Developer hooks on Help tab
 
 == Changelog ==
+= 1.3.8 =
+* Tweak: Added "Broken for X days" note under the date on the Results page
+* Update: Added REST API with endpoints for retrieving and deleting results; enable in Settings and generate an API key to authenticate
+* Update: Added Slack webhook notifications for broken links
+* Update: Added test notification buttons for email, Discord, Slack, and Microsoft Teams
+
 = 1.3.7.6 =
 * Compatibility: Increased minimum required WordPress version to 6.0
 * Compatibility: Tested with WordPress 7.0

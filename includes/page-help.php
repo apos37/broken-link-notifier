@@ -111,6 +111,13 @@ $hooks = [
         'desc'  => '<li>Return an <code>Array ( String <em>msg</em>, Bool <em>embed</em>, String <em>author_name</em>, String <em>author_url</em>, String <em>title</em>, String <em>title_url</em>, String <em>desc</em>, String <em>img_url</em>, String <em>thumbnail_url</em>, Bool <em>disable_footer</em>, String <em>bot_avatar_url</em>, String <em>bot_name</em>, Array <em>fields</em> )</code></li><li><em>fields</em> includes the broken links</li>',
         'type'  => 'filter'
     ],
+    [
+        'hook'  => 'blnotifier_slack_args',
+        'args'  => '( Array $args, Array $flagged, String $source_url )',
+        'label' => 'Filter the Slack webhook args',
+        'desc'  => '<li>Return an <code>Array ( String <em>title</em>, String <em>source</em>, Array <em>fields</em> )</code></li><li><em>fields</em> includes the broken links</li>',
+        'type'  => 'filter'
+    ],
     [    
         'hook'  => 'blnotifier_msteams_args',
         'args'  => '( Array $args, Array $flagged, String $source_url )',
@@ -302,6 +309,32 @@ section .plugin-card div {
         <li>Choose the channel the messages should be posted in</li>
         <li>Click on "Copy Webhook URL"; it will save to your clipboard</li>
         <li>Add the webhook url to <a href="<?php echo esc_url( $MENU->get_plugin_page( 'settings' ) ); ?>">Settings</a> and enable Discord notifications</li>
+        <li>Enable "show results in the dev console" so you can verify scanning results are being picked up</li>
+        <li>Visit a page that you know has new broken links (if the broken links are added to your <a href="<?php echo esc_url( $MENU->get_plugin_page( 'results' ) ); ?>">Results</a> page, then you will need to delete them before testing again since it will only show the results once)</li>
+    </ol>
+</section>
+
+<br><hr><br>
+
+<section>
+    <h2>How to Connect to Slack</h2>
+
+    <p>Using Slack to receive notifications is straightforward. The instructions below assume you already have a Slack account and workspace.</p>
+
+    <strong>Set Up:</strong>
+    <ol>
+        <li>Go to <a href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a></li>
+        <li>Click <strong>Create New App</strong></li>
+        <li>Choose <strong>From scratch</strong></li>
+        <li>Enter an app name (e.g. "Broken Link Notifier") and select your workspace</li>
+        <li>Click <strong>Create App</strong></li>
+        <li>In the left sidebar click <strong>Incoming Webhooks</strong></li>
+        <li>Toggle <strong>Activate Incoming Webhooks</strong> to on</li>
+        <li>Click <strong>Add New Webhook to Workspace</strong> at the bottom</li>
+        <li>Select the channel you want notifications posted to</li>
+        <li>Click <strong>Allow</strong></li>
+        <li>Copy the webhook URL</li>
+        <li>Add the webhook url to <a href="<?php echo esc_url( $MENU->get_plugin_page( 'settings' ) ); ?>">Settings</a> and enable Slack notifications</li>
         <li>Enable "show results in the dev console" so you can verify scanning results are being picked up</li>
         <li>Visit a page that you know has new broken links (if the broken links are added to your <a href="<?php echo esc_url( $MENU->get_plugin_page( 'results' ) ); ?>">Results</a> page, then you will need to delete them before testing again since it will only show the results once)</li>
     </ol>

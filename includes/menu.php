@@ -89,6 +89,9 @@ class BLNOTIFIER_MENU {
         // Enqueue script
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 
+        // AJAX test notification
+        add_action( 'wp_ajax_blnotifier_test_notification', [ $this, 'ajax_test_notification' ] );
+
 	} // End init()
 
 
@@ -302,7 +305,7 @@ class BLNOTIFIER_MENU {
         add_settings_field(
             $emails_option_name,
             'Emails to Send Notifications',
-            [ $this, 'field_emails' ],
+            [ $this, 'field_emails_with_test' ],
             $this->page_slug,
             'general',
             [
@@ -319,6 +322,11 @@ class BLNOTIFIER_MENU {
                 'name'     => 'discord',
                 'label'    => 'Discord',
                 'comments' => 'URL should look like this: https://discord.com/api/webhooks/xxx/xxx...'
+            ],
+            [
+                'name'     => 'slack',
+                'label'    => 'Slack',
+                'comments' => 'URL should look like this: https://hooks.slack.com/services/xxx/xxx/xxx'
             ],
             [ 
                 'name'     => 'msteams',
@@ -351,14 +359,15 @@ class BLNOTIFIER_MENU {
             add_settings_field(
                 $url_field_option_name,
                 $webhook_field[ 'label' ].' Webhook URL',
-                [ $this, 'field_url' ],
+                [ $this, 'field_url_with_test' ],
                 $this->page_slug,
                 'general',
                 [
-                    'class'    => $url_field_option_name,
-                    'name'     => $url_field_option_name,
-                    'default'  => '',
-                    'comments' => $webhook_field[ 'comments' ]
+                    'class'     => $url_field_option_name,
+                    'name'      => $url_field_option_name,
+                    'default'   => '',
+                    'comments'  => $webhook_field[ 'comments' ],
+                    'test_type' => $webhook_field[ 'name' ],
                 ]
             );
         }
@@ -510,6 +519,36 @@ class BLNOTIFIER_MENU {
             );
         }
 
+        // REST API
+        $enable_rest_api_option_name = 'blnotifier_enable_rest_api';
+        register_setting( $this->page_slug, $enable_rest_api_option_name, [ $this, 'sanitize_checkbox' ] );
+        add_settings_field(
+            $enable_rest_api_option_name,
+            'Enable REST API',
+            [ $this, 'field_checkbox' ],
+            $this->page_slug,
+            'general',
+            [
+                'class'    => $enable_rest_api_option_name,
+                'name'     => $enable_rest_api_option_name,
+                'default'  => false,
+                'comments' => 'Exposes a read/delete REST API endpoint for use with AI agents and external tools.'
+            ]
+        );
+
+        $api_key_option_name = 'blnotifier_api_key';
+        register_setting( $this->page_slug, $api_key_option_name, 'sanitize_text_field' );
+        add_settings_field(
+            $api_key_option_name,
+            'API Key',
+            [ $this, 'field_api_key' ],
+            $this->page_slug,
+            'general',
+            [
+                'class' => $api_key_option_name,
+                'name'  => $api_key_option_name,
+            ]
+        );
         // Caching
         $cache_option_name = 'blnotifier_cache';
         register_setting( $this->page_slug, $cache_option_name, 'sanitize_text_field' );
@@ -628,6 +667,48 @@ class BLNOTIFIER_MENU {
             esc_html( $args[ 'comments' ] )
         );
     } // End field_url()
+
+
+    /**
+     * Render a URL field with an optional test notification button
+     *
+     * @param array $args
+     * @return void
+     */
+    public function field_url_with_test( $args ) {
+        $value = esc_url( get_option( $args[ 'name' ], '' ) );
+        $has_value = !empty( $value );
+        ?>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <input type="url" id="<?php echo esc_attr( $args[ 'name' ] ); ?>" name="<?php echo esc_attr( $args[ 'name' ] ); ?>" value="<?php echo esc_attr( $value ); ?>"/>
+            <button type="button" class="button button-secondary blnotifier-test-btn" data-type="<?php echo esc_attr( $args[ 'test_type' ] ); ?>" data-field="<?php echo esc_attr( $args[ 'name' ] ); ?>" <?php echo !$has_value ? 'disabled' : ''; ?>>
+                <?php esc_html_e( 'Send Test', 'broken-link-notifier' ); ?>
+            </button>
+        </div>
+        <p class="description"><?php echo esc_html( $args[ 'comments' ] ); ?></p>
+        <?php
+    } // End field_url_with_test()
+
+
+    /**
+     * Render the emails field with a test notification button
+     *
+     * @param array $args
+     * @return void
+     */
+    public function field_emails_with_test( $args ) {
+        $value = esc_attr( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) );
+        $has_value = !empty( $value );
+        ?>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <input type="text" id="<?php echo esc_attr( $args[ 'name' ] ); ?>" name="<?php echo esc_attr( $args[ 'name' ] ); ?>" value="<?php echo esc_attr( $value ); ?>" pattern="([a-zA-Z0-9+_.\-]+@[a-zA-Z0-9.\-]+.[a-zA-Z0-9]+)(\s*,\s*([a-zA-Z0-9+_.\-]+@[a-zA-Z0-9.\-]+.[a-zA-Z0-9]+))*"/>
+            <button type="button" class="button button-secondary blnotifier-test-btn" data-type="email" data-field="<?php echo esc_attr( $args[ 'name' ] ); ?>" <?php echo !$has_value ? 'disabled' : ''; ?>>
+                <?php esc_html_e( 'Send Test', 'broken-link-notifier' ); ?>
+            </button>
+        </div>
+        <p class="description"><?php echo esc_html( $args[ 'comments' ] ); ?></p>
+        <?php
+    } // End field_emails_with_test()
 
 
     /**
@@ -986,6 +1067,27 @@ class BLNOTIFIER_MENU {
 
 
     /**
+     * API key field
+     *
+     * @param array $args
+     * @return void
+     */
+    public function field_api_key( $args ) {
+        $key = get_option( $args[ 'name' ], '' );
+        $display = $key ? 'inline-block' : 'none';
+        ?>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <code id="blnotifier-api-key-display" style="display:<?php echo esc_attr( $display ); ?>;padding:8px 12px;background:#f0f0f1;border:1px solid #c3c4c7;border-radius:3px;font-size:13px;letter-spacing:0.5px;word-break:break-all;"><?php echo esc_html( $key ); ?></code>
+            <input type="hidden" id="<?php echo esc_attr( $args[ 'name' ] ); ?>" name="<?php echo esc_attr( $args[ 'name' ] ); ?>" value="<?php echo esc_attr( $key ); ?>">
+            <button type="button" id="blnotifier-generate-key" class="button button-secondary">Generate New API Key</button>
+            <button type="button" id="blnotifier-copy-key" class="button button-secondary" style="display:<?php echo esc_attr( $display ); ?>;">Copy</button>
+        </div>
+        <p class="description">Send as a header <code>X-API-Key: your_key</code> or as a query param <code>?api_key=your_key</code>. Save Settings to persist a newly generated key.</p>
+        <?php
+    } // End field_api_key()
+
+
+    /**
      * Get the full plugin page path
      *
      * @param string $tab
@@ -1023,15 +1125,129 @@ class BLNOTIFIER_MENU {
      * @return void
      */
     public function enqueue_scripts( $screen ) {
-        // Only on these pages
         $options_page = 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN;
         $tab = (new BLNOTIFIER_HELPERS)->get_tab();
         if ( ( $screen == $options_page && $tab == 'settings' ) ) {
             $handle = 'blnotifier_settings_script';
-            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'settings.js', [ 'jquery' ], BLNOTIFIER_VERSION, true );
+            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'settings.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );
+            wp_localize_script( $handle, 'blnotifier_settings', [
+                'api_key' => get_option( 'blnotifier_api_key', '' ),
+                'nonce'   => wp_create_nonce( 'blnotifier_test_notification' ),
+                'ajaxurl' => admin_url( 'admin-ajax.php' ),
+            ] );
             wp_enqueue_script( $handle );
             wp_enqueue_script( 'jquery' );
         }
     } // End enqueue_scripts()
+
+
+    /**
+     * AJAX handler for test notifications
+     *
+     * @return void
+     */
+    public function ajax_test_notification() {
+        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), 'blnotifier_test_notification' ) ) {
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
+        }
+
+        if ( !current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
+        }
+
+        $type  = isset( $_REQUEST[ 'type' ] ) ? sanitize_key( $_REQUEST[ 'type' ] ) : '';
+        $value = isset( $_REQUEST[ 'value' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'value' ] ) ) : '';
+
+        if ( !$type || !$value ) {
+            wp_send_json_error( [ 'msg' => __( 'Missing data.', 'broken-link-notifier' ) ] );
+        }
+
+        $fake_link    = 'https://example.com/broken-link';
+        $fake_code    = 404;
+        $fake_text    = 'Not Found';
+        $fake_source  = home_url( '/sample-page/' );
+
+        if ( $type === 'email' ) {
+            $emails  = array_map( 'trim', explode( ',', $value ) );
+            $headers = [
+                'From: ' . BLNOTIFIER_NAME . ' <' . get_bloginfo( 'admin_email' ) . '>',
+                'Content-Type: text/html; charset=UTF-8',
+            ];
+            $subject = 'Test: Broken Links Found';
+            $message = 'This is a test notification from ' . BLNOTIFIER_NAME . '.<br><br>';
+            $message .= 'CONTENT:<br><br>';
+            $message .= 'URL: ' . $fake_link . '<br>Status Code: ' . $fake_code . ' - ' . $fake_text;
+            $message .= '<br><br><hr><br>' . get_bloginfo( 'name' ) . '<br><em>' . BLNOTIFIER_NAME . ' Plugin</em>';
+
+            if ( wp_mail( $emails, $subject, $message, $headers ) ) {
+                wp_send_json_success();
+            } else {
+                wp_send_json_error( [ 'msg' => __( 'Email could not be sent.', 'broken-link-notifier' ) ] );
+            }
+
+        } elseif ( $type === 'discord' ) {
+            $DISCORD = new BLNOTIFIER_DISCORD;
+            $args = [
+                'msg'            => '',
+                'embed'          => true,
+                'author_name'    => 'Source: ' . $fake_source,
+                'author_url'     => $fake_source,
+                'title'          => get_bloginfo( 'name' ),
+                'title_url'      => home_url(),
+                'desc'           => '-------------------',
+                'img_url'        => '',
+                'thumbnail_url'  => '',
+                'disable_footer' => false,
+                'bot_avatar_url' => BLNOTIFIER_PLUGIN_IMG_PATH . 'logo-teal.png',
+                'bot_name'       => BLNOTIFIER_NAME,
+                'fields'         => [
+                    [
+                        'name'   => 'Broken Link:',
+                        'value'  => $fake_link . "\nStatus Code: " . $fake_code . ' - ' . $fake_text,
+                        'inline' => false,
+                    ],
+                ],
+            ];
+            $result = $DISCORD->send( $value, $args );
+            $result ? wp_send_json_success() : wp_send_json_error( [ 'msg' => __( 'Could not send to Discord.', 'broken-link-notifier' ) ] );
+
+        } elseif ( $type === 'msteams' ) {
+            $MSTEAMS = new BLNOTIFIER_MSTEAMS;
+            $args = [
+                'site_name'  => get_bloginfo( 'name' ),
+                'title'      => 'Broken Links Found',
+                'msg'        => 'The following broken links were found:',
+                'img_url'    => '',
+                'source_url' => $fake_source,
+                'facts'      => [
+                    [
+                        'name'  => 'Broken Link:',
+                        'value' => '[' . $fake_link . '](' . $fake_link . ') _Status Code: **' . $fake_code . '** - ' . $fake_text . '_',
+                    ],
+                ],
+            ];
+            $result = $MSTEAMS->send( $value, $args );
+            $result ? wp_send_json_success() : wp_send_json_error( [ 'msg' => __( 'Could not send to Microsoft Teams.', 'broken-link-notifier' ) ] );
+
+        } elseif ( $type === 'slack' ) {
+            $SLACK = new BLNOTIFIER_SLACK;
+            $args = [
+                'title'  => 'Broken Links Found',
+                'source' => $fake_source,
+                'fields' => [
+                    [
+                        'link' => $fake_link,
+                        'code' => $fake_code,
+                        'text' => $fake_text,
+                    ],
+                ],
+            ];
+            $result = $SLACK->send( $value, $args );
+            $result ? wp_send_json_success() : wp_send_json_error( [ 'msg' => __( 'Could not send to Slack.', 'broken-link-notifier' ) ] );
+
+        } else {
+            wp_send_json_error( [ 'msg' => __( 'Unknown notification type.', 'broken-link-notifier' ) ] );
+        }
+    } // End ajax_test_notification()
 
 }

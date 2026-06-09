@@ -12,7 +12,6 @@ if ( !defined( 'ABSPATH' ) ) {
 /**
  * Initialize the class
  */
-
 new BLNOTIFIER_EXPORT();
 
 

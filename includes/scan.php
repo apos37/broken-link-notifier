@@ -167,7 +167,7 @@ class BLNOTIFIER_SCAN {
             // Register, localize, and enqueue
             $handle = 'blnotifier_'.str_replace( '-', '_', $tab ).'_script';
             wp_enqueue_script( 'jquery' );
-            wp_register_script( $handle, site_url().BLNOTIFIER_PLUGIN_JS_PATH.$tab.'.js', [ 'jquery' ], BLNOTIFIER_VERSION, true );
+            wp_register_script( $handle, site_url().BLNOTIFIER_PLUGIN_JS_PATH.$tab.'.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );
             wp_localize_script( $handle, 'blnotifier_'.str_replace( '-', '_', $tab ), [
                 'post_id' => $post_id, 
                 'nonce'   => $nonce,

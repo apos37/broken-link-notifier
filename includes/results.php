@@ -351,7 +351,10 @@ class BLNOTIFIER_RESULTS {
     /**
      * Notify
      *
-     * @param array $args
+     * @param array $flagged
+     * @param int $flagged_count
+     * @param array $all_links
+     * @param string $source_url
      * @return void
      */
     public function notify( $flagged, $flagged_count, $all_links, $source_url  ) {
@@ -449,6 +452,35 @@ class BLNOTIFIER_RESULTS {
                         $discord_args = apply_filters( 'blnotifier_discord_args', $discord_args, $flagged, $source_url );
                         $send_to_discord = $DISCORD->send( $discord_webhook, $discord_args );
                         do_action( 'blnotifier_discord_response', $send_to_discord );
+                    }
+                }
+            }
+
+            // Slack
+            if ( get_option( 'blnotifier_enable_slack' ) ) {
+                $SLACK = new BLNOTIFIER_SLACK;
+                $slack_webhook = get_option( 'blnotifier_slack' );
+                if ( $slack_webhook && $SLACK->sanitize_webhook_url( $slack_webhook ) != '' ) {
+                    $slack_args = [
+                        'title'  => 'Broken Links Found',
+                        'source' => $source_url,
+                        'fields' => []
+                    ];
+                    foreach ( $flagged as $key => $section ) {
+                        foreach ( $section as $f ) {
+                            if ( $f[ 'type' ] == 'broken' && !$this->already_added( $f[ 'link' ] ) ) {
+                                $slack_args[ 'fields' ][] = [
+                                    'link' => $f[ 'link' ],
+                                    'code' => $f[ 'code' ],
+                                    'text' => $f[ 'text' ],
+                                ];
+                            }
+                        }
+                    }
+                    if ( !empty( $slack_args[ 'fields' ] ) ) {
+                        $slack_args = apply_filters( 'blnotifier_slack_args', $slack_args, $flagged, $source_url );
+                        $send_to_slack = $SLACK->send( $slack_webhook, $slack_args );
+                        do_action( 'blnotifier_slack_response', $send_to_slack );
                     }
                 }
             }
@@ -1125,7 +1157,7 @@ class BLNOTIFIER_RESULTS {
         }
 
         // CSS
-        wp_enqueue_style( 'front_end_css', BLNOTIFIER_PLUGIN_CSS_PATH.'results-front.min.css', [], BLNOTIFIER_VERSION );
+        wp_enqueue_style( 'front_end_css', BLNOTIFIER_PLUGIN_CSS_PATH.'results-front.min.css', [], BLNOTIFIER_SCRIPT_VERSION );
 
         // Nonce
         $nonce = wp_create_nonce( $this->nonce_blinks );
@@ -1137,7 +1169,7 @@ class BLNOTIFIER_RESULTS {
         } else {
             $js_path = BLNOTIFIER_PLUGIN_JS_PATH.'results-front.js';
         }
-        wp_register_script( $handle, $js_path, [ 'jquery' ], BLNOTIFIER_VERSION, true ); 
+        wp_register_script( $handle, $js_path, [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true ); 
         wp_localize_script( $handle, 'blnotifier_front_end', [
             'show_in_console' => filter_var( get_option( 'blnotifier_show_in_console' ), FILTER_VALIDATE_BOOLEAN ),
             'admin_dir'       => BLNOTIFIER_ADMIN_DIR,
@@ -1155,12 +1187,15 @@ class BLNOTIFIER_RESULTS {
     /**
      * Enque the JavaScript
      *
+     * @param string $screen The current admin screen identifier.
      * @return void
      */
     public function back_script_enqueuer( $screen ) {
-        if ( $screen == 'toplevel_page_' . BLNOTIFIER_TEXTDOMAIN ) {
+        $options_page = 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN;
+        $tab = (new BLNOTIFIER_HELPERS)->get_tab();
+        if ( ( $screen == $options_page && $tab == 'results' ) ) {
             $handle = 'blnotifier_results_back_end_script';
-            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-back.js', [ 'jquery' ], time(), true );
+            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-back.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );
             wp_localize_script( $handle, 'blnotifier_back_end', [
                 'verifying'     => !(new BLNOTIFIER_HELPERS())->is_results_verification_paused(),
                 'nonce_rescan'  => wp_create_nonce( $this->nonce_rescan ),

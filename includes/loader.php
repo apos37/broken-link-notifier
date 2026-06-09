@@ -141,10 +141,12 @@ class BLNOTIFIER_LOADER {
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'helpers.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'omits.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'discord.php';
+        require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'slack.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'msteams.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'results.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'integrations.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'export.php';
+        require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'api.php';
         
     } // End load_dependencies()
 

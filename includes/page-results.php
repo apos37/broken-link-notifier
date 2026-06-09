@@ -218,8 +218,8 @@ tr.omitted {
 
     <div class="above-table-cont">
         <div class="left-side">
-            <button type="submit" id="bln-delete-selected" name="bln_delete_selected" class="button button-primary" disabled>
-                <?php echo esc_html__( 'Delete Selected', 'broken-link-notifier' ); ?>
+            <button type="submit" id="bln-delete-selected" name="bln_delete_selected" class="button button-primary" disabled title="<?php echo esc_html__( 'Clear the selected results. This does not delete the links from your site. This does not fix the links on your site, it just removes them from this list. You should fix the links on your site and then clear the results here.', 'broken-link-notifier' ); ?>">
+                <?php echo esc_html__( 'Clear Selected Results', 'broken-link-notifier' ); ?>
             </button>
             <div class="page-count">
                 <strong><?php echo esc_html__( 'Total Links Found:', 'broken-link-notifier' ); ?></strong> <span id="bln-total-broken-links"><?php echo absint( $total_items ); ?></span>
@@ -333,7 +333,27 @@ tr.omitted {
                         <?php endif; ?>
                     </td>
                     <td class="source_pt"><?php echo esc_html( $post_type_name ); ?></td>
-                    <td class="date"><?php echo isset( $link->date ) ? esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), strtotime( $link->date ) ) ) : __( 'Date Unknown', 'broken-link-notifier' ); ?></td>
+                    <td class="date">
+                        <?php
+                        if ( isset( $link->created_at ) ) {
+                            $date_timestamp = strtotime( $link->created_at );
+                            $days_broken    = (int) floor( ( time() - $date_timestamp ) / DAY_IN_SECONDS );
+                            echo esc_html( date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $date_timestamp ) );
+                            echo '<br><em style="font-size:11px;color:#888;">';
+                            if ( $days_broken === 0 ) {
+                                echo esc_html__( 'Broken today', 'broken-link-notifier' );
+                            } else {
+                                echo esc_html( sprintf(
+                                    _n( 'Broken for %d day', 'Broken for %d days', $days_broken, 'broken-link-notifier' ),
+                                    $days_broken
+                                ) );
+                            }
+                            echo '</em>';
+                        } else {
+                            echo esc_html__( 'Date Unknown', 'broken-link-notifier' );
+                        }
+                        ?>
+                    </td>
                     <td class="verify">
                         <?php
                         if ( !(new BLNOTIFIER_HELPERS())->is_results_verification_paused() ) {
