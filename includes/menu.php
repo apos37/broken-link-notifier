@@ -25,14 +25,6 @@ if ( !is_network_admin() ) {
 class BLNOTIFIER_MENU {
 
     /**
-     * The menu slug
-     *
-     * @var string
-     */
-    public $page_slug = 'blnotifier-settings';
-
-
-    /**
      * The menu items
      *
      * @var array
@@ -55,18 +47,24 @@ class BLNOTIFIER_MENU {
 
         // The menu items
         $this->menu_items = [
-            'results'     => [ __( 'Results', 'broken-link-notifier' ) ],
-            'omit-links'  => [ __( 'Omitted Links', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-links' ],
-            'omit-pages'  => [ __( 'Omitted Pages', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-pages' ],
-            'scan-single' => [ __( 'Page Scan', 'broken-link-notifier' ) ],
-            'scan-multi'  => [ __( 'Multi-Scan', 'broken-link-notifier' ) ],
-            'link-search' => [ __( 'Link Search', 'broken-link-notifier' ) ],
-            'export'      => [ __( 'Export', 'broken-link-notifier' ) ],
-            'settings'    => [ __( 'Settings', 'broken-link-notifier' ) ],
-            'help'        => [ __( 'Help', 'broken-link-notifier' ) ],
+            'results'      => [ __( 'Results', 'broken-link-notifier' ) ],
+            'omit-links'   => [ __( 'Omitted Links', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-links' ],
+            'omit-pages'   => [ __( 'Omitted Pages', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-pages' ],
+            'scan-single'  => [ __( 'Page Scan', 'broken-link-notifier' ) ],
+            'site-scan'    => [ __( 'Site Scan', 'broken-link-notifier' ) ],
+            'link-search'  => [ __( 'Link Search', 'broken-link-notifier' ) ],
+            'link-browser' => [ __( 'Link Browser', 'broken-link-notifier' ) ],
+            'settings'     => [ __( 'Settings', 'broken-link-notifier' ) ],
         ];
 
-	} // End __construct()
+        // Legacy Multi-Scan only shows up if explicitly enabled or in test mode
+        if ( apply_filters( 'blnotifier_enable_legacy_multiscan', false ) || (new BLNOTIFIER_HELPERS)->is_test_mode() ) {
+            $this->menu_items = array_slice( $this->menu_items, 0, 4, true )
+                + [ 'scan-multi' => [ __( 'Multi-Scan', 'broken-link-notifier' ) ] ]
+                + array_slice( $this->menu_items, 4, null, true );
+        }
+
+    } // End __construct()
 
 
     /**
@@ -77,20 +75,14 @@ class BLNOTIFIER_MENU {
         // Add the menu
         add_action( 'admin_menu', [ $this, 'admin_menu' ] );
 
-        // Update role after sett
-        add_action( 'admin_init', [ $this, 'update_roles' ] );
-
         // Fix the Manage link to show active
         add_filter( 'parent_file', [ $this, 'submenus' ] );
 
-        // Settings page fields
-        add_action( 'admin_init', [  $this, 'settings_fields' ] );
+        // Add the header
+        add_action( 'in_admin_header', [ $this, 'admin_header' ] );
 
         // Enqueue script
-        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
-
-        // AJAX test notification
-        add_action( 'wp_ajax_blnotifier_test_notification', [ $this, 'ajax_test_notification' ] );
+        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_theme_assets' ] );
 
 	} // End init()
 
@@ -135,10 +127,13 @@ class BLNOTIFIER_MENU {
         $count = (new BLNOTIFIER_HELPERS)->count_broken_links();
         $notif = $count > 0 ? ' <span class="awaiting-mod">'.(new BLNOTIFIER_HELPERS)->count_broken_links().'</span>' : '';
 
+        // Admin menu title
+        $admin_menu_title = apply_filters( 'blnotifier_admin_menu_title', __( 'Broken Links', 'broken-link-notifier' ) );
+
         // Add the menu
         add_menu_page(
             BLNOTIFIER_NAME,
-            BLNOTIFIER_NAME. $notif,
+            $admin_menu_title . $notif,
             $capability,
             BLNOTIFIER_TEXTDOMAIN,
             [ $this, 'settings_page' ],
@@ -152,43 +147,6 @@ class BLNOTIFIER_MENU {
             $submenu[ BLNOTIFIER_TEXTDOMAIN ][] = [ $menu_item[0], $capability, $link ];
         }
     } // End admin_menu()
-
-
-    /**
-     * Update user roles
-     *
-     * @return void
-     */
-    public function update_roles() {
-        if ( isset( $_GET[ 'settings-updated' ] ) && $_GET[ 'settings-updated' ] == 'true' ) {
-
-            $allowed_roles = get_option( 'blnotifier_editable_roles', [] );
-            if ( is_array( $allowed_roles ) && !empty( $allowed_roles ) ) {
-                $saniotized_allowed_roles = [];
-                foreach ( $allowed_roles as $role_slug => $value ) {
-                    $saniotized_allowed_roles[] = sanitize_key( $role_slug );
-                }
-                $allowed_roles = $saniotized_allowed_roles;
-            }
-
-            $editable_roles = $this->get_editable_roles_choices();
-            if ( !empty( $editable_roles ) && is_array( $editable_roles ) ) {
-                
-                foreach ( $editable_roles as $editable_role_slug => $label ) {
-                    $role = get_role( $editable_role_slug );
-                    if ( !$role ) {
-                        continue;
-                    }
-
-                    if ( in_array( $editable_role_slug, $allowed_roles ) && ! $role->has_cap( $this->capability ) ) {
-                        $role->add_cap( $this->capability );
-                    } elseif ( $role->has_cap( $this->capability ) ) {
-                        $role->remove_cap( $this->capability );
-                    }
-                }
-            }
-        }
-    } // End update_roles()
 
 
     /**
@@ -229,863 +187,6 @@ class BLNOTIFIER_MENU {
         include BLNOTIFIER_PLUGIN_INCLUDES_PATH.'page.php';
     } // End settings_page()
 
-    
-    /**
-     * Settings fields
-     *
-     * @return void
-     */
-    public function settings_fields() {
-        // Add section
-        add_settings_section( 
-            'general',
-            'Settings',
-            '',
-            $this->page_slug
-        );
-
-        // Has updated settings
-        $has_updated_settings = 'blnotifier_has_updated_settings';
-        register_setting( $this->page_slug, $has_updated_settings, [ $this, 'sanitize_boolean' ] );
-
-        // Pause front-end scanning
-        $pause_frontend_scanning_option_name = 'blnotifier_pause_frontend_scanning';
-        register_setting( $this->page_slug, $pause_frontend_scanning_option_name, [ $this, 'sanitize_checkbox' ] );
-        add_settings_field(
-            $pause_frontend_scanning_option_name,
-            'Pause Front-End Scanning',
-            [ $this, 'field_checkbox' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $pause_frontend_scanning_option_name,
-                'name'     => $pause_frontend_scanning_option_name,
-                'default'  => false,
-                'comments' => 'You can pause front-end scanning if you just want to scan manually; disabling this means you will NOT get notified when someone visits a page with broken links'
-            ]
-        );
-
-        // Pause results verification
-        $pause_results_verification_option_name = 'blnotifier_pause_results_verification';
-        register_setting( $this->page_slug, $pause_results_verification_option_name, [ $this, 'sanitize_checkbox' ] );
-        add_settings_field(
-            $pause_results_verification_option_name,
-            'Pause Results Auto-Verification',
-            [ $this, 'field_checkbox' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $pause_results_verification_option_name,
-                'name'     => $pause_results_verification_option_name,
-                'default'  => false,
-                'comments' => 'You can pause the automatic verification and removal on the results page'
-            ]
-        );
-
-        // Enable emailing
-        $enable_emailing_option_name = 'blnotifier_enable_emailing';
-        register_setting( $this->page_slug, $enable_emailing_option_name, [ $this, 'sanitize_checkbox' ] );
-        add_settings_field(
-            $enable_emailing_option_name,
-            'Enable Emailing',
-            [ $this, 'field_checkbox' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $enable_emailing_option_name,
-                'name'     => $enable_emailing_option_name,
-                'default'  => true,
-                'comments' => 'You can turn off email notifications and still get website notifications'
-            ]
-        );
-
-        // Emails
-        $emails_option_name = 'blnotifier_emails';
-        register_setting( $this->page_slug, $emails_option_name, 'sanitize_text_field' );
-        add_settings_field(
-            $emails_option_name,
-            'Emails to Send Notifications',
-            [ $this, 'field_emails_with_test' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $emails_option_name,
-                'name'     => $emails_option_name,
-                'default'  => get_bloginfo( 'admin_email' ),
-                'comments' => 'Separated by commas'
-            ]
-        );
-
-        // Webhook fields
-        $webhook_fields = [
-            [ 
-                'name'     => 'discord',
-                'label'    => 'Discord',
-                'comments' => 'URL should look like this: https://discord.com/api/webhooks/xxx/xxx...'
-            ],
-            [
-                'name'     => 'slack',
-                'label'    => 'Slack',
-                'comments' => 'URL should look like this: https://hooks.slack.com/services/xxx/xxx/xxx'
-            ],
-            [ 
-                'name'     => 'msteams',
-                'label'    => 'Microsoft Teams',
-                'comments' => 'URL should look like this: https://yourdomain.webhook.office.com/xxx/xxx...'
-            ]
-        ];
-        foreach ( $webhook_fields as $webhook_field ) {
-
-            // Enable checkbox
-            $enable_option_name = 'blnotifier_enable_'.$webhook_field[ 'name' ];
-            register_setting( $this->page_slug, $enable_option_name, [ $this, 'sanitize_checkbox' ] );
-            add_settings_field(
-                $enable_option_name,
-                'Enable '.$webhook_field[ 'label' ].' Notifications',
-                [ $this, 'field_checkbox' ],
-                $this->page_slug,
-                'general',
-                [
-                    'class'    => $enable_option_name,
-                    'name'     => $enable_option_name,
-                    'default'  => false,
-                    'comments' => 'You can also send notifications to a '.$webhook_field[ 'label' ].' channel'
-                ]
-            );
-
-            // The url
-            $url_field_option_name = 'blnotifier_'.$webhook_field[ 'name' ];
-            register_setting( $this->page_slug, $url_field_option_name, [ $this, 'sanitize_url' ] );
-            add_settings_field(
-                $url_field_option_name,
-                $webhook_field[ 'label' ].' Webhook URL',
-                [ $this, 'field_url_with_test' ],
-                $this->page_slug,
-                'general',
-                [
-                    'class'     => $url_field_option_name,
-                    'name'      => $url_field_option_name,
-                    'default'   => '',
-                    'comments'  => $webhook_field[ 'comments' ],
-                    'test_type' => $webhook_field[ 'name' ],
-                ]
-            );
-        }
-
-        // Text
-        $user_agent_option_name = 'blnotifier_user_agent';
-        register_setting( $this->page_slug, $user_agent_option_name, 'sanitize_text_field' );
-        add_settings_field(
-            $user_agent_option_name,
-            'User Agent',
-            [ $this, 'field_text' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $user_agent_option_name,
-                'name'     => $user_agent_option_name,
-                'default'  => 'WordPress/{blog_version}; {blog_url}',
-                'comments' => 'Only change this if you know what you are doing. Default is "WordPress/{blog_version}; {blog_url}" (WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ) . ')'
-            ]
-        );
-
-        // Define an array of number fields
-        $number_fields = [
-            [ 
-                'name'     => 'timeout',
-                'label'    => 'Timeout (seconds)',
-                'default'  => 5,
-                'min'      => 5,
-                'comments' => 'How long to try to connect to a link\'s server before quitting'
-            ],
-            [ 
-                'name'     => 'max_redirects',
-                'label'    => 'Max Redirects',
-                'default'  => 5,
-                'min'      => 0,
-                'comments' => 'Maximum number of redirects before giving up on a link (will only be used if you allow redirects below)'
-            ],
-            [ 
-                'name'     => 'max_links_per_page',
-                'label'    => 'Max Links Per Page',
-                'default'  => 200,
-                'min'      => 0,
-                'comments' => 'Maximum number of links to check per page (0 for unlimited) - this is to prevent attacks and timeouts on pages with a large number of links'
-            ],
-        ];
-
-        // Loop through the array to add number fields
-        foreach ( $number_fields as $field ) {
-            $field_option_name = 'blnotifier_' . $field[ 'name' ];
-            
-            // Register the field with a sanitization callback
-            register_setting( $this->page_slug, $field_option_name, 'absint' );
-            
-            // Add the number field to the settings page
-            add_settings_field(
-                $field_option_name,
-                $field[ 'label' ],
-                [ $this, 'field_number' ],
-                $this->page_slug,
-                'general',
-                [
-                    'class'    => $field_option_name,
-                    'name'     => $field_option_name,
-                    'default'  => $field[ 'default' ],
-                    'min'      => $field[ 'min' ],
-                    'comments' => $field[ 'comments' ]
-                ]
-            );
-        }
-
-        // Other checkboxes
-        $checkboxes = [
-            [ 
-                'name'     => 'allow_redirects',
-                'label'    => 'Allow Redirects',
-                'default'  => true,
-                'comments' => 'Changes the method of checking for broken links from <code>HEAD</code> to <code>GET</code>. May cause issues linking to larger documents.'
-            ],
-            [ 
-                'name'     => 'documents_use_head',
-                'label'    => 'Force Documents to Use <code>HEAD</code> Requests',
-                'default'  => false,
-                'comments' => 'If you have enabled allowing redirects (above), by default images, videos, and audio files force the use of <code>HEAD</code> requests rather than <code>GET</code>. Some servers automatically block <code>HEAD</code> requests for documents, so we don\'t force them by default. If you are having issues with large documents not completing a scan, then you can try enabling this option to see if it helps. If they are blocked, at least you will know why.'
-            ],
-            [ 
-                'name'     => 'enable_warnings',
-                'label'    => 'Enable Warnings',
-                'default'  => true,
-                'comments' => 'Includes warnings in all scans'
-            ],
-            [ 
-                'name'     => 'enable_good_links',
-                'label'    => 'Show Good Links in Results',
-                'default'  => false,
-                'comments' => 'Includes good links on results page for verification purposes only (more performance heavy and will be omitted immediately unless you pause results auto-verification)'
-            ],
-            [ 
-                'name'     => 'enable_delete_source',
-                'label'    => 'Enable Delete Source Action Link',
-                'default'  => false,
-                'comments' => 'An action link will appear on the Results tab under the source where you can trash the page entirely'
-            ],
-            [ 
-                'name'     => 'include_images', 
-                'label'    => 'Check for Broken Images',
-                'default'  => true,
-                'comments' => 'Includes image src links in all scans'
-            ],
-            [ 
-                'name'     => 'ssl_verify', 
-                'label'    => 'Warn if SSL is Not Verified',
-                'default'  => true,
-                'comments' => 'If you are not concerned about insecure links, you can disable this'
-            ],
-            [ 
-                'name'     => 'scan_header', 
-                'label'    => 'Scan <code>&#x3c;header&#x3e;</code> Elements', 
-                'default'  => false,
-                'comments' => 'Only applies to page load scans - the header elements usually include the navigation menu(s) at the top of the page'
-            ],
-            [ 
-                'name'     => 'scan_footer', 
-                'label'    => 'Scan <code>&#x3c;footer&#x3e;</code> Elements', 
-                'default'  => false,
-                'comments' => 'Only applies to page load scans - the footer elements include any links at the bottom of every page'
-            ],
-            [ 
-                'name'     => 'show_in_console', 
-                'label'    => 'Show Results in Dev Console', 
-                'default'  => false,
-                'comments' => 'Only applies to page load scans'
-            ]
-        ];
-        foreach ( $checkboxes as $checkbox ) {
-            $checkbox_option_name = 'blnotifier_'.$checkbox[ 'name' ];
-            register_setting( $this->page_slug, $checkbox_option_name, [ $this, 'sanitize_checkbox' ] );
-            add_settings_field(
-                $checkbox_option_name,
-                $checkbox[ 'label' ],
-                [ $this, 'field_checkbox' ],
-                $this->page_slug,
-                'general',
-                [
-                    'class'    => $checkbox_option_name,
-                    'name'     => $checkbox_option_name,
-                    'default'  => $checkbox[ 'default' ],
-                    'comments' => $checkbox[ 'comments' ]
-                ]
-            );
-        }
-
-        // REST API
-        $enable_rest_api_option_name = 'blnotifier_enable_rest_api';
-        register_setting( $this->page_slug, $enable_rest_api_option_name, [ $this, 'sanitize_checkbox' ] );
-        add_settings_field(
-            $enable_rest_api_option_name,
-            'Enable REST API',
-            [ $this, 'field_checkbox' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $enable_rest_api_option_name,
-                'name'     => $enable_rest_api_option_name,
-                'default'  => false,
-                'comments' => 'Exposes a read/delete REST API endpoint for use with AI agents and external tools.'
-            ]
-        );
-
-        $api_key_option_name = 'blnotifier_api_key';
-        register_setting( $this->page_slug, $api_key_option_name, 'sanitize_text_field' );
-        add_settings_field(
-            $api_key_option_name,
-            'API Key',
-            [ $this, 'field_api_key' ],
-            $this->page_slug,
-            'general',
-            [
-                'class' => $api_key_option_name,
-                'name'  => $api_key_option_name,
-            ]
-        );
-        // Caching
-        $cache_option_name = 'blnotifier_cache';
-        register_setting( $this->page_slug, $cache_option_name, 'sanitize_text_field' );
-        add_settings_field(
-            $cache_option_name,
-            'Length of Time to Cache Good Links (in Seconds)',
-            [ $this, 'field_number' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $cache_option_name,
-                'name'     => $cache_option_name,
-                'default'  => 0,
-                'min'      => 0,
-                'comments' => 'Use 0 to disable caching. If you are experienced performance issues, you can set the value to 28800 (8 hours), 43200 (12 hours), 86400 (24 hours) or whatever you feel is best. Broken and warning links will never be cached. Deactivating or uninstalling the plugin will clear the cache completely.'
-            ]
-        );
-
-        // User Roles for Editing Links
-        $roles_option_name = 'blnotifier_editable_roles';
-        register_setting( $this->page_slug, $roles_option_name, [ $this, 'sanitize_checkboxes' ] );
-        add_settings_field(
-            $roles_option_name,
-            'Allow These Additional Roles to Manage Broken Links',
-            [ $this, 'field_checkboxes' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $roles_option_name,
-                'name'     => $roles_option_name,
-                'options'  => $this->get_editable_roles_choices(),
-            ]
-        );
-
-        // Post types
-        $post_types_option_name = 'blnotifier_post_types';
-        register_setting( $this->page_slug, $post_types_option_name, [ $this, 'sanitize_checkboxes' ] );
-        add_settings_field(
-            $post_types_option_name,
-            'Enable Multi-Scan for These Post Types',
-            [ $this, 'field_checkboxes' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $post_types_option_name,
-                'name'     => $post_types_option_name,
-                'options'  => $this->get_post_type_choices(),
-                'default'  => [ 'post', 'page' ]
-            ]
-        );
-
-        // Status codes
-        $status_codes_option_name = 'blnotifier_status_codes';
-        register_setting( $this->page_slug, $status_codes_option_name, [] );
-        add_settings_field(
-            $status_codes_option_name,
-            'Status Codes',
-            [ $this, 'field_status_codes' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $status_codes_option_name,
-                'name'     => $status_codes_option_name,
-                'options'  => (new BLNOTIFIER_HELPERS)->get_status_codes(),
-            ]
-        );   
-
-        // Uninstall database cleanup
-        $uninstall_cleanup_option_name = 'blnotifier_uninstall_cleanup';
-        register_setting( $this->page_slug, $uninstall_cleanup_option_name, [ $this, 'sanitize_checkbox' ] );
-        add_settings_field(
-            $uninstall_cleanup_option_name,
-            'Remove Data on Uninstall',
-            [ $this, 'field_checkbox' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $uninstall_cleanup_option_name,
-                'name'     => $uninstall_cleanup_option_name,
-                'default'  => false,
-                'comments' => 'Enable this option to automatically remove the database table that the links are stored in and all options when the plugin is uninstalled.'
-            ]
-        );
-    } // End settings_fields()
-
-
-    /**
-     * Custom callback function to print text field
-     *
-     * @param array $args
-     * @return void
-     */
-    public function field_text( $args ) {
-        printf(
-            '<input type="text" id="%s" name="%s" value="%s"/><br><p class="description">%s</p>',
-            esc_html( $args[ 'name' ] ),
-            esc_html( $args[ 'name' ] ),
-            esc_html( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) ),
-            esc_html( $args[ 'comments' ] )
-        );
-    } // End field_text()
-
-
-    /**
-     * Custom callback function to print url field
-     *
-     * @param array $args
-     * @return void
-     */
-    public function field_url( $args ) {
-        printf(
-            '<input type="url" id="%s" name="%s" value="%s"/><br><p class="description">%s</p>',
-            esc_html( $args[ 'name' ] ),
-            esc_html( $args[ 'name' ] ),
-            esc_url( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) ),
-            esc_html( $args[ 'comments' ] )
-        );
-    } // End field_url()
-
-
-    /**
-     * Render a URL field with an optional test notification button
-     *
-     * @param array $args
-     * @return void
-     */
-    public function field_url_with_test( $args ) {
-        $value = esc_url( get_option( $args[ 'name' ], '' ) );
-        $has_value = !empty( $value );
-        ?>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <input type="url" id="<?php echo esc_attr( $args[ 'name' ] ); ?>" name="<?php echo esc_attr( $args[ 'name' ] ); ?>" value="<?php echo esc_attr( $value ); ?>"/>
-            <button type="button" class="button button-secondary blnotifier-test-btn" data-type="<?php echo esc_attr( $args[ 'test_type' ] ); ?>" data-field="<?php echo esc_attr( $args[ 'name' ] ); ?>" <?php echo !$has_value ? 'disabled' : ''; ?>>
-                <?php esc_html_e( 'Send Test', 'broken-link-notifier' ); ?>
-            </button>
-        </div>
-        <p class="description"><?php echo esc_html( $args[ 'comments' ] ); ?></p>
-        <?php
-    } // End field_url_with_test()
-
-
-    /**
-     * Render the emails field with a test notification button
-     *
-     * @param array $args
-     * @return void
-     */
-    public function field_emails_with_test( $args ) {
-        $value = esc_attr( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) );
-        $has_value = !empty( $value );
-        ?>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <input type="text" id="<?php echo esc_attr( $args[ 'name' ] ); ?>" name="<?php echo esc_attr( $args[ 'name' ] ); ?>" value="<?php echo esc_attr( $value ); ?>" pattern="([a-zA-Z0-9+_.\-]+@[a-zA-Z0-9.\-]+.[a-zA-Z0-9]+)(\s*,\s*([a-zA-Z0-9+_.\-]+@[a-zA-Z0-9.\-]+.[a-zA-Z0-9]+))*"/>
-            <button type="button" class="button button-secondary blnotifier-test-btn" data-type="email" data-field="<?php echo esc_attr( $args[ 'name' ] ); ?>" <?php echo !$has_value ? 'disabled' : ''; ?>>
-                <?php esc_html_e( 'Send Test', 'broken-link-notifier' ); ?>
-            </button>
-        </div>
-        <p class="description"><?php echo esc_html( $args[ 'comments' ] ); ?></p>
-        <?php
-    } // End field_emails_with_test()
-
-
-    /**
-     * Sanitize url
-     *
-     * @param string $value
-     * @return string
-     */
-    public function sanitize_url( $value ) {
-        return filter_var( $value, FILTER_SANITIZE_URL );
-    } // End sanitize_url()
-
-
-    /**
-     * Custom callback function to print checkbox field
-     *
-     * @param array $args
-     * @return void
-     */
-    public function field_checkbox( $args ) {
-        $has_updated_settings = get_option( 'blnotifier_has_updated_settings' );
-        if ( !$has_updated_settings ) {
-            $value = isset( $args[ 'default' ] ) ? $args[ 'default' ] : false;
-        } else {
-            $value = $this->sanitize_checkbox( get_option( $args[ 'name' ] ) );
-        }
-        printf(
-            '<input type="checkbox" id="%s" name="%s" value="yes" %s/> <p class="description">%s</p>',
-            esc_html( $args[ 'name' ] ),
-            esc_html( $args[ 'name' ] ),
-            esc_html( checked( 1, $value, false ) ),
-            wp_kses( $args[ 'comments' ], [ 'code' => [] ] )
-        );        
-    } // End field_checkbox()
-
-
-    /**
-     * Sanitize checkbox
-     *
-     * @param int $value
-     * @return boolean
-     */
-    public function sanitize_checkbox( $value ) {
-        return filter_var( $value, FILTER_VALIDATE_BOOLEAN );
-    } // End sanitize_checkbox()
-
-
-    /**
-     * Custom callback function to print checkboxes field
-     *
-     * @param array $args
-     * @return void
-     */
-    public function field_checkboxes( $args ) {
-        $value = get_option( $args[ 'name' ] );
-
-        if ( get_option( 'blnotifier_has_updated_settings' ) ) {
-            $value = ! empty( $value ) && is_array( $value ) ? array_keys( $value ) : [];
-        } else {
-            $value = isset( $args[ 'default' ] ) && is_array( $args[ 'default' ] ) ? $args[ 'default' ] : [];
-        }
-
-        if ( isset( $args[ 'options' ] ) && is_array( $args[ 'options' ] ) ) {
-            foreach ( $args[ 'options' ] as $key => $label ) {
-                $checked = in_array( $key, $value ) ? 'checked' : '';
-                printf(
-                    '<input type="checkbox" id="%s" name="%s[%s]" value="1" %s/> <label for="%s">%s</label><br>',
-                    esc_html( $args[ 'name' ] . '_' . $key ),
-                    esc_html( $args[ 'name' ] ),
-                    esc_attr( $key ),
-                    esc_html( $checked ),
-                    esc_html( $args[ 'name' ] . '_' . $key ),
-                    esc_html( $label )
-                );
-            }
-        }
-    } // field_checkboxes()
-
-
-    /**
-     * Custom callback function to print status codes field
-     *
-     * @param array $args
-     * @return void
-     */
-    public function field_status_codes( $args ) {
-        $value = filter_var_array( get_option( $args[ 'name' ], [] ), FILTER_SANITIZE_SPECIAL_CHARS );
-
-        $HELPERS = new BLNOTIFIER_HELPERS;
-        $broken = $HELPERS->get_bad_status_codes();
-        $warning = $HELPERS->get_warning_status_codes( true );
-
-        if ( empty( $value ) ) {
-            $mark_zero_as_broken = filter_var( get_option( 'blnotifier_mark_code_zero_broken' ), FILTER_VALIDATE_BOOLEAN );
-            if ( $mark_zero_as_broken ) {
-                $value[ 0 ] = 'broken'; 
-            } else {
-                $value[ 0 ] = 'warning'; 
-            }
-            
-            foreach ( $broken as $code ) {
-                $value[ $code ] = 'broken';
-            }
-            
-            foreach ( $warning as $code ) {
-                if ( !in_array( $code, array_keys( $value ) ) ) {
-                    $value[ $code ] = 'warning';
-                }
-            }
-        }
-    
-        if ( isset( $args[ 'options' ] ) ) {
-            echo '<style>
-                .status-row {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    gap: 2rem;
-                    border-radius: 5px;
-                    border: 1px solid #ccc;
-                    padding: 10px;
-                    font-weight: bold;
-                }
-                .status-row.warning .type {
-                    background: yellow;
-                    color: black;
-                }
-                .status-row.broken .type {
-                    background: red;
-                    color: white;
-                }
-                .status-row.good .type {
-                    background: #008000;
-                    color: white;
-                }
-                .status-row .type {
-                    float: right;
-                    padding: 5px 10px;
-                    font-weight: bold;
-                    margin: 10px;
-                    width: 100px;
-                    text-align: center;
-                    text-transform: uppercase;
-                    box-shadow: 0 2px 4px 0 rgba(7, 36, 86, 0.075);
-                    border: 1px solid rgba(7, 36, 86, 0.075);
-                    border-radius: 10px;
-                }
-                .status-row .code-msg, 
-                .status-row .description {
-                    margin-bottom: 1rem;
-                    margin-left: 0 !important;
-                }
-                .status-row label {
-                    margin-right: 10px;
-                }
-                .status-container {
-                    margin-top: 1rem;
-                    display: none; /* Initially hidden */
-                }
-                .toggle-link {
-                    cursor: pointer;
-                    color: #0073aa;
-                    text-decoration: underline;
-                    margin-bottom: 10px;
-                    display: inline-block;
-                }
-            </style>';
-
-            echo '<strong>Broken Status Codes:</strong> ' . esc_html( !empty( $broken ) ? implode( ', ', $broken ) : 'None' ).'<br>';
-            echo '<strong>Warning Status Codes:</strong> ' . esc_html( !empty( $warning ) ? implode( ', ', $warning ) : 'None' ).'<br><br><br>';
-
-            echo '<a class="toggle-link" data-target="status-container">View/Change Status Types</a>';
-            echo '<div class="status-container">';
-
-            foreach ( $args[ 'options' ] as $code => $c ) {
-                $type = isset( $value[ $code ] ) ? $value[ $code ] : 'good';
-                $checked_good = $type === 'good' ? 'checked' : '';
-                $checked_warning = $type === 'warning' ? 'checked' : '';
-                $checked_broken = $type === 'broken' ? 'checked' : '';
-                $display_code = isset( $c[ 'official' ] ) && !$c[ 'official' ] ? $code : '<a href="https://http.dev/' . $code . '" target="_blank">' . $code . '</a>';
-    
-                printf(
-                    '<div class="status-row ' . esc_attr( $type ) . '">
-                        <div class="info-input">
-                            <div class="code-msg">
-                                <span class="code">%s</span> <span class="message">(%s)</span>
-                            </div>
-                            <div class="description">%s</div>
-                            <div class="selections">
-                                <input type="radio" id="%s_good" name="%s[%s]" value="good" %s/> 
-                                <label for="%s_good">Good</label>
-                                <input type="radio" id="%s_warning" name="%s[%s]" value="warning" %s/> 
-                                <label for="%s_warning">Warning</label>
-                                <input type="radio" id="%s_broken" name="%s[%s]" value="broken" %s/> 
-                                <label for="%s_broken">Broken</label>
-                            </div>
-                        </div>
-                        <div class="indicator">
-                            <div class="type">%s</div>
-                        </div>
-                    </div><br><br>',
-                    wp_kses( $display_code, [ 'a' => [ 'href' => [], 'target' => [] ] ] ),
-                    esc_html( $c[ 'msg' ] ),
-                    wp_kses( $c[ 'desc' ], [ 'code' ] ),
-
-                    esc_html( $args[ 'name' ].'_'.$code ),
-                    esc_html( $args[ 'name' ] ),
-                    esc_attr( $code ),
-                    esc_html( $checked_good ),
-                    esc_html( $args[ 'name' ].'_'.$code ),
-
-                    esc_html( $args[ 'name' ].'_'.$code ),
-                    esc_html( $args[ 'name' ] ),
-                    esc_attr( $code ),
-                    esc_html( $checked_warning ),
-                    esc_html( $args[ 'name' ].'_'.$code ),
-
-                    esc_html( $args[ 'name' ].'_'.$code ),
-                    esc_html( $args[ 'name' ] ),
-                    esc_attr( $code ),
-                    esc_html( $checked_broken ),
-                    esc_html( $args[ 'name' ].'_'.$code ),
-
-                    esc_attr( strtoupper( $type ) )
-                );
-            }
-
-            echo '</div>';
-        }
-    } // End field_status_codes()
-
-
-    /**
-     * Sanitize checkboxes
-     *
-     * @param array $value
-     * @return boolean
-     */
-    public function sanitize_checkboxes( $value ) {
-        if ( !is_null( $value ) ) {
-            return filter_var_array( $value, FILTER_VALIDATE_BOOLEAN );
-        } else {
-            return [];
-        }
-    } // End sanitize_checkboxes()
-
-
-    /**
-     * Sanitize boolean
-     *
-     * @param mixed $input
-     * @return boolean
-     */
-    public function sanitize_boolean( $input ) {
-        return (bool) $input;
-    } // End sanitize_boolean()
-
-
-    /**
-     * Get post type choices
-     *
-     * @return array
-     */
-    public function get_post_type_choices() {
-        $HELPERS = new BLNOTIFIER_HELPERS;
-        $results = [];
-
-        $post_types = $HELPERS->get_post_types();
-
-        if ( ! is_array( $post_types ) || empty( $post_types ) ) {
-            return $results; // return empty array if no post types found
-        }
-
-        foreach ( $post_types as $post_type ) {
-            $post_type_name = $HELPERS->get_post_type_name( $post_type );
-            if ( $post_type_name === null ) {
-                $post_type_name = $post_type; // fallback to post type slug
-            }
-            $results[ $post_type ] = $post_type_name;
-        }
-
-        return $results;
-    } // End get_post_type_choices()
-
-
-    /**
-     * Get editable roles choices
-     *
-     * @return array
-     */
-    public function get_editable_roles_choices() {
-        global $wp_roles;
-        $results = [];
-        $roles = $wp_roles->get_names();
-        foreach ( $roles as $role_slug => $role_name ) {
-            if ( $role_slug == 'administrator' ) {
-                continue;
-            }
-            $results[ $role_slug ] = $role_name;
-        }
-        return $results;
-    } // End get_editable_roles_choices()
-
-
-    /**
-     * Custom callback function to print multiple emails field
-     *
-     * @param array $args
-     * @return void
-     */
-    public function field_emails( $args ) {
-        printf(
-            '<input type="text" id="%s" name="%s" value="%s" pattern="%s"/><br><p class="description">%s</p>',
-            esc_html( $args[ 'name' ] ),
-            esc_html( $args[ 'name' ] ),
-            esc_html( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) ),
-            '([a-zA-Z0-9+_.\-]+@[a-zA-Z0-9.\-]+.[a-zA-Z0-9]+)(\s*,\s*([a-zA-Z0-9+_.\-]+@[a-zA-Z0-9.\-]+.[a-zA-Z0-9]+))*',
-            esc_html( $args[ 'comments' ] )
-        );
-    } // field_text()
-
-
-    /**
-     * Custom callback function to print number field
-     *
-     * @param array $args
-     * @return void
-     */
-    public function field_number( $args ) {
-        printf(
-            '<input type="number" id="%s" name="%s" value="%d" min="%d" required/><br><p class="description">%s</p>',
-            esc_html( $args[ 'name' ] ),
-            esc_html( $args[ 'name' ] ),
-            esc_attr( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) ),
-            esc_attr( $args[ 'min' ] ),
-            esc_html( $args[ 'comments' ] )
-        );
-    } // End field_number()
-
-
-    /**
-     * Custom callback function to print textarea field
-     * 
-     * @param array $args
-     * @return void
-     */
-    public function field_textarea( $args ) {
-        printf(
-            '<textarea class="textarea" id="%s" name="%s"/>%s</textarea><br><p class="description">%s</p>',
-            esc_html( $args[ 'name' ] ),
-            esc_html( $args[ 'name' ] ),
-            esc_html( get_option( $args[ 'name' ], '' ) ),
-            esc_html( $args[ 'comments' ] )
-        );
-    } // field_text()
-
-
-    /**
-     * API key field
-     *
-     * @param array $args
-     * @return void
-     */
-    public function field_api_key( $args ) {
-        $key = get_option( $args[ 'name' ], '' );
-        $display = $key ? 'inline-block' : 'none';
-        ?>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <code id="blnotifier-api-key-display" style="display:<?php echo esc_attr( $display ); ?>;padding:8px 12px;background:#f0f0f1;border:1px solid #c3c4c7;border-radius:3px;font-size:13px;letter-spacing:0.5px;word-break:break-all;"><?php echo esc_html( $key ); ?></code>
-            <input type="hidden" id="<?php echo esc_attr( $args[ 'name' ] ); ?>" name="<?php echo esc_attr( $args[ 'name' ] ); ?>" value="<?php echo esc_attr( $key ); ?>">
-            <button type="button" id="blnotifier-generate-key" class="button button-secondary">Generate New API Key</button>
-            <button type="button" id="blnotifier-copy-key" class="button button-secondary" style="display:<?php echo esc_attr( $display ); ?>;">Copy</button>
-        </div>
-        <p class="description">Send as a header <code>X-API-Key: your_key</code> or as a query param <code>?api_key=your_key</code>. Save Settings to persist a newly generated key.</p>
-        <?php
-    } // End field_api_key()
-
 
     /**
      * Get the full plugin page path
@@ -1119,135 +220,45 @@ class BLNOTIFIER_MENU {
 
 
     /**
-     * Enqueue script
+     * Render the header above Screen Options and admin notices on our toplevel page
+     *
+     * @return void
+     */
+    public function admin_header() {
+        $screen = get_current_screen();
+        $options_page = 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN;
+
+        if ( isset( $screen->id ) && $screen->id === $options_page ) {
+            include BLNOTIFIER_PLUGIN_INCLUDES_PATH.'header.php';
+        }
+    } // End admin_header()
+
+
+    /**
+     * Enqueue the shared theme stylesheet
      *
      * @param string $screen
      * @return void
      */
-    public function enqueue_scripts( $screen ) {
+    public function enqueue_theme_assets( $screen ) {
         $options_page = 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN;
-        $tab = (new BLNOTIFIER_HELPERS)->get_tab();
-        if ( ( $screen == $options_page && $tab == 'settings' ) ) {
-            $handle = 'blnotifier_settings_script';
-            wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'settings.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );
-            wp_localize_script( $handle, 'blnotifier_settings', [
-                'api_key' => get_option( 'blnotifier_api_key', '' ),
-                'nonce'   => wp_create_nonce( 'blnotifier_test_notification' ),
-                'ajaxurl' => admin_url( 'admin-ajax.php' ),
-            ] );
-            wp_enqueue_script( $handle );
-            wp_enqueue_script( 'jquery' );
-        }
-    } // End enqueue_scripts()
+        $current_screen = get_current_screen();
+        $is_taxonomy_screen = isset( $current_screen->id ) && ( $current_screen->id === 'edit-omit-links' || $current_screen->id === 'edit-omit-pages' );
 
-
-    /**
-     * AJAX handler for test notifications
-     *
-     * @return void
-     */
-    public function ajax_test_notification() {
-        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), 'blnotifier_test_notification' ) ) {
-            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
+        if ( $screen !== $options_page && !$is_taxonomy_screen ) {
+            return;
         }
 
-        if ( !current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
-        }
+        wp_enqueue_style( 'blnotifier-theme', BLNOTIFIER_PLUGIN_CSS_PATH.'theme.css', [], BLNOTIFIER_SCRIPT_VERSION );
 
-        $type  = isset( $_REQUEST[ 'type' ] ) ? sanitize_key( $_REQUEST[ 'type' ] ) : '';
-        $value = isset( $_REQUEST[ 'value' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'value' ] ) ) : '';
-
-        if ( !$type || !$value ) {
-            wp_send_json_error( [ 'msg' => __( 'Missing data.', 'broken-link-notifier' ) ] );
-        }
-
-        $fake_link    = 'https://example.com/broken-link';
-        $fake_code    = 404;
-        $fake_text    = 'Not Found';
-        $fake_source  = home_url( '/sample-page/' );
-
-        if ( $type === 'email' ) {
-            $emails  = array_map( 'trim', explode( ',', $value ) );
-            $headers = [
-                'From: ' . BLNOTIFIER_NAME . ' <' . get_bloginfo( 'admin_email' ) . '>',
-                'Content-Type: text/html; charset=UTF-8',
-            ];
-            $subject = 'Test: Broken Links Found';
-            $message = 'This is a test notification from ' . BLNOTIFIER_NAME . '.<br><br>';
-            $message .= 'CONTENT:<br><br>';
-            $message .= 'URL: ' . $fake_link . '<br>Status Code: ' . $fake_code . ' - ' . $fake_text;
-            $message .= '<br><br><hr><br>' . get_bloginfo( 'name' ) . '<br><em>' . BLNOTIFIER_NAME . ' Plugin</em>';
-
-            if ( wp_mail( $emails, $subject, $message, $headers ) ) {
-                wp_send_json_success();
-            } else {
-                wp_send_json_error( [ 'msg' => __( 'Email could not be sent.', 'broken-link-notifier' ) ] );
+        $colors = apply_filters( 'blnotifier_theme_colors', [] );
+        if ( !empty( $colors ) ) {
+            $declarations = [];
+            foreach ( $colors as $var => $value ) {
+                $declarations[] = '--blnotifier-color-'.sanitize_key( $var ).': '.sanitize_text_field( $value ).';';
             }
-
-        } elseif ( $type === 'discord' ) {
-            $DISCORD = new BLNOTIFIER_DISCORD;
-            $args = [
-                'msg'            => '',
-                'embed'          => true,
-                'author_name'    => 'Source: ' . $fake_source,
-                'author_url'     => $fake_source,
-                'title'          => get_bloginfo( 'name' ),
-                'title_url'      => home_url(),
-                'desc'           => '-------------------',
-                'img_url'        => '',
-                'thumbnail_url'  => '',
-                'disable_footer' => false,
-                'bot_avatar_url' => BLNOTIFIER_PLUGIN_IMG_PATH . 'logo-teal.png',
-                'bot_name'       => BLNOTIFIER_NAME,
-                'fields'         => [
-                    [
-                        'name'   => 'Broken Link:',
-                        'value'  => $fake_link . "\nStatus Code: " . $fake_code . ' - ' . $fake_text,
-                        'inline' => false,
-                    ],
-                ],
-            ];
-            $result = $DISCORD->send( $value, $args );
-            $result ? wp_send_json_success() : wp_send_json_error( [ 'msg' => __( 'Could not send to Discord.', 'broken-link-notifier' ) ] );
-
-        } elseif ( $type === 'msteams' ) {
-            $MSTEAMS = new BLNOTIFIER_MSTEAMS;
-            $args = [
-                'site_name'  => get_bloginfo( 'name' ),
-                'title'      => 'Broken Links Found',
-                'msg'        => 'The following broken links were found:',
-                'img_url'    => '',
-                'source_url' => $fake_source,
-                'facts'      => [
-                    [
-                        'name'  => 'Broken Link:',
-                        'value' => '[' . $fake_link . '](' . $fake_link . ') _Status Code: **' . $fake_code . '** - ' . $fake_text . '_',
-                    ],
-                ],
-            ];
-            $result = $MSTEAMS->send( $value, $args );
-            $result ? wp_send_json_success() : wp_send_json_error( [ 'msg' => __( 'Could not send to Microsoft Teams.', 'broken-link-notifier' ) ] );
-
-        } elseif ( $type === 'slack' ) {
-            $SLACK = new BLNOTIFIER_SLACK;
-            $args = [
-                'title'  => 'Broken Links Found',
-                'source' => $fake_source,
-                'fields' => [
-                    [
-                        'link' => $fake_link,
-                        'code' => $fake_code,
-                        'text' => $fake_text,
-                    ],
-                ],
-            ];
-            $result = $SLACK->send( $value, $args );
-            $result ? wp_send_json_success() : wp_send_json_error( [ 'msg' => __( 'Could not send to Slack.', 'broken-link-notifier' ) ] );
-
-        } else {
-            wp_send_json_error( [ 'msg' => __( 'Unknown notification type.', 'broken-link-notifier' ) ] );
+            wp_add_inline_style( 'blnotifier-theme', ':root {'.implode( '', $declarations ).'}' );
         }
-    } // End ajax_test_notification()
+    } // End enqueue_theme_assets()
 
 }

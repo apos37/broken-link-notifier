@@ -36,47 +36,50 @@ jQuery( $ => {
         }
     } );
 
-    // Toggle the status codes
-    $( '.toggle-link' ).on( 'click', function( e ) {
-        e.preventDefault();
-        const target = $( '.' + $( this ).data( 'target' ) );
-        if ( target.is( ':visible' ) ) {
-            target.hide();
-            $( this ).text( 'View/Change Status Types' );
-        } else {
-            target.show();
-            $( this ).text( 'Hide Status Types' );
-        }
-    } );
-
     // Listen for status code changes
     $( '.status-row input' ).on( 'change', function( e ) {
         const $row = $( this ).closest( '.status-row' );
         const type = $( this ).val();
-    
+
         $row.removeClass( 'good warning broken' ).addClass( type );
         $row.find( '.type' ).text( type.toUpperCase() );
-    } );    
 
-    // API Key Generation and Copying
-    $( '#blnotifier-generate-key' ).on( 'click', function() {
+        updateStatusCodeSummaries();
+    } ); 
+
+    // API Key Generation, Copying, and Clearing
+    $( document ).on( 'click', '#blnotifier-generate-key', function() {
         let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         let new_key = Array.from( crypto.getRandomValues( new Uint8Array( 48 ) ) )
             .map( val => chars[ val % chars.length ] )
             .join( '' );
-        $( '#blnotifier-api-key-display' ).text( new_key ).show();
+
+        $( '#blnotifier-api-key-display' ).removeClass( 'no-key' ).addClass( 'has-key' ).text( new_key );
         $( '#blnotifier_api_key' ).val( new_key );
-        $( '#blnotifier-copy-key' ).show();
+        $( '#blnotifier-copy-key, #blnotifier-clear-key' ).prop( 'disabled', false );
+        markDirty();
     } );
 
-    $( '#blnotifier-copy-key' ).on( 'click', function() {
-        let key = $( '#blnotifier-api-key-display' ).text();
+    $( document ).on( 'click', '#blnotifier-copy-key', function() {
+        let key = $( '#blnotifier_api_key' ).val();
         if ( !key ) return;
         navigator.clipboard.writeText( key ).then( () => {
             let btn = $( this );
+            let original = btn.text();
             btn.text( 'Copied!' );
-            setTimeout( () => btn.text( 'Copy' ), 2000 );
+            setTimeout( () => btn.text( original ), 2000 );
         } );
+    } );
+
+    $( document ).on( 'click', '#blnotifier-clear-key', function() {
+        if ( !confirm( 'Are you sure you want to clear the API key? This may break existing integrations using it.' ) ) {
+            return;
+        }
+        $( '#blnotifier-api-key-display' ).removeClass( 'has-key' ).addClass( 'no-key' ).html( '<em>No API Key Generated</em>' );
+        $( '#blnotifier_api_key' ).val( '' );
+        $( this ).prop( 'disabled', true );
+        $( '#blnotifier-copy-key' ).prop( 'disabled', true );
+        markDirty();
     } );
 
     // Enable/Disable Test Buttons
@@ -126,4 +129,284 @@ jQuery( $ => {
             }
         } );
     } );
-} )
+
+    // Accordion Toggle
+    $( document ).on( 'click', '.blnotifier-accordion-toggle', function() {
+        const accordion = $( this ).closest( '.blnotifier-accordion' );
+        accordion.toggleClass( 'is-open' );
+        accordion.find( '.blnotifier-accordion-panel' ).slideToggle( 150 );
+    } );
+
+
+    // Dirty state tracking
+    const saveReminder = $( '#blnotifier-save-reminder' );
+    let isDirty = false;
+
+    function markDirty() {
+        if ( !isDirty ) {
+            isDirty = true;
+            $( '#blnotifier-save-status' ).remove();
+            saveReminder.fadeIn( 150 );
+        }
+    }
+
+    $( window ).on( 'beforeunload', function( e ) {
+        if ( isDirty ) {
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        }
+    } );
+
+    $( document ).on( 'change input', '.blnotifier-settings-grid [name]', function() {
+        markDirty();
+    } );
+
+    // Save button and status handling
+    const saveNonce = blnotifier_settings.save_nonce;
+    const $saveButton = $( '#blnotifier-save-settings' );
+    const originalSaveText = $saveButton.text();
+
+    function showSaving() {
+        $saveButton.prop( 'disabled', true ).html( '<span class="dashicons dashicons-update spin"></span> Saving...' );
+        $( '#blnotifier-save-status' ).remove();
+    }
+
+    function showResult( message, success = true ) {
+        $saveButton.prop( 'disabled', false ).text( originalSaveText );
+        const $status = $( '<span id="blnotifier-save-status"></span>' ).text( message );
+        $status.css( { color: success ? 'green' : 'red' } );
+        $saveButton.after( $status );
+    }
+
+    function gatherSettingsData() {
+        return $( '#blnotifier-settings-form' ).find( ':input' ).serialize();
+    }
+
+    function saveSettings() {
+        if ( document.activeElement && typeof document.activeElement.blur === 'function' ) {
+            document.activeElement.blur();
+        }
+
+        showSaving();
+
+        $.ajax( {
+            url: blnotifier_settings.ajaxurl,
+            method: 'POST',
+            dataType: 'json',
+            data: gatherSettingsData() + '&action=blnotifier_save_settings&nonce=' + encodeURIComponent( saveNonce ),
+            success: function( response ) {
+                if ( response.success ) {
+                    showResult( response.data && response.data.msg ? response.data.msg : 'Settings saved successfully.' );
+                    isDirty = false;
+                    saveReminder.hide();
+                } else {
+                    showResult( response.data && response.data.msg ? response.data.msg : 'Error saving settings.', false );
+                }
+            },
+            error: function() {
+                showResult( 'Error saving settings.', false );
+            }
+        } );
+    }
+
+    $saveButton.on( 'click', saveSettings );
+
+    $( document ).on( 'keydown', function( event ) {
+        if ( ( event.ctrlKey || event.metaKey ) && event.key === 's' ) {
+            event.preventDefault();
+            saveSettings();
+        }
+    } );
+
+    // Show/hide notification fields based on their enable checkbox
+    function updateNotificationFieldVisibility() {
+        $( '[data-toggle]' ).each( function() {
+            const $el = $( this );
+            const toggleId = $el.data( 'toggle' );
+            const isEnabled = $( '#' + toggleId ).is( ':checked' );
+            $el.toggleClass( 'blnotifier-hidden', !isEnabled );
+        } );
+    }
+
+    updateNotificationFieldVisibility();
+
+    $( document ).on( 'change', '#blnotifier_enable_emailing, #blnotifier_enable_discord, #blnotifier_enable_slack, #blnotifier_enable_msteams', function() {
+        updateNotificationFieldVisibility();
+    } );
+
+    function updateStatusCodeSummaries() {
+        const broken = [];
+        const warning = [];
+
+        $( '.status-row' ).each( function() {
+            const $row = $( this );
+            const code = $row.find( '.code' ).text().trim();
+            const checkedType = $row.find( 'input:checked' ).val();
+
+            if ( checkedType === 'broken' ) {
+                broken.push( code );
+            } else if ( checkedType === 'warning' ) {
+                warning.push( code );
+            }
+        } );
+
+        $( '#bln-broken-codes-summary' ).text( broken.length ? broken.join( ', ' ) : 'None' );
+        $( '#bln-warning-codes-summary' ).text( warning.length ? warning.join( ', ' ) : 'None' );
+    }
+
+    // --- DOWNLOAD SETTINGS ---
+    $( '#blnotifier-download-settings-btn' ).on( 'click', function( e ) {
+        e.preventDefault();
+
+        const data = {};
+        blnotifier_settings.fields.forEach( function( field ) {
+            const $field = $( '#' + field.name );
+
+            let value;
+            switch ( field.type ) {
+                case 'checkbox':
+                    value = $field.is( ':checked' ) ? 1 : 0;
+                    break;
+                case 'checkboxes':
+                    value = $( '[name^="' + field.name + '["]:checked' ).map( function() {
+                        return $( this ).attr( 'name' ).match( /\[(.+)\]/ )[ 1 ];
+                    } ).get();
+                    break;
+                case 'status_codes':
+                    value = {
+                        broken: [],
+                        warning: []
+                    };
+                    $( '.status-row input[type="radio"]:checked' ).each( function() {
+                        const code = $( this ).closest( '.status-row' ).find( '.code' ).text().trim();
+                        const val = $( this ).val();
+                        if ( val === 'broken' ) {
+                            value.broken.push( code );
+                        } else if ( val === 'warning' ) {
+                            value.warning.push( code );
+                        }
+                    } );
+                    break;
+                default:
+                    value = $field.val();
+            }
+
+            data[ field.name ] = value;
+        } );
+
+        const blob = new Blob( [ JSON.stringify( data, null, 4 ) ], { type: 'application/json' } );
+        const url = URL.createObjectURL( blob );
+        const a = document.createElement( 'a' );
+        a.href = url;
+        a.download = 'broken-link-notifier-settings.json';
+        a.click();
+        URL.revokeObjectURL( url );
+    } );
+
+    // --- UPLOAD SETTINGS ---
+    $( '#blnotifier-upload-settings' ).on( 'change', function( e ) {
+        const file = e.target.files[ 0 ];
+        if ( !file ) return;
+
+        const reader = new FileReader();
+        reader.onload = function( event ) {
+            try {
+                const uploadedSettings = JSON.parse( event.target.result );
+
+                blnotifier_settings.fields.forEach( function( field ) {
+                    if ( !Object.prototype.hasOwnProperty.call( uploadedSettings, field.name ) ) return;
+
+                    const value = uploadedSettings[ field.name ];
+
+                    switch ( field.type ) {
+                        case 'checkbox':
+                            $( '#' + field.name ).prop( 'checked', !!value );
+                            break;
+                        case 'checkboxes':
+                            $( '[name^="' + field.name + '["]' ).prop( 'checked', false );
+                            if ( Array.isArray( value ) ) {
+                                value.forEach( function( key ) {
+                                    $( '[name="' + field.name + '[' + key + ']"]' ).prop( 'checked', true );
+                                } );
+                            }
+                            break;
+                        case 'status_codes':
+                            $( '.status-row' ).each( function() {
+                                const $row = $( this );
+                                const code = $row.find( '.code' ).text().trim();
+                                let type = 'good';
+                                if ( value.broken && value.broken.includes( code ) ) {
+                                    type = 'broken';
+                                } else if ( value.warning && value.warning.includes( code ) ) {
+                                    type = 'warning';
+                                }
+                                $row.find( 'input[value="' + type + '"]' ).prop( 'checked', true ).trigger( 'change' );
+                            } );
+                            updateStatusCodeSummaries();
+                            break;
+                        default:
+                            $( '#' + field.name ).val( value );
+                    }
+                } );
+
+                updateNotificationFieldVisibility();
+                markDirty();
+
+                $( '#blnotifier-upload-settings-filename' ).text( file.name ).show();
+
+            } catch ( err ) {
+                alert( 'Invalid JSON file. Please check the file and try again.' );
+                $( '#blnotifier-upload-settings' ).val( '' );
+            }
+        };
+
+        reader.readAsText( file );
+    } );
+
+    // --- RESET ALL SETTINGS ---
+    $( '#blnotifier-reset-settings' ).on( 'click', function( e ) {
+        e.preventDefault();
+
+        if ( !confirm( 'Are you sure you want to reset ALL settings to their defaults? You will still need to click Save to apply this.' ) ) {
+            return;
+        }
+
+        blnotifier_settings.fields.forEach( function( field ) {
+            const $field = $( '#' + field.name );
+
+            switch ( field.type ) {
+                case 'checkbox':
+                    $field.prop( 'checked', !!field.default );
+                    break;
+                case 'checkboxes':
+                    $( '[name^="' + field.name + '["]' ).prop( 'checked', false );
+                    if ( Array.isArray( field.default ) ) {
+                        field.default.forEach( function( key ) {
+                            $( '[name="' + field.name + '[' + key + ']"]' ).prop( 'checked', true );
+                        } );
+                    }
+                    break;
+                case 'status_codes':
+                    $( '.status-row' ).each( function() {
+                        const $row = $( this );
+                        const code = $row.find( '.code' ).text().trim();
+                        let type = 'good';
+                        if ( field.default_broken && field.default_broken.includes( code ) ) {
+                            type = 'broken';
+                        } else if ( field.default_warning && field.default_warning.includes( code ) ) {
+                            type = 'warning';
+                        }
+                        $row.find( 'input[value="' + type + '"]' ).prop( 'checked', true ).trigger( 'change' );
+                    } );
+                    updateStatusCodeSummaries();
+                    break;
+                default:
+                    $field.val( field.default !== null ? field.default : '' );
+            }
+        } );
+
+        markDirty();
+    } );
+    
+} );

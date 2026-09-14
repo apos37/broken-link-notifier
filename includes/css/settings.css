@@ -1,0 +1,373 @@
+/* Field styling (matches AHD) */
+
+.blnotifier-settings-grid input[type="text"],
+.blnotifier-settings-grid input[type="number"],
+.blnotifier-settings-grid input[type="url"],
+.blnotifier-settings-grid select,
+.blnotifier-settings-grid textarea {
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background: #ffffff;
+    transition: border-color .15s ease, box-shadow .15s ease;
+    box-sizing: border-box;
+}
+
+.blnotifier-settings-grid input[type="text"]:focus,
+.blnotifier-settings-grid input[type="number"]:focus,
+.blnotifier-settings-grid input[type="url"]:focus,
+.blnotifier-settings-grid select:focus,
+.blnotifier-settings-grid textarea:focus {
+    border-color: #84caff;
+    box-shadow: 0 0 0 3px rgba( 132, 202, 255, 0.25 );
+    outline: none;
+}
+
+.blnotifier-settings-grid input[type="number"] {
+    width: 100px;
+}
+
+.blnotifier-settings-grid input[type="text"],
+.blnotifier-settings-grid input[type="url"] {
+    width: 700px;
+}
+
+.blnotifier-settings-grid textarea {
+    width: 700px;
+    height: 200px;
+}
+
+/* Status codes field */
+
+.status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    font-weight: bold;
+}
+
+.status-row.warning .type {
+    background: yellow;
+    color: black;
+}
+
+.status-row.broken .type {
+    background: red;
+    color: white;
+}
+
+.status-row.good .type {
+    background: #008000;
+    color: white;
+}
+
+.status-row .type {
+    float: right;
+    padding: 5px 10px;
+    font-weight: bold;
+    margin: 10px;
+    width: 100px;
+    text-align: center;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px 0 rgba( 7, 36, 86, 0.075 );
+    border: 1px solid rgba( 7, 36, 86, 0.075 );
+    border-radius: 10px;
+}
+
+.status-row .code-msg,
+.status-row .description {
+    margin-bottom: 1rem;
+    margin-left: 0 !important;
+}
+
+.status-row label {
+    margin-right: 10px;
+}
+
+.status-container {
+    margin-top: 1rem;
+    display: none;
+}
+
+/* Status codes summary header */
+
+.blnotifier-status-summary {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.blnotifier-status-summary-item {
+    flex: 1;
+    min-width: 200px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    background: #f9fafb;
+    border: 1px solid #eaecf0;
+}
+
+.blnotifier-status-summary-item .label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: #667085;
+    margin-bottom: 4px;
+}
+
+.blnotifier-status-summary-item .codes {
+    font-size: 15px;
+    font-weight: 700;
+    font-family: Consolas, Monaco, monospace;
+}
+
+.blnotifier-status-summary-item.broken {
+    border-left: 4px solid #d63638;
+}
+
+.blnotifier-status-summary-item.broken .codes {
+    color: #d63638;
+}
+
+.blnotifier-status-summary-item.warning {
+    border-left: 4px solid #dba617;
+}
+
+.blnotifier-status-summary-item.warning .codes {
+    color: #8a6300;
+}
+
+/* Bigger, bolder code numbers per row */
+
+.status-row .code {
+    font-size: 20px;
+    font-weight: 800;
+    font-family: Consolas, Monaco, monospace;
+}
+
+.status-row .message {
+    font-size: 14px;
+    font-weight: 600;
+    color: #475467;
+}
+
+/* Save reminder */
+
+#blnotifier-save-reminder {
+    display: none;
+    background: linear-gradient( 90deg, #dc3545 0%, #b02a37 100% );
+    color: #ffffff;
+    padding: 5px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    box-shadow: 0 4px 14px rgba( 220, 53, 69, 0.25 );
+    animation: blnotifierPulse 2s ease-in-out infinite;
+}
+
+@keyframes blnotifierPulse {
+    0%   { box-shadow: 0 4px 14px rgba( 220, 53, 69, 0.25 ); }
+    50%  { box-shadow: 0 6px 24px rgba( 220, 53, 69, 0.6 ); }
+    100% { box-shadow: 0 4px 14px rgba( 220, 53, 69, 0.25 ); }
+}
+
+/* Save button spinner */
+
+.spin {
+    animation: blnotifier-spin 1s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+@keyframes blnotifier-spin {
+    0%   { transform: rotate( 0deg ); }
+    100% { transform: rotate( 360deg ); }
+}
+
+#blnotifier-save-status {
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+/* Version */
+
+.subheader-right #blnotifier-version {
+    margin-right: 10px;
+}
+
+/* Field wrapper */
+
+.blnotifier-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 24px;
+}
+
+.blnotifier-box-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.blnotifier-field > label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #344054;
+}
+
+/* Checkbox fields: label sits to the right of the input */
+
+.blnotifier-field-checkbox {
+    gap: 0;
+}
+
+.blnotifier-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: #344054;
+}
+
+.blnotifier-checkbox-label input[type="checkbox"] {
+    margin: 0;
+}
+
+.blnotifier-checkbox-label .blnotifier-tooltip {
+    margin-left: 8px;
+}
+
+.blnotifier-checkbox-label .blnotifier-tooltip {
+    margin-left: 0;
+    display: inline-flex;
+    align-items: center;
+}
+
+.blnotifier-checkboxes {
+    display: grid;
+    grid-template-columns: repeat( 3, minmax( 0, 1fr ) );
+    gap: 8px 16px;
+    margin-top: 6px;
+}
+
+.blnotifier-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.blnotifier-checkboxes input[type="checkbox"] {
+    margin: 0;
+}
+
+@media ( max-width: 900px ) {
+    .blnotifier-checkboxes {
+        grid-template-columns: repeat( 2, minmax( 0, 1fr ) );
+    }
+}
+
+@media ( max-width: 600px ) {
+    .blnotifier-checkboxes {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* API Key */
+
+.blnotifier-api-key-box {
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background: #ffffff;
+    margin-bottom: 10px;
+}
+
+.blnotifier-api-key-box.has-key {
+    font-family: Consolas, Monaco, monospace;
+    direction: ltr;
+    unicode-bidi: embed;
+    background: #f2f2f2 !important;
+}
+
+.blnotifier-api-key-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* Notification fields */
+
+.blnotifier-notification-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+}
+
+.blnotifier-notification-field input[type="url"],
+.blnotifier-notification-field input[type="text"] {
+    width: auto;
+    flex: 1 1 auto;
+    max-width: 500px;
+}
+
+[data-toggle].blnotifier-hidden {
+    display: none;
+}
+
+.blnotifier-notification-field[data-toggle="blnotifier_enable_emailing"] {
+    margin-bottom: 16px;
+}
+
+.blnotifier-field .blnotifier-accordion {
+    margin-bottom: 16px;
+}
+
+#blnotifier-box-notifications .blnotifier-field-checkbox {
+    margin-bottom: 10px;
+}
+
+/* Import Settings */
+
+.blnotifier-backup-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#blnotifier-upload-settings-button label {
+    cursor: pointer;
+    margin: 0;
+}
+
+#blnotifier-upload-settings {
+    display: none !important;
+}
+
+#blnotifier-upload-settings-filename {
+    display: none;
+    font-family: Consolas, Monaco, monospace;
+    font-weight: 600;
+    padding: 4px 8px;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -8,7 +8,7 @@ jQuery( $ => {
 
 
     /**
-     * RE-SCAN
+     * SCAN
      */
    
     // Scan an individual link
@@ -37,88 +37,23 @@ jQuery( $ => {
         } );
     }
 
-    // Rescan all links
-    const reScanLinks = async () => {
-        
-        // Get the post link spans
-        const linkSpans = document.querySelectorAll( '.bln-verify' );
 
-        // First count all the link for the button
-        for ( const linkSpan of linkSpans ) {
-            const link = linkSpan.dataset.link;
-            const linkID = linkSpan.dataset.linkId;
-            const code = linkSpan.dataset.code;
-            const type = linkSpan.dataset.type;
-            const sourceID = linkSpan.dataset.sourceId;
-            const method = linkSpan.dataset.method;
+    /**
+     * REDUCE COUNT IN ADMIN BAR
+     */
 
-            // Scan it
-            const data = await scanLink( link, linkID, code, type, sourceID, method );
-            console.log( data );
-
-            // Status
-            var statusType;
-            var statusText;
-            var statusCode;
-            if ( data && data.type == 'success' ) {
-                statusType = data.status.type;
-                statusText = data.status.text;
-                statusCode = data.status.code;
-            } else {
-                statusType = 'error';
-                statusText = data.msg;
-                statusCode = 'ERR_FAILED';
-            }
-
-            // Text and actions
-            var text;
-            if ( statusType == 'good' || statusType == 'omitted' || statusType == 'n/a' ) {
-                if ( statusType == 'n/a' ) {
-                    text = '<em>Source no longer exists, removing from list...</em>';
-                } else {
-                    text = '<em>Link is ' + statusType + ', removing from list...</em>';
-                }
-                
-                $( `#link-${linkID}` ).addClass( 'omitted' );
-                $( `#link-${linkID} .bln-type` ).addClass( statusType ).text( statusType );
-                $( `#link-${linkID} .bln_type code` ).html( 'Code: ' + statusCode );
-                $( `#link-${linkID} .bln_type .message` ).text( statusText );
-                $( `#link-${linkID} .link .row-actions` ).remove();
-                $( `#link-${linkID} .source .row-actions` ).remove();
-
-                // Also reduce count in admin bar
-                reduceCount();
-
-            } else if ( code != statusCode || type != statusType ) {
-                if ( statusCode == 'ERR_FAILED' ) {
-                    text = `Failed to remove link. ${statusText}`;
-                } else if ( code != statusCode ) {
-                    text = `Link is still bad, but showing a different code. Old code was ${code}; new code is ${statusCode}.`;
-                } else {
-                    text = `Link is still bad, but showing a different type. Old type was ${type}; new type is ${statusType}.`;
-                }
-                $( `#link-${linkID} .bln-type` ).attr( 'class', `bln-type ${statusType}`).text( statusType );
-                var codeLink = 'Code: ' + statusCode;
-                if ( statusCode != 0 && statusCode != 666 ) {
-                    codeLink = `<a href="https://http.dev/${statusCode}" target="_blank">Code: ${statusCode}</a>`;
-                }
-                $( `#link-${linkID} .bln_type code` ).html( codeLink );
-                $( `#link-${linkID} .bln_type .message` ).text( statusText );
-            } else {
-                text = `Still showing ${statusType}.`;
-            }
-
-            // Update the page
-            $( `#bln-verify-${linkID}` ).removeClass( 'scanning' ).addClass( statusType ).html( text );
+    function reduceCount() {
+        if ( typeof window.blnRefreshResultsTable === 'function' ) {
+            window.blnRefreshResultsTable();
         }
-
-        return console.log( 'Done with all links' );
     }
 
-    // Do it
-    if ( blnotifier_back_end.verifying ) {
-        reScanLinks();
-    }
+
+    /**
+     * EXPOSE FUNCTIONS TO GLOBAL SCOPE
+     */
+    window.scanLink = scanLink;
+    window.reduceCount = reduceCount;
 
 
     /**
@@ -332,51 +267,4 @@ jQuery( $ => {
         } );
     } );
 
-    
-    /**
-     * REDUCE COUNT IN ADMIN BAR
-     */
-
-    function reduceCount() {
-        // Count broken links currently on the page
-        var countBroken = $( 'tr .bln-type.broken' ).length;
-        var countAll = $( 'tr .bln-type' ).length;
-
-        // Update admin bar
-        var adminBarEl = $( '#wp-admin-bar-blnotifier-notify' );
-        if ( adminBarEl.length ) {
-            adminBarEl.find( '.blnotifier-count-indicator' ).text( countBroken );
-        }
-
-        // Update admin menu
-        var adminMenuEl = $( 'li.toplevel_page_broken-link-notifier' );
-        if ( adminMenuEl.length ) {
-            adminMenuEl.find( '.awaiting-mod' ).text( countBroken );
-        }
-
-        // Update page total counter
-        var pageCountEl = $( '#bln-total-broken-links' );
-        if ( pageCountEl.length ) {
-            pageCountEl.text( countAll );
-        }
-    }
-
-
-    /**
-     * TRASH SELECTED BUTTON
-     */
-    function updateDeleteButton() {
-        const checkedCount = $( '.bln-row-checkbox:checked' ).length;
-        $( '#bln-delete-selected' ).prop( 'disabled', checkedCount === 0 );
-    }
-
-    $( document ).on( 'change', '.bln-row-checkbox', function() {
-        updateDeleteButton();
-    } );
-
-    $( '#cb-select-all-1' ).on( 'change', function() {
-        const checked = $( this ).prop( 'checked' );
-        $( '.bln-row-checkbox' ).prop( 'checked', checked );
-        updateDeleteButton();
-    } );
 } )

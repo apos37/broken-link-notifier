@@ -57,8 +57,13 @@ class BLNOTIFIER_LOADER {
         add_filter( 'plugin_row_meta', [ $this, 'plugin_row_meta' ], 10, 2 );
 
         // Requires
+        require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'settings.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'scan.php';
         require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'scan-multi.php';
+        require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'site-scan.php';
+        require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'link-browser.php';
+        require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'integrations/admin-help-docs.php';
+        require_once BLNOTIFIER_PLUGIN_INCLUDES_PATH.'whats-new.php';
 
     } // End load_admin_dependencies()
 

@@ -1,0 +1,218 @@
+/* Match settings page spacing on the taxonomy screens */
+
+.edit-tags-php #wpbody-content .wrap {
+    margin: 40px 30px 0 10px !important;
+    padding: 0 !important;
+}
+
+#col-container {
+    display: flex !important;
+    justify-content: flex-start;
+    align-items: flex-start;
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+}
+
+#col-left,
+#col-right {
+    float: none !important;
+    box-sizing: border-box;
+}
+
+#col-left {
+    flex: 0 0 400px;
+    max-width: 400px;
+}
+
+#col-right {
+    margin-left: 30px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+#col-left .col-wrap input[type="text"],
+#col-left .col-wrap textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background: #ffffff;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+#col-left .col-wrap input[type="text"]:focus,
+#col-left .col-wrap textarea:focus {
+    border-color: #84caff;
+    box-shadow: 0 0 0 3px rgba( 132, 202, 255, 0.25 );
+    outline: none;
+}
+
+/* Style the page */
+
+#col-left .col-wrap,
+#col-right .col-wrap {
+    padding: 0;
+    background: #fff;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0px 1px 2px rgba( 16, 24, 40, .1 );
+}
+
+#col-left .col-wrap h2 {
+    padding: 20px;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #1d2939;
+    border-bottom: 1px solid #eaecf0;
+}
+
+#col-left .col-wrap form {
+    padding: 10px 20px 5px;
+}
+
+#col-right .col-wrap form {
+    padding: 10px 20px 20px;
+}
+
+#col-left .col-wrap form .submit {
+    margin-top: 20px;
+}
+
+/* Hide the slug field on both add-new and edit screens */
+
+.edit-tags-php #addtag .form-field.term-slug-wrap,
+.term-php .form-field.term-slug-wrap {
+    display: none !important;
+}
+
+/* Hide the default on-page search box (moved to the subheader) and title */
+
+#wpbody-content .wrap .search-form {
+    display: none;
+}
+
+#wpbody-content .wrap .wp-heading-inline,
+#wpbody-content .wrap .page-title-action {
+    display: none;
+}
+
+/* Edit Term Page */
+
+.term-php #wpbody-content .wrap {
+    padding: 0 !important;
+    margin: 40px 30px 0 10px !important;
+    background: #fff;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0px 1px 2px rgba( 16, 24, 40, .1 );
+}
+
+.term-php #wpbody-content .wrap h1 {
+    padding: 20px;
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #1d2939;
+    border-bottom: 1px solid #eaecf0;
+}
+
+.term-php #wpbody-content .wrap #edittag {
+    padding: 20px;
+}
+
+/* Edit term field layout: labels at 200px, everything left-aligned */
+
+.term-php .form-field {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.term-php .form-field label {
+    flex: 0 0 200px;
+    font-weight: 600;
+    padding-top: 8px;
+}
+
+.term-php .form-field input[type="text"],
+.term-php .form-field textarea {
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background: #ffffff;
+    transition: border-color .15s ease, box-shadow .15s ease;
+    box-sizing: border-box;
+    width: 500px;
+    max-width: 100%;
+}
+
+.term-php .form-field input[type="text"]:focus,
+.term-php .form-field textarea:focus {
+    border-color: #84caff;
+    box-shadow: 0 0 0 3px rgba( 132, 202, 255, 0.25 );
+    outline: none;
+}
+
+.term-php .form-field p.description {
+    margin: 8px 0 0 0;
+    max-width: 500px;
+}
+
+.term-php .edit-tag-actions {
+    margin: 0;
+}
+
+/* Update button */
+
+.term-php .edit-tag-actions input[type="submit"] {
+    background: var( --blnotifier-color-button ) !important;
+    color: var( --blnotifier-color-button-font ) !important;
+    border-radius: 6px !important;
+    text-decoration: none;
+    font-size: 0.80rem !important;
+    font-weight: 500 !important;
+    transition: background 0.3s ease;
+    cursor: pointer;
+    height: 30px !important;
+    min-height: 30px !important;
+    line-height: 1 !important;
+    padding: 0 12px !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+.term-php .edit-tag-actions input[type="submit"]:hover,
+.term-php .edit-tag-actions input[type="submit"]:focus {
+    background: var( --blnotifier-color-button-hover ) !important;
+}
+
+/* Subheader search box (relies on WP core's native input styling, just corrected height/radius) */
+
+#blnotifier-subheader .blnotifier-search-input {
+    margin-bottom: 0 !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    border-radius: 5px;
+}
+
+#blnotifier-subheader .blnotifier-search-input:focus {
+    border-color: #84caff;
+    box-shadow: 0 0 0 3px rgba( 132, 202, 255, 0.25 );
+    outline: none;
+}
+
+.blnotifier-tax-search {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}

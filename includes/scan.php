@@ -39,17 +39,26 @@ class BLNOTIFIER_SCAN {
 
 
     /**
+     * Nonce used for the title/URL/ID suggestion ajax
+     *
+     * @var string
+     */
+    private $suggest_nonce = 'blnotifier_scan_suggest';
+
+
+    /**
 	 * Constructor
 	 */
 	public function __construct() {
 
         // Ajax
         add_action( 'wp_ajax_'.$this->ajax_key, [ $this, 'ajax' ] );
-        
+        add_action( 'wp_ajax_'.$this->suggest_nonce, [ $this, 'ajax_suggest' ] );
+
         // Enqueue script
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
-        
-	} // End __construct()
+
+    } // End __construct()
 
 
     /**
@@ -70,7 +79,7 @@ class BLNOTIFIER_SCAN {
 
         // Initiate helpers
         $HELPERS = new BLNOTIFIER_HELPERS;
-    
+
         // Get the ID
         $link     = isset( $_REQUEST[ 'link' ] ) ? $HELPERS->sanitize_link( wp_unslash( $_REQUEST[ 'link' ] ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
         $post_id  = isset( $_REQUEST[ 'postID' ] ) ? absint( wp_unslash( $_REQUEST[ 'postID' ] ) ) : false;
@@ -82,6 +91,9 @@ class BLNOTIFIER_SCAN {
             // Check status
             $status = $HELPERS->check_link( $link );
 
+            // Determine the source URL, falling back to the homepage if there's no valid post (e.g. a menu-only link)
+            $source_url = ( $post_id && get_post( $post_id ) ) ? get_the_permalink( $post_id ) : home_url();
+
             // Add to results
             $bad_status_codes = $HELPERS->get_bad_status_codes();
             $warning_status_codes = $HELPERS->get_warning_status_codes();
@@ -92,7 +104,7 @@ class BLNOTIFIER_SCAN {
                     'code'     => $status[ 'code' ],
                     'text'     => $status[ 'text' ],
                     'link'     => $status[ 'link' ],
-                    'source'   => get_the_permalink( $post_id ),
+                    'source'   => $source_url,
                     'author'   => get_current_user_id(),
                     'location' => 'content',
                     'method'   => $method
@@ -110,7 +122,7 @@ class BLNOTIFIER_SCAN {
             $result[ 'type' ] = 'error';
             $result[ 'msg' ] = 'No link found';
         }
-    
+
         // Echo the result or redirect
         if ( !empty( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) && strtolower( sanitize_key( wp_unslash( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] ) ) ) === 'xmlhttprequest' ) {
             echo wp_json_encode( $result );
@@ -118,10 +130,58 @@ class BLNOTIFIER_SCAN {
             $referer = isset( $_SERVER[ 'HTTP_REFERER' ] ) ? filter_var( wp_unslash( $_SERVER[ 'HTTP_REFERER' ] ), FILTER_SANITIZE_URL ) : '';
             header( 'Location: ' . $referer );
         }
-    
+
         // We're done here
         die();
     } // End ajax()
+
+
+    /**
+     * Ajax: suggest posts by title while typing
+     *
+     * @return void
+     */
+    public function ajax_suggest() {
+        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->suggest_nonce ) ) {
+            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+        }
+
+        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+        }
+
+        $search = isset( $_REQUEST[ 'search' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'search' ] ) ) : '';
+        if ( strlen( $search ) < 2 ) {
+            wp_send_json_success( [ 'items' => [] ] );
+        }
+
+        $post_types = (new BLNOTIFIER_HELPERS)->get_allowed_multiscan_post_types();
+
+        $query = new WP_Query( [
+            's'                   => $search,
+            'post_type'           => $post_types,
+            'post_status'         => [ 'publish', 'private', 'draft', 'pending' ],
+            'posts_per_page'      => 10,
+            'orderby'             => 'relevance',
+            'no_found_rows'       => true,
+            'ignore_sticky_posts' => true,
+        ] );
+
+        $items = [];
+        foreach ( $query->posts as $post ) {
+            $type_object = get_post_type_object( $post->post_type );
+            $status_object = get_post_status_object( $post->post_status );
+
+            $items[] = [
+                'id'     => $post->ID,
+                'title'  => $post->post_title ? $post->post_title : '(no title)',
+                'type'   => $type_object ? $type_object->labels->singular_name : $post->post_type,
+                'status' => $status_object ? $status_object->label : $post->post_status,
+            ];
+        }
+
+        wp_send_json_success( [ 'items' => $items ] );
+    } // End ajax_suggest()
 
 
     /**
@@ -134,6 +194,37 @@ class BLNOTIFIER_SCAN {
         // Only on these pages
         $options_page = 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN;
         $tab = (new BLNOTIFIER_HELPERS)->get_tab();
+
+        // Stylesheet shared by Page Scan and Link Search
+        if ( $screen === $options_page && ( $tab === 'scan-single' || $tab === 'link-search' ) ) {
+            wp_enqueue_style( 'blnotifier-scan', BLNOTIFIER_PLUGIN_CSS_PATH.'scan.css', [ 'blnotifier-theme' ], BLNOTIFIER_SCRIPT_VERSION );
+        }
+
+        // Suggestion field script, loads any time we're on Page Scan
+        if ( $screen === $options_page && $tab === 'scan-single' ) {
+            $suggest_handle = 'blnotifier_scan_suggest_script';
+            wp_enqueue_script( 'jquery' );
+            wp_register_script( $suggest_handle, site_url().BLNOTIFIER_PLUGIN_JS_PATH.'scan-suggest.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );
+            wp_localize_script( $suggest_handle, 'blnotifier_scan_suggest', [
+                'nonce'       => wp_create_nonce( $this->suggest_nonce ),
+                'omits_nonce' => wp_create_nonce( 'blnotifier_omit_something' ),
+                'post_types'  => (new BLNOTIFIER_OMITS)->get_scannable_post_type_choices(),
+                'ajaxurl'     => admin_url( 'admin-ajax.php' ),
+            ] );
+            wp_enqueue_script( $suggest_handle );
+        }
+
+        // Link autocomplete on Link Search
+        if ( $screen === $options_page && $tab === 'link-search' ) {
+            $link_search_handle = 'blnotifier_link_search_autocomplete_script';
+            wp_enqueue_script( 'jquery' );
+            wp_register_script( $link_search_handle, site_url().BLNOTIFIER_PLUGIN_JS_PATH.'link-search-autocomplete.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );
+            wp_localize_script( $link_search_handle, 'blnotifier_link_search_autocomplete', [
+                'nonce'   => wp_create_nonce( 'blnotifier_omit_something' ),
+                'ajaxurl' => admin_url( 'admin-ajax.php' ),
+            ] );
+            wp_enqueue_script( $link_search_handle );
+        }
 
         $is_scan_single_page = (
             $screen === $options_page &&
@@ -161,10 +252,8 @@ class BLNOTIFIER_SCAN {
                 $post_id = false;
             }
 
-            // Nonce
             $nonce = wp_create_nonce( $this->nonce );
 
-            // Register, localize, and enqueue
             $handle = 'blnotifier_'.str_replace( '-', '_', $tab ).'_script';
             wp_enqueue_script( 'jquery' );
             wp_register_script( $handle, site_url().BLNOTIFIER_PLUGIN_JS_PATH.$tab.'.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );

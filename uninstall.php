@@ -18,6 +18,7 @@ global $wpdb;
 $tables = [
     'blnotifier_results',
     'blnotifier_cache',
+    'blnotifier_links',
 ];
 
 foreach ( $tables as $table ) {
@@ -34,8 +35,12 @@ $options = [
     'emails',
     'enable_discord',
     'discord',
+    'enable_slack',
+    'slack',
     'enable_msteams',
     'msteams',
+    'enable_rest_api',
+    'api_key',
     'user_agent',
     'timeout',
     'max_redirects',
@@ -56,9 +61,18 @@ $options = [
     'status_codes',
     'uninstall_cleanup',
     'mark_code_zero_broken',
-    'per_page'
+    'per_page',
+    'link_browser_last_scan',
+    'verify_link_on_page',
+    'scan_delay_ms',
+    'site_scan_last_check',
+    'whats_new_seen',
+    'test_mode',
 ];
 
 foreach ( $options as $option ) {
     delete_option( 'blnotifier_' . $option );
 }
+
+// Remove user meta (per-user dismissal flags)
+delete_metadata( 'user', 0, 'blnotifier_verify_notice_dismissed', '', true );

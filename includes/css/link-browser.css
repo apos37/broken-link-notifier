@@ -1,0 +1,109 @@
+table.link-browser .pages-list {
+    display: none;
+    margin-top: 5px;
+}
+
+table.link-browser .pages-toggle {
+    cursor: pointer;
+    color: #0073aa;
+    text-decoration: underline;
+    font-size: 12px;
+}
+
+table.link-browser .type-internal {
+    color: #008000;
+    font-weight: bold;
+}
+
+table.link-browser .type-external {
+    color: #b32d2e;
+    font-weight: bold;
+}
+
+table.link-browser .kind-link,
+table.link-browser .kind-image,
+table.link-browser .kind-file {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #666;
+}
+
+table.link-browser td.link {
+    vertical-align: top;
+}
+
+table.link-browser td.actions a {
+    white-space: nowrap;
+}
+
+.bln-status-result {
+    display: none;
+    margin-top: 6px;
+}
+
+.bln-status-result .bln-status-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px 0 rgba( 7, 36, 86, 0.15 );
+    border: 1px solid rgba( 7, 36, 86, 0.075 );
+    margin-right: 6px;
+}
+
+.bln-status-result.broken .bln-status-badge {
+    background: red;
+    color: white;
+}
+
+.bln-status-result.warning .bln-status-badge {
+    background: yellow;
+    color: black;
+}
+
+.bln-status-result.good .bln-status-badge {
+    background: #008000;
+    color: white;
+}
+
+.bln-status-result.omitted .bln-status-badge,
+.bln-status-result.error .bln-status-badge {
+    background: #666;
+    color: white;
+}
+
+.bln-status-result .bln-status-text {
+    font-size: 12px;
+    color: #555;
+}
+
+.bln-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #ccc;
+    border-top-color: #0073aa;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-left: 6px;
+    animation: bln-spin 0.6s linear infinite;
+}
+
+@keyframes bln-spin {
+    to { transform: rotate( 360deg ); }
+}
+
+#bln-last-scanned.bln-scan-complete {
+    color: #008a20;
+    font-weight: 600;
+}
+
+#bln-last-scanned.bln-scan-complete .dashicons {
+    color: #008a20;
+    vertical-align: middle;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+}

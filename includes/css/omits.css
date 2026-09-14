@@ -1,0 +1,108 @@
+#col-container, 
+.form-field.term-slug-wrap,
+#edittag {
+    display: none;
+}
+
+#bln-quick-add {
+    margin-bottom: 15px;
+}
+
+#bln-quick-add .blnotifier-select-field {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+#bln-link-autocomplete-wrap {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+#bln-link-suggestions {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: white;
+    border: 1px solid #d0d5dd;
+    border-top: none;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 0 2px 5px rgba( 0, 0, 0, 0.1 );
+    box-sizing: border-box;
+}
+
+#bln-link-suggestions .bln-link-suggestion-item {
+    padding: 8px 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+#bln-link-suggestions .bln-link-suggestion-item:hover,
+#bln-link-suggestions .bln-link-suggestion-item.active {
+    background: #f0f6fc;
+}
+
+#bln-link-suggestions .bln-link-suggestion-url {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#bln-link-suggestions .bln-link-suggestion-type {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: #666;
+    text-transform: capitalize;
+}
+
+#addtag {
+    display: flex;
+    flex-direction: column;
+}
+
+#addtag .form-field.term-name-wrap {
+    order: 2;
+}
+
+#addtag #bln-quick-add-field {
+    order: 1;
+}
+
+#addtag .form-field.term-description-wrap {
+    order: 3;
+}
+
+#addtag p.submit {
+    order: 4;
+}
+
+#bln-quick-add-field {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#bln-quick-add-field select.blnotifier-select-field {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background: #ffffff;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+#bln-quick-add-field select.blnotifier-select-field:focus {
+    border-color: #84caff;
+    box-shadow: 0 0 0 3px rgba( 132, 202, 255, 0.25 );
+    outline: none;
+}

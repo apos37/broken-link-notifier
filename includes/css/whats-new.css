@@ -1,0 +1,105 @@
+#blnotifier-whats-new-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba( 16, 24, 40, 0.6 );
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#blnotifier-whats-new-modal {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    width: 600px;
+    max-width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba( 0, 0, 0, 0.3 );
+}
+
+#blnotifier-whats-new-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    color: #667085;
+}
+
+#blnotifier-whats-new-close:hover {
+    color: #1d2939;
+}
+
+.blnotifier-whats-new-header {
+    background: var( --blnotifier-color-header-bg, #1D2327 );
+    color: var( --blnotifier-color-header-font, #fff );
+    padding: 30px 30px 24px;
+    border-radius: 12px 12px 0 0;
+    text-align: center;
+}
+
+.blnotifier-whats-new-header .logo {
+    height: 40px;
+    margin-bottom: 12px;
+}
+
+.blnotifier-whats-new-header h1 {
+    color: inherit;
+    margin: 0;
+    font-size: 22px;
+}
+
+.blnotifier-whats-new-body {
+    padding: 24px 30px;
+}
+
+.blnotifier-whats-new-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.blnotifier-whats-new-list li {
+    margin-bottom: 18px;
+    padding-left: 26px;
+    position: relative;
+}
+
+.blnotifier-whats-new-list li:before {
+    content: "\2713";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    color: #008a20;
+    font-weight: bold;
+}
+
+.blnotifier-whats-new-list li strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+
+.blnotifier-whats-new-list li p {
+    margin: 0;
+    color: #475467;
+    font-size: 13px;
+}
+
+.blnotifier-whats-new-footer {
+    padding: 20px 30px;
+    border-top: 1px solid #eaecf0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}

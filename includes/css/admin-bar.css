@@ -1,0 +1,27 @@
+#wp-admin-bar-blnotifier-notify a {
+    text-decoration: none !important;
+}
+
+#wp-admin-bar-blnotifier-notify .ab-icon {
+    height: 5px;
+    width: 13px;
+    margin-top: 0px;
+    margin-right: 8px;
+    text-decoration: none !important;
+}
+
+#wp-admin-bar-blnotifier-notify .ab-icon:before {
+    font-size: 16px;
+}
+
+#wp-admin-bar-blnotifier-notify .ab-count {
+    margin: 0 0 0 2px !important;
+}
+
+#wp-admin-bar-blnotifier-notify .blnotifier-count-indicator {
+    display: inline-block;
+    margin: 0 0 0 2px !important;
+    padding: 0 5px;
+    background-color: #dc3232;
+    color: #fff;
+}

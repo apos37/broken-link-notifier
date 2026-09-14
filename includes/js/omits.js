@@ -6,10 +6,10 @@ jQuery( $ => {
 
     // Scan type
     const scanType = blnotifier_omit.scan_type;
-    const omitEl = scanType == 'scan-results' ? '.omit-link a' : '.omit-link';
+    const omitSelector = scanType == 'scan-results' ? '.omit-link a' : '.omit-link';
 
     // Listen for omitting links
-    $( omitEl ).on( 'click', function( e ) {
+    $( document ).on( 'click', omitSelector, function( e ) {
         e.preventDefault();
         var row;
         var link;
@@ -38,7 +38,7 @@ jQuery( $ => {
 
     // Listen for omitting pages
     if ( scanType == 'scan-multi' || scanType == 'scan-results' ) {
-        $( '.omit-page' ).on( 'click', function( e ) {
+        $( document ).on( 'click', '.omit-page', function( e ) {
             e.preventDefault();
             const link = $( this ).data( 'link' );
             if ( scanType == 'scan-results' ) {
@@ -72,9 +72,15 @@ jQuery( $ => {
             success: function( response ) {
                 // Success
                 if ( response.type == 'success' ) {
-                    
-                    // Update table
                     console.log( link + ' has been omitted.' );
+
+                    // The results table already deleted this from the DB server-side
+                    // (BLNOTIFIER_OMITS::add() calls BLNOTIFIER_RESULTS::remove() for 'scan-results')
+                    // so refresh the table/cards to reflect it instead of leaving a stale row.
+                    if ( page == 'scan-results' && typeof window.blnRefreshResultsTable === 'function' ) {
+                        window.blnRefreshResultsTable();
+                    }
+
                     return true;
                     
                 // Failure

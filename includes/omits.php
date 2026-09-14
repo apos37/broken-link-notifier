@@ -77,11 +77,21 @@ class BLNOTIFIER_OMITS {
             $this->register_taxonomy( $taxonomy );
         }
 
-        // Add instructions to top of page
-        add_action( 'admin_notices', [ $this, 'description_notice' ] );
+        // Add the header to the top of the Omitted Links/Pages list screens
+        add_action( 'load-edit-tags.php', [ $this, 'add_header' ] );
 
-        // Edit taxonomy form
-        add_action( 'admin_head', [ $this, 'form_fields' ] );
+        // Move search box to the right subheader
+        add_action( 'blnotifier_subheader_right', [ $this, 'render_search_box' ] );
+
+        // Remove the Screen Options tab on these screens
+        add_filter( 'screen_options_show_screen', [ $this, 'hide_screen_options' ], 10, 2 );
+
+        // Rename "Name"/"Description" to "URL"/"Notes" on the Omitted Links/Pages screens
+        add_filter( 'gettext', [ $this, 'rename_field_labels' ], 10, 3 );
+        add_filter( 'gettext_with_context', [ $this, 'rename_field_labels_with_context' ], 10, 4 );
+        
+        // Render the page picker above the URL field on Omitted Pages' Add New form
+        add_action( 'omit-pages_add_form_fields', [ $this, 'render_page_picker' ] );
 
         // Update admin columns
         $taxonomies = array_keys( $this->taxonomies );
@@ -93,8 +103,11 @@ class BLNOTIFIER_OMITS {
 
         // Ajax
         add_action( 'wp_ajax_'.$this->ajax_key, [ $this, 'ajax' ] );
+        add_action( 'wp_ajax_blnotifier_omits_get_posts', [ $this, 'ajax_get_posts_for_type' ] );
+        add_action( 'wp_ajax_blnotifier_omits_search_links', [ $this, 'ajax_search_discovered_links' ] );
         
         // Enqueue script
+        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_quick_add_script' ] );
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 
     } // End init()
@@ -111,30 +124,36 @@ class BLNOTIFIER_OMITS {
         // Labels
         if ( $taxonomy == 'omit-links' ) {
             $labels = [
-                'name'              => _x( 'Omitted Links', 'taxonomy general name', 'broken-link-notifier' ),
-                'singular_name'     => _x( 'Omitted Link', 'taxonomy singular name', 'broken-link-notifier' ),
-                'search_items'      => __( 'Search Omitted Links', 'broken-link-notifier' ),
-                'all_items'         => __( 'Add to Omitted Link', 'broken-link-notifier' ),
-                'edit_item'         => __( 'Edit Omitted Link', 'broken-link-notifier' ),
-                'update_item'       => __( 'Update Omitted Link', 'broken-link-notifier' ),
-                'add_new_item'      => __( 'Add New Omitted Link', 'broken-link-notifier' ),
-                'new_item_name'     => __( 'New Omitted Link Name', 'broken-link-notifier' ),
-                'menu_name'         => __( 'Omitted Links', 'broken-link-notifier' ),
-                'not_found'         => __( 'No omitted links found.', 'broken-link-notifier' ),
+                'name'                      => _x( 'Omitted Links', 'taxonomy general name', 'broken-link-notifier' ),
+                'singular_name'             => _x( 'Omitted Link', 'taxonomy singular name', 'broken-link-notifier' ),
+                'search_items'              => __( 'Search Omitted Links', 'broken-link-notifier' ),
+                'all_items'                 => __( 'Add to Omitted Link', 'broken-link-notifier' ),
+                'edit_item'                 => __( 'Edit Omitted Link', 'broken-link-notifier' ),
+                'update_item'               => __( 'Update Omitted Link', 'broken-link-notifier' ),
+                'add_new_item'              => __( 'Add New Omitted Link', 'broken-link-notifier' ),
+                'new_item_name'             => __( 'New Omitted Link Name', 'broken-link-notifier' ),
+                'menu_name'                 => __( 'Omitted Links', 'broken-link-notifier' ),
+                'not_found'                 => __( 'No omitted links found.', 'broken-link-notifier' ),
+                'name_field_description'    => __( 'The link URL.<br>Accepts wildcards <strong>*</strong> (ie. <strong>'.esc_url( home_url() ).'/account/*</strong> will include all links that start with this url).', 'broken-link-notifier' ),
+                'desc_field_description'    => __( 'Just a place to keep notes if you need them.', 'broken-link-notifier' ),
             ]; 	
         } elseif ( $taxonomy == 'omit-pages' ) {
             $labels = [
-                'name'              => _x( 'Omitted Pages', 'taxonomy general name', 'broken-link-notifier' ),
-                'singular_name'     => _x( 'Omitted Page', 'taxonomy singular name', 'broken-link-notifier' ),
-                'search_items'      => __( 'Search Omitted Pages', 'broken-link-notifier' ),
-                'all_items'         => __( 'Add to Omitted Page', 'broken-link-notifier' ),
-                'edit_item'         => __( 'Edit Omitted Page', 'broken-link-notifier' ),
-                'update_item'       => __( 'Update Omitted Page', 'broken-link-notifier' ),
-                'add_new_item'      => __( 'Add New Omitted Page', 'broken-link-notifier' ),
-                'new_item_name'     => __( 'New Omitted Page Name', 'broken-link-notifier' ),
-                'menu_name'         => __( 'Omitted Pages', 'broken-link-notifier' ),
-                'not_found'         => __( 'No omitted pages found.', 'broken-link-notifier' ),
+                'name'                      => _x( 'Omitted Pages', 'taxonomy general name', 'broken-link-notifier' ),
+                'singular_name'             => _x( 'Omitted Page', 'taxonomy singular name', 'broken-link-notifier' ),
+                'search_items'              => __( 'Search Omitted Pages', 'broken-link-notifier' ),
+                'all_items'                 => __( 'Add to Omitted Page', 'broken-link-notifier' ),
+                'edit_item'                 => __( 'Edit Omitted Page', 'broken-link-notifier' ),
+                'update_item'               => __( 'Update Omitted Page', 'broken-link-notifier' ),
+                'add_new_item'              => __( 'Add New Omitted Page', 'broken-link-notifier' ),
+                'new_item_name'             => __( 'New Omitted Page Name', 'broken-link-notifier' ),
+                'menu_name'                 => __( 'Omitted Pages', 'broken-link-notifier' ),
+                'not_found'                 => __( 'No omitted pages found.', 'broken-link-notifier' ),
+                'name_field_description'    => __( 'The link URL.<br>Accepts wildcards <strong>*</strong> (ie. <strong>'.esc_url( home_url() ).'/account/*</strong> will include all links that start with this url).', 'broken-link-notifier' ),
+                'desc_field_description'    => __( 'Just a place to keep notes if you need them.', 'broken-link-notifier' ),
             ]; 	
+        } else {
+            $labels = [];
         }
 
         // Register it as a new taxonomy
@@ -153,57 +172,177 @@ class BLNOTIFIER_OMITS {
 
 
     /**
-     * Undocumented function
-     * style="background-color: ; color: ; border-left-color: ;"
-     * style="color: '.esc_attr( $args[ 'color_ti' ] ).' !important; margin-top: 10px !important;"
-     * 
+     * Add the header to the top of the Omitted Links/Pages admin list screens
+     *
      * @return void
      */
-    public function description_notice() {
-        global $current_screen;
-        $taxonomies = array_keys( $this->taxonomies );
-        if ( $current_screen->id == 'edit-'.$taxonomies[0] ) {
-            echo '<div class="notice notice-info" >
-                <p>' . esc_html__( 'These links will be skipped during scanning and not be checked for validity.', 'broken-link-notifier' ) . '</p>
-            </div>';
-        } elseif ( $current_screen->id == 'edit-'.$taxonomies[1] ) {
-            echo '<div class="notice notice-info" >
-                <p>' . esc_html__( 'These pages will not be scanned for broken links.', 'broken-link-notifier' ) . '</p>
-            </div>';
+    public function add_header() {
+        $screen = get_current_screen();
+        if ( isset( $screen->id ) && ( $screen->id === 'edit-omit-links' || $screen->id === 'edit-omit-pages' ) ) {
+            add_action( 'in_admin_header', function() {
+                include BLNOTIFIER_PLUGIN_INCLUDES_PATH.'header.php';
+            } );
         }
-    } // End description_notice()
+    } // End add_header()
 
 
     /**
-     * Edit form fields
+     * Render a search box in the right subheader on the Omitted Links/Pages screens
      *
-     * @param WP_Term $tag
+     * @param string $active_tab
+     * @return void
+     */
+    public function render_search_box( $active_tab ) {
+        if ( $active_tab !== 'omit-links' && $active_tab !== 'omit-pages' ) {
+            return;
+        }
+
+        $screen = get_current_screen();
+        if ( isset( $screen->base ) && $screen->base === 'term' ) {
+            return;
+        }
+
+        $search_value = isset( $_GET[ 's' ] ) ? sanitize_text_field( wp_unslash( $_GET[ 's' ] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        ?>
+        <form method="get" class="blnotifier-tax-search">
+            <?php foreach ( $_GET as $key => $value ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                if ( in_array( $key, [ 's', 'action', 'paged' ], true ) ) continue;
+            ?>
+                <input type="hidden" name="<?php echo esc_attr( $key ); ?>" value="<?php echo esc_attr( $value ); ?>" />
+            <?php endforeach; ?>
+
+            <input type="search"
+                name="s"
+                value="<?php echo esc_attr( $search_value ); ?>"
+                placeholder="<?php echo esc_attr( $active_tab === 'omit-links' ? 'Search Omitted Links' : 'Search Omitted Pages' ); ?>"
+                class="blnotifier-search-input" />
+
+            <input type="submit"
+                class="blnotifier-button"
+                value="Search" />
+        </form>
+        <?php
+    } // End render_search_box()
+
+
+    /**
+     * Hide the Screen Options tab on the Omitted Links/Pages screens
+     *
+     * @param boolean $show_screen
+     * @param WP_Screen $screen
+     * @return boolean
+     */
+    public function hide_screen_options( $show_screen, $screen ) {
+        if ( isset( $screen->id ) && ( $screen->id === 'edit-omit-links' || $screen->id === 'edit-omit-pages' ) ) {
+            return false;
+        }
+        return $show_screen;
+    } // End hide_screen_options()
+
+
+    /**
+     * Rename form field labels/descriptions on the Omitted Links/Pages screens
+     *
+     * @param string $translation
+     * @param string $text
+     * @param string $domain
+     * @return string
+     */
+    public function rename_field_labels( $translation, $text, $domain ) {
+        if ( !function_exists( 'get_current_screen' ) || !is_admin() ) {
+            return $translation;
+        }
+
+        $result = $this->maybe_rename_label( $text );
+        return $result !== null ? $result : $translation;
+    } // End rename_field_labels()
+
+
+    /**
+     * Rename form field labels/descriptions that WP core wraps with context
+     *
+     * @param string $translation
+     * @param string $text
+     * @param string $context
+     * @param string $domain
+     * @return string
+     */
+    public function rename_field_labels_with_context( $translation, $text, $context, $domain ) {
+        if ( !function_exists( 'get_current_screen' ) || !is_admin() ) {
+            return $translation;
+        }
+
+        $result = $this->maybe_rename_label( $text );
+        return $result !== null ? $result : $translation;
+    } // End rename_field_labels_with_context()
+
+
+    /**
+     * Shared logic: check if this string is one we rename, and if we're on the right screen
+     *
+     * @param string $text
+     * @return string|null Null if this string/screen doesn't apply
+     */
+    private function maybe_rename_label( $text ) {
+        $relevant_strings = [
+            'Name',
+            'Description',
+        ];
+        if ( !in_array( $text, $relevant_strings, true ) ) {
+            return null;
+        }
+
+        $screen = get_current_screen();
+        if ( !$screen ) {
+            return null;
+        }
+
+        $is_taxonomy_screen = ( isset( $screen->id ) && ( $screen->id === 'edit-omit-links' || $screen->id === 'edit-omit-pages' ) )
+            || ( isset( $screen->taxonomy ) && in_array( $screen->taxonomy, [ 'omit-links', 'omit-pages' ], true ) );
+
+        if ( !$is_taxonomy_screen ) {
+            return null;
+        }
+
+        switch ( $text ) {
+            case 'Name':
+                return 'URL';
+            case 'Description':
+                return 'Notes';
+            default:
+                return null;
+        }
+    } // End maybe_rename_label()
+
+
+    /**
+     * Render the post-type/page picker above the URL field on Omitted Pages' Add New form
+     *
      * @param string $taxonomy
      * @return void
      */
-    public function form_fields() {
-        global $current_screen;
-        $taxonomies = array_keys( $this->taxonomies );
-        if ( $current_screen->id == 'edit-'.$taxonomies[0] || $current_screen->id == 'edit-'.$taxonomies[1] ) { ?>
-            <style>
-            #col-container, 
-            .form-field.term-slug-wrap,
-            #edittag {
-                display: none;
-            }
-            </style>
-            <script type="text/javascript">
-            jQuery( $ => { 
-                $( 'label[for="tag-name"], label[for="name"]' ).text( 'URL' );
-                $( '#name-description' ).html( 'The link URL.<br>Accepts wildcards <strong>*</strong> (ie. <strong><?php echo esc_url( home_url() ); ?>/account/*</strong> will include all links that start with this url).' );
-                $( 'label[for="tag-description"], label[for="description"]' ).text( 'Notes' );
-                $( '#description-description' ).text( 'Just a place to keep notes if you need them.' );
-                $( '#col-container, #edittag' ).show();
-            } )
-            </script>
-            <?php
+    public function render_page_picker( $taxonomy ) {
+        if ( $taxonomy !== 'omit-pages' ) {
+            return;
         }
-    } // End form_fields()
+
+        $post_types = $this->get_scannable_post_type_choices();
+        ?>
+        <div class="form-field" id="bln-quick-add-field">
+            <label for="bln-quick-add-post-type"><?php esc_html_e( 'Quick Add', 'broken-link-notifier' ); ?></label>
+            <select name="bln_quick_add_post_type" id="bln-quick-add-post-type" class="blnotifier-select-field">
+                <option value=""><?php esc_html_e( 'Choose a Post Type...', 'broken-link-notifier' ); ?></option>
+                <?php foreach ( $post_types as $key => $label ) : ?>
+                    <option value="<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <select name="bln_quick_add_post" id="bln-quick-add-post" class="blnotifier-select-field" disabled>
+                <option value=""><?php esc_html_e( 'Choose a Post Type First...', 'broken-link-notifier' ); ?></option>
+            </select>
+            <p class="description"><?php esc_html_e( 'Optionally pick a page to auto-fill the URL field below.', 'broken-link-notifier' ); ?></p>
+        </div>
+        <?php
+    } // End render_page_picker()
 
 
     /**
@@ -283,24 +422,31 @@ class BLNOTIFIER_OMITS {
      *
      * @param string $link
      * @param string $type Accepts links|pages
-     * @return void
+     * @param string $page
+     * @param string|null $note_override Optional custom note instead of the default "Added by user on date"
+     * @return boolean|string
      */
-    public function add( $link, $type, $page ) {
+    public function add( $link, $type, $page, $note_override = null ) {
         // Make sure the type is legit
         if ( $type != 'links' && $type != 'pages' ) {
             return false;
         }
 
-        // User
-        $user_id = get_current_user_id();
-        $user = get_user_by( 'ID', $user_id );
+        if ( $note_override !== null ) {
+            $description = $note_override;
+        } else {
+            // User
+            $user_id = get_current_user_id();
+            $user = get_user_by( 'ID', $user_id );
+            $description = 'Added by '.$user->display_name.' on '.(new BLNOTIFIER_HELPERS())->convert_timezone();
+        }
 
         // Add the taxonomy
         $omit = wp_insert_term(
             $link,
             'omit-'.$type,
             [
-                'description' => 'Added by '.$user->display_name.' on '.(new BLNOTIFIER_HELPERS())->convert_timezone(),
+                'description' => $description,
             ]
         );
         if ( !is_wp_error( $omit ) ) {
@@ -349,6 +495,7 @@ class BLNOTIFIER_OMITS {
      * Check if a page is omitted
      *
      * @param string $link
+     * @param string $type Accepts links|pages
      * @return boolean
      */
     public function is_omitted( $link, $type ) {
@@ -427,6 +574,150 @@ class BLNOTIFIER_OMITS {
 
 
     /**
+     * Get post type choices limited to those actually enabled for scanning
+     *
+     * @return array
+     */
+    public function get_scannable_post_type_choices() {
+        $HELPERS = new BLNOTIFIER_HELPERS;
+        $results = [];
+        foreach ( $HELPERS->get_allowed_multiscan_post_types() as $post_type ) {
+            $results[ $post_type ] = $HELPERS->get_post_type_name( $post_type );
+        }
+        return apply_filters( 'blnotifier_omit_quick_add_post_types', $results );
+    } // End get_scannable_post_type_choices()
+
+
+    /**
+     * Ajax: get posts of a given post type, for the quick-add dropdown
+     *
+     * @return void
+     */
+    public function ajax_get_posts_for_type() {
+        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
+            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+        }
+
+        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+        }
+
+        $post_type = isset( $_REQUEST[ 'post_type' ] ) ? sanitize_key( wp_unslash( $_REQUEST[ 'post_type' ] ) ) : '';
+        $allowed_types = (new BLNOTIFIER_HELPERS)->get_allowed_multiscan_post_types();
+
+        if ( !$post_type || !in_array( $post_type, $allowed_types, true ) ) {
+            wp_send_json_error( [ 'msg' => 'Invalid post type.' ] );
+        }
+
+        $posts = get_posts( [
+            'post_type'      => $post_type,
+            'post_status'    => [ 'publish', 'private', 'draft', 'pending' ],
+            'posts_per_page' => -1,
+            'orderby'        => 'title',
+            'order'          => 'ASC',
+            'fields'         => 'ids',
+        ] );
+
+        $items = [];
+        foreach ( $posts as $post_id ) {
+            $items[] = [
+                'id'    => $post_id,
+                'title' => get_the_title( $post_id ) ?: '(no title)',
+                'url'   => get_the_permalink( $post_id ),
+            ];
+        }
+
+        wp_send_json_success( [ 'items' => $items ] );
+    } // End ajax_get_posts_for_type()
+
+
+    /**
+     * Ajax: search discovered links (from Link Browser/Site Scan) for the Omitted Links autocomplete
+     *
+     * @return void
+     */
+    public function ajax_search_discovered_links() {
+        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
+            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+        }
+
+        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+        }
+
+        $search = isset( $_REQUEST[ 'search' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'search' ] ) ) : '';
+        if ( strlen( $search ) < 2 ) {
+            wp_send_json_success( [ 'items' => [] ] );
+        }
+
+        $LINK_BROWSER = new BLNOTIFIER_LINK_BROWSER;
+        if ( !$LINK_BROWSER->table_exists() ) {
+            wp_send_json_success( [ 'items' => [] ] );
+        }
+
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'blnotifier_links';
+
+        $rows = $wpdb->get_results( $wpdb->prepare(
+            "SELECT link, type FROM $table_name WHERE link LIKE %s ORDER BY link ASC LIMIT 15",
+            '%' . $wpdb->esc_like( $search ) . '%'
+        ) ); // phpcs:ignore
+
+        $items = [];
+        foreach ( $rows as $row ) {
+            $items[] = [
+                'link' => $row->link,
+                'type' => $row->type,
+            ];
+        }
+
+        wp_send_json_success( [ 'items' => $items ] );
+    } // End ajax_search_discovered_links()
+
+
+    /**
+     * Enqueue the term-form label/description swap and quick-add script
+     *
+     * @param string $screen
+     * @return void
+     */
+    public function enqueue_quick_add_script( $screen ) {
+        if ( $screen !== 'edit-tags.php' ) {
+            return;
+        }
+
+        global $current_screen;
+        if ( !isset( $current_screen->id ) || ( $current_screen->id !== 'edit-omit-links' && $current_screen->id !== 'edit-omit-pages' ) ) {
+            return;
+        }
+
+        wp_enqueue_style( 'blnotifier-omits', BLNOTIFIER_PLUGIN_CSS_PATH.'omits.css', [], BLNOTIFIER_SCRIPT_VERSION );
+
+        if ( $current_screen->id === 'edit-omit-pages' ) {
+            // Quick-add page picker for Omitted Pages
+            $quick_add_handle = 'blnotifier_omits_quick_add_script';
+            wp_register_script( $quick_add_handle, BLNOTIFIER_PLUGIN_JS_PATH.'omits-quick-add.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );
+            wp_localize_script( $quick_add_handle, 'blnotifier_omits_quick_add', [
+                'post_types' => $this->get_scannable_post_type_choices(),
+                'nonce'      => wp_create_nonce( $this->nonce ),
+                'ajaxurl'    => admin_url( 'admin-ajax.php' ),
+            ] );
+            wp_enqueue_script( $quick_add_handle );
+
+        } elseif ( $current_screen->id === 'edit-omit-links' ) {
+            // Link autocomplete for Omitted Links
+            $autocomplete_handle = 'blnotifier_omits_link_autocomplete_script';
+            wp_register_script( $autocomplete_handle, BLNOTIFIER_PLUGIN_JS_PATH.'omits-link-autocomplete.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );
+            wp_localize_script( $autocomplete_handle, 'blnotifier_omits_link_autocomplete', [
+                'nonce'   => wp_create_nonce( $this->nonce ),
+                'ajaxurl' => admin_url( 'admin-ajax.php' ),
+            ] );
+            wp_enqueue_script( $autocomplete_handle );
+        }
+    } // End enqueue_quick_add_script()
+
+
+    /**
      * Enqueue script
      *
      * @param string $screen
@@ -436,6 +727,14 @@ class BLNOTIFIER_OMITS {
         // Only on these pages
         $options_page = 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN;
         $tab = (new BLNOTIFIER_HELPERS)->get_tab();
+
+        // Taxonomy screens get their own stylesheet (both the list table and the single-term edit page)
+        if ( $screen === 'edit-tags.php' || $screen === 'term.php' ) {
+            $current_screen = get_current_screen();
+            if ( isset( $current_screen->id ) && ( $current_screen->id === 'edit-omit-links' || $current_screen->id === 'edit-omit-pages' ) ) {
+                wp_enqueue_style( 'blnotifier-taxonomies', BLNOTIFIER_PLUGIN_CSS_PATH.'taxonomies.css', [ 'blnotifier-theme' ], BLNOTIFIER_SCRIPT_VERSION );
+            }
+        }
 
         if ( 
             ( $screen == $options_page && $tab == 'scan-single' ) || 

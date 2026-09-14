@@ -15,6 +15,24 @@ if ( !defined( 'ABSPATH' ) ) {
 class BLNOTIFIER_HELPERS {
 
     /**
+     * Check if we are in test mode, either our own or DDT's
+     *
+     * @return boolean
+     */
+    public function is_test_mode() {
+        if ( get_option( 'blnotifier_test_mode' ) !== false ) {
+            return filter_var( get_option( 'blnotifier_test_mode' ), FILTER_VALIDATE_BOOLEAN );
+        }
+
+        if ( get_option( 'ddtt_test_mode' ) !== false ) {
+            return filter_var( get_option( 'ddtt_test_mode' ), FILTER_VALIDATE_BOOLEAN );
+        }
+
+        return false;
+    } // End is_test_mode()
+
+
+    /**
      * Check if the current user can manage Broken Link Notifier.
      *
      * @return bool True if user has permission, false otherwise.
@@ -69,13 +87,25 @@ class BLNOTIFIER_HELPERS {
 
 
     /**
-     * Check if we are pausing results verification
+     * Get the true factory-default broken/warning status codes, ignoring whatever
+     * is currently saved. Still respects the blnotifier_bad_status_codes and
+     * blnotifier_warning_status_codes filters, since those represent the
+     * developer-intended defaults, not the user's saved customizations.
      *
-     * @return boolean
+     * @return array{broken: array, warning: array}
      */
-    public function is_results_verification_paused() {
-        return filter_var( get_option( 'blnotifier_pause_results_verification' ), FILTER_VALIDATE_BOOLEAN );
-    } // End is_results_verification_paused()
+    public function get_default_status_codes() {
+        $default_broken_codes = [ 0, 666, 308, 400, 404, 408 ];
+        $default_warning_codes = [ 0, 413 ];
+
+        $broken = filter_var_array( apply_filters( 'blnotifier_bad_status_codes', $default_broken_codes ), FILTER_SANITIZE_NUMBER_INT );
+        $warning = filter_var_array( apply_filters( 'blnotifier_warning_status_codes', $default_warning_codes ), FILTER_SANITIZE_NUMBER_INT );
+
+        return [
+            'broken'  => array_map( 'strval', $broken ),
+            'warning' => array_map( 'strval', $warning ),
+        ];
+    } // End get_default_status_codes()
 
     
     /**
@@ -84,15 +114,13 @@ class BLNOTIFIER_HELPERS {
      * @return array
      */
     public function get_bad_status_codes() {
-        $default_codes = [ 0, 666, 308, 400, 404, 408 ];
+        $defaults = $this->get_default_status_codes();
+        $default_codes = array_map( 'intval', $defaults[ 'broken' ] );
 
         $types = filter_var_array( get_option( 'blnotifier_status_codes', [] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
         if ( empty( $types ) ) {
-            $old_filtered_array = filter_var_array( apply_filters( 'blnotifier_bad_status_codes', $default_codes ), FILTER_SANITIZE_NUMBER_INT );
-            if ( !empty( $old_filtered_array ) ) {
-                foreach ( $old_filtered_array as $code ) {
-                    $types[ $code ] = 'broken';
-                }
+            foreach ( $default_codes as $code ) {
+                $types[ $code ] = 'broken';
             }
         }
 
@@ -117,15 +145,13 @@ class BLNOTIFIER_HELPERS {
      * @return array
      */
     public function get_warning_status_codes( $force_enable = false ) {
-        $default_codes = [ 0, 413 ];
+        $defaults = $this->get_default_status_codes();
+        $default_codes = array_map( 'intval', $defaults[ 'warning' ] );
 
         $types = filter_var_array( get_option( 'blnotifier_status_codes', [] ), FILTER_SANITIZE_FULL_SPECIAL_CHARS );
         if ( empty( $types ) ) {
-            $old_filtered_array = filter_var_array( apply_filters( 'blnotifier_warning_status_codes', $default_codes ), FILTER_SANITIZE_NUMBER_INT );
-            if ( !empty( $old_filtered_array ) ) {
-                foreach ( $old_filtered_array as $code ) {
-                    $types[ $code ] = 'warning';
-                }
+            foreach ( $default_codes as $code ) {
+                $types[ $code ] = 'warning';
             }
         }
 
@@ -399,7 +425,7 @@ class BLNOTIFIER_HELPERS {
     /**
      * Count broken links in results
      *
-     * @return void
+     * @return int
      */
     public function count_broken_links() {
         global $wpdb;
@@ -518,7 +544,7 @@ class BLNOTIFIER_HELPERS {
      * Mark a select option as selected
      *
      * @param string $option
-     * @param string $the_key
+     * @param string $value
      * @return string
      */
     public function is_selected( $option, $value ) {
@@ -527,195 +553,9 @@ class BLNOTIFIER_HELPERS {
 
 
     /**
-     * Add a WP Plugin Info Card
-     *
-     * @param string $slug
-     * @return string
-     */
-    public function plugin_card( $slug ) {
-        // Set the args
-        $args = [ 
-            'slug'                => $slug, 
-            'fields'              => [
-                'last_updated'    => true,
-                'tested'          => true,
-                'active_installs' => true
-            ]
-        ];
-        
-        // Fetch the plugin info from the wp repository
-        $response = wp_remote_post(
-            'http://api.wordpress.org/plugins/info/1.0/',
-            [
-                'body'        => [
-                    'action'  => 'plugin_information',
-                    'request' => serialize( (object)$args )
-                ]
-            ]
-        );
-
-        // If there is no error, continue
-        if ( !is_wp_error( $response ) ) {
-
-            // Unserialize
-            $returned_object = unserialize( wp_remote_retrieve_body( $response ) );   
-            if ( $returned_object ) {
-                
-                // Last Updated
-                $last_updated = $returned_object->last_updated;
-                $last_updated = $this->time_elapsed_string( $last_updated );
-
-                // Compatibility
-                $compatibility = $returned_object->tested;
-
-                // Add incompatibility class
-                global $wp_version;
-                if ( $compatibility == $wp_version ) {
-                    $is_compatible = '<span class="compatibility-compatible"><strong>Compatible</strong> with your version of WordPress</span>';
-                } else {
-                    $is_compatible = '<span class="compatibility-untested">Untested with your version of WordPress</span>';
-                }
-
-                // Get all the installed plugins
-                $plugins = get_plugins();
-
-                // Check if this plugin is installed
-                $is_installed = false;
-                foreach ( $plugins as $key => $plugin ) {
-                    if ( $plugin[ 'TextDomain' ] == $slug ) {
-                        $is_installed = $key;
-                    }
-                }
-
-                // Check if it is also active
-                $is_active = false;
-                if ( $is_installed && is_plugin_active( $is_installed ) ) {
-                    $is_active = true;
-                }
-
-                // Check if the plugin is already active
-                if ( $is_active ) {
-                    $install_link = 'role="link" aria-disabled="true"';
-                    $php_notice = '';
-                    $install_text = 'Active';
-
-                // Check if the plugin is installed but not active
-                } elseif ( $is_installed ) {
-                    $install_link = 'href="'.admin_url( 'plugins.php' ).'"';
-                    $php_notice = '';
-                    $install_text = 'Go to Activate';
-
-                // Check for php requirement
-                } elseif ( phpversion() < $returned_object->requires_php ) {
-                    $install_link = 'role="link" aria-disabled="true"';
-                    $php_notice = '<div class="php-incompatible"><em><strong>Requires PHP Version '.$returned_object->requires_php.'</strong> — You are currently on Version '.phpversion().'</em></div>';
-                    $install_text = 'Incompatible';
-
-                // If we're good to go, add the link
-                } else {
-
-                    // Get the admin url for the plugin install page
-                    if ( is_multisite() ) {
-                        $admin_url = network_admin_url( 'plugin-install.php' );
-                    } else {
-                        $admin_url = admin_url( 'plugin-install.php' );
-                    }
-
-                    // Vars
-                    $install_link = 'href="'.$admin_url.'?s='.esc_attr( $returned_object->name ).'&tab=search&type=term"';
-                    $php_notice = '';
-                    $install_text = 'Get Now';
-                }
-                
-                // Short Description
-                $pos = strpos( $returned_object->sections[ 'description' ], '.');
-                $desc = substr( $returned_object->sections[ 'description' ], 0, $pos + 1 );
-
-                // Rating
-                $rating = $this->get_five_point_rating( 
-                    $returned_object->ratings[1], 
-                    $returned_object->ratings[2], 
-                    $returned_object->ratings[3], 
-                    $returned_object->ratings[4], 
-                    $returned_object->ratings[5] 
-                );
-
-                // Link guts
-                $link_guts = 'href="https://wordpress.org/plugins/'.esc_attr( $slug ).'/" target="_blank" aria-label="More information about '.$returned_object->name.' '.$returned_object->version.'" data-title="'.$returned_object->name.' '.$returned_object->version.'"';
-                ?>
-                <style>
-                .plugin-card {
-                    float: none !important;
-                    margin-left: 0 !important;
-                }
-                .plugin-card .ws_stars {
-                    display: inline-block;
-                }
-                .php-incompatible {
-                    padding: 12px 20px;
-                    background-color: #D1231B;
-                    color: #FFFFFF;
-                    border-top: 1px solid #dcdcde;
-                    overflow: hidden;
-                }
-                #wpbody-content .plugin-card .plugin-action-buttons a.install-now[aria-disabled="true"] {
-                    color: #CBB8AD !important;
-                    border-color: #CBB8AD !important;
-                }
-                .plugin-action-buttons {
-                    list-style: none !important;   
-                }
-                </style>
-                <div class="plugin-card plugin-card-<?php echo esc_attr( $slug ); ?>">
-                    <div class="plugin-card-top">
-                        <div class="name column-name">
-                            <h3>
-                                <a <?php echo wp_kses_post( $link_guts ); ?>>
-                                    <?php echo esc_html( $returned_object->name ); ?> 
-                                    <img src="<?php echo esc_url( BLNOTIFIER_PLUGIN_IMG_PATH ).esc_attr( $slug  ); ?>.png" class="plugin-icon" alt="<?php echo esc_html( $returned_object->name ); ?> Thumbnail">
-                                </a>
-                            </h3>
-                        </div>
-                        <div class="action-links">
-                            <ul class="plugin-action-buttons">
-                                <li><a class="install-now button" data-slug="<?php echo esc_attr( $slug ); ?>" <?php echo wp_kses_post( $install_link ); ?> aria-label="<?php echo esc_attr( $install_text );?>" data-name="<?php echo esc_html( $returned_object->name ); ?> <?php echo esc_html( $returned_object->version ); ?>"><?php echo esc_attr( $install_text );?></a></li>
-                                <li><a <?php echo wp_kses_post( $link_guts ); ?>>More Details</a></li>
-                            </ul>
-                        </div>
-                        <div class="desc column-description">
-                            <p><?php echo wp_kses_post( $desc ); ?></p>
-                            <p class="authors"> <cite>By <?php echo wp_kses_post( $returned_object->author ); ?></cite></p>
-                        </div>
-                    </div>
-                    <div class="plugin-card-bottom">
-                        <div class="vers column-rating">
-                            <div class="star-rating"><span class="screen-reader-text"><?php echo esc_attr( abs( $rating ) ); ?> star rating based on <?php echo absint( $returned_object->num_ratings ); ?> ratings</span>
-                                <?php echo wp_kses_post( $this->convert_to_stars( abs( $rating ) ) ); ?>
-                            </div>					
-                            <span class="num-ratings" aria-hidden="true">(<?php echo absint( $returned_object->num_ratings ); ?>)</span>
-                        </div>
-                        <div class="column-updated">
-                            <strong>Last Updated:</strong> <?php echo esc_html( $last_updated ); ?>
-                        </div>
-                        <div class="column-downloaded" data-downloads="<?php echo esc_html( number_format( $returned_object->downloaded ) ); ?>">
-                            <?php echo esc_html( number_format( $returned_object->active_installs ) ); ?>+ Active Installs
-                        </div>
-                        <div class="column-compatibility">
-                            <?php echo wp_kses_post( $is_compatible ); ?>				
-                        </div>
-                    </div>
-                    <?php echo wp_kses_post( $php_notice ); ?>
-                </div>
-                <?php
-            }
-        }
-    } // End plugin_card()
-
-
-    /**
      * Convert time to elapsed string
      *
-     * @param [type] $datetime
+     * @param string $datetime
      * @param boolean $full
      * @return string
      */
@@ -1939,37 +1779,102 @@ class BLNOTIFIER_HELPERS {
      */
     public function get_header_footer_links() {
         $links = [];
-    
-        // Get all registered menus
+
         $locations = get_nav_menu_locations();
-    
+
         foreach ( $locations as $location => $menu_id ) {
             $menu_items = wp_get_nav_menu_items( $menu_id );
             if ( ! $menu_items ) {
                 continue;
             }
-    
+
+            $menu_obj = wp_get_nav_menu_object( $menu_id );
+            $menu_name = $menu_obj ? $menu_obj->name : __( 'Unknown Menu', 'broken-link-notifier' );
+
             if ( strpos( $location, 'header' ) !== false ) {
                 $location_label = 'header';
             } elseif ( strpos( $location, 'footer' ) !== false ) {
                 $location_label = 'footer';
             } else {
                 $location_label = 'menu';
-            }            
-    
+            }
+
+            /**
+             * Filter the detected location label (header/footer/menu) for a given
+             * registered nav menu location slug. Useful for themes with unconventional
+             * menu location names (e.g. 'primary_nav') that would otherwise always fall
+             * back to 'menu'.
+             */
+            $location_label = apply_filters( 'blnotifier_menu_location_label', $location_label, $location, $menu_id );
+
             foreach ( $menu_items as $item ) {
                 if ( ! empty( $item->url ) ) {
                     $links[] = [
-                        'link'     => esc_url_raw( $item->url ),
-                        'location' => $location_label,
-                        'post_id'  => 0,
+                        'link'      => esc_url_raw( $item->url ),
+                        'location'  => $location_label,
+                        'post_id'   => 0,
+                        'menu_id'   => absint( $menu_id ),
+                        'menu_name' => $menu_name,
                     ];
                 }
             }
         }
-    
-        return $links;
+
+        return apply_filters( 'blnotifier_header_footer_links', $links );
     } // End get_header_footer_links()
+
+
+    /**
+     * Check whether a link string still appears in a source post's rendered content
+     *
+     * @param string $link
+     * @param int $post_id
+     * @return boolean
+     */
+    public function link_still_on_page( $link, $post_id ) {
+        if ( !apply_filters( 'blnotifier_verify_link_on_page_enabled', true, $link, $post_id ) ) {
+            return true;
+        }
+
+        if ( !$post_id || !get_post( $post_id ) ) {
+            return false;
+        }
+
+        $get_the_content = get_the_content( null, false, $post_id );
+        if ( !$get_the_content || strpos( $get_the_content, '[redirect_this_page' ) !== false ) {
+            return false;
+        }
+
+        add_filter( 'wp_redirect', '__return_false', 1 );
+        add_filter( 'wp_safe_redirect', '__return_false', 1 );
+
+        ob_start();
+        try {
+            $content = apply_filters( 'the_content', $get_the_content );
+        } catch ( Exception $e ) {
+            $content = '';
+        }
+        ob_end_clean();
+
+        remove_filter( 'wp_redirect', '__return_false', 1 );
+        remove_filter( 'wp_safe_redirect', '__return_false', 1 );
+
+        if ( !$content ) {
+            return false;
+        }
+
+        $links = $this->extract_links( $content );
+        $normalized_target = apply_filters( 'blnotifier_verify_link_normalize', $this->str_replace_on_link( $link ), $link );
+
+        foreach ( $links as $found_link ) {
+            $normalized_found = apply_filters( 'blnotifier_verify_link_normalize', $this->str_replace_on_link( $found_link ), $found_link );
+            if ( $normalized_found === $normalized_target ) {
+                return true;
+            }
+        }
+
+        return false;
+    } // End link_still_on_page()
 
 }
 
