@@ -15,10 +15,6 @@ jQuery( $ => {
     const scanLink = async ( link, linkID, code, type, sourceID, method ) => {
         console.log( `Scanning link (${link})...` );
 
-        // Say it started
-        var span = $( `#bln-verify-${linkID}` );
-        span.addClass( 'scanning' ).html( `<em>Verifying</em>` );
-
         // Run the scan
         return await $.ajax( {
             type: 'post',

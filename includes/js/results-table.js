@@ -1,5 +1,4 @@
 jQuery( $ => {
-
     const nonceTable = blnotifier_results_table.nonce_table;
     const nonceBulk = blnotifier_results_table.nonce_bulk;
     const ajaxUrl = blnotifier_results_table.ajaxurl;
