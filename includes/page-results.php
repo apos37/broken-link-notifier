@@ -7,7 +7,7 @@ $table_name = $wpdb->prefix . 'blnotifier_results';
 $RESULTS = new BLNOTIFIER_RESULTS;
 $HELPERS = new BLNOTIFIER_HELPERS;
 
-$per_page = absint( get_option( 'blnotifier_per_page', 50 ) );
+$per_page = $RESULTS->sanitize_per_page( get_option( 'blnotifier_per_page', 25 ) );
 $counts = $RESULTS->get_counts();
 $warnings_enabled = filter_var( get_option( 'blnotifier_enable_warnings' ), FILTER_VALIDATE_BOOLEAN );
 

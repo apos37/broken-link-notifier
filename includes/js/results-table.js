@@ -236,6 +236,7 @@ jQuery( $ => {
      */
     const verifyVisibleRows = async () => {
         const linkSpans = document.querySelectorAll( '.bln-verify' );
+        let anyRemoved = false;
 
         for ( const linkSpan of linkSpans ) {
 
@@ -266,12 +267,10 @@ jQuery( $ => {
             }
 
             var text;
-            if ( statusType == 'good' || statusType == 'omitted' || statusType == 'n/a' || statusType == 'removed' ) {
+            if ( statusType == 'good' || statusType == 'omitted' || statusType == 'n/a' ) {
                 text = ( statusType == 'n/a' )
-                    ? '<em>Source no longer exists, removed from list.</em>'
-                    : ( statusType == 'removed' )
-                        ? '<em>Link no longer found on page, removed from list.</em>'
-                        : '<em>Link is ' + statusType + ', removed from list.</em>';
+                    ? '<em>Source no longer exists, removing from list...</em>'
+                    : '<em>Link is ' + statusType + ', removing from list...</em>';
 
                 $( `#link-${linkID}` ).addClass( 'omitted' );
                 $( `#link-${linkID} .bln-type` ).addClass( statusType ).text( statusType );
@@ -279,7 +278,8 @@ jQuery( $ => {
                 $( `#link-${linkID} .bln_type .message` ).text( statusText );
                 $( `#link-${linkID} .link .row-actions` ).remove();
                 $( `#link-${linkID} .source .row-actions` ).remove();
-                window.reduceCount();
+
+                anyRemoved = true;
 
             } else if ( code != statusCode || type != statusType ) {
                 if ( statusCode == 'ERR_FAILED' ) {
@@ -301,6 +301,11 @@ jQuery( $ => {
             }
 
             $( linkSpan ).removeClass( 'scanning' ).addClass( statusType ).html( text );
+        }
+
+        // Resync once, after the whole batch finishes, instead of per-row
+        if ( anyRemoved ) {
+            fetchTable( currentPage );
         }
     }
 

@@ -30,7 +30,7 @@ foreach ( $tables as $table ) {
 $options = [
     'has_updated_settings',
     'pause_frontend_scanning',
-    'pause_results_verification',
+    'remote_fetch_links',
     'enable_emailing',
     'emails',
     'enable_discord',
@@ -63,7 +63,6 @@ $options = [
     'mark_code_zero_broken',
     'per_page',
     'link_browser_last_scan',
-    'verify_link_on_page',
     'scan_delay_ms',
     'site_scan_last_check',
     'whats_new_seen',

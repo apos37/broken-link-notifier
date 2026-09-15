@@ -121,7 +121,6 @@ https://youtu.be/gM9Qy0HLplU
 * Update: Legacy Multi-Scan is now disabled by default in favor of Site Scan; developers can re-enable it with the `blnotifier_enable_legacy_multiscan` filter, or by enabling test mode from the Developer Debug Tools plugin
 * Update: Pages that appear to redirect are now automatically detected and omitted from future scans during Link Browser and Site Scan, with a note explaining why
 * Update: Results page rebuilt with AJAX — filter by status with clickable counts, bulk actions (Clear Results, Omit Links, Omit Sources), manual on-demand link verification, and no more page reloads
-* Update: Verifying a link on the Results page now also confirms it's still referenced on its source page, and automatically clears it with a "No longer found on page" message if it's not (optional, enable in settings)
 * Update: Added quick-add tools to Omitted Links (autocomplete from discovered links) and Omitted Pages (browse by post type) so you no longer need to type or paste a URL from memory
 * Update: Added post-type/page browsing to Page Scan, and link autocomplete to Link Search, as alternatives to typing a URL directly
 * Update: Added a "Search All Pages" action to Link Browser that hands off directly to Link Search
@@ -133,7 +132,7 @@ https://youtu.be/gM9Qy0HLplU
 * Update: Added an optional delay between requests during Link Browser and Site Scan scans, for sites needing to reduce server load
 * Update: Added a "What's New" overlay introducing major updates
 * Update: Removed all help documentation since we have links to the Help Guide and Developer Docs on the website
-* Update: Added new developer filters — `blnotifier_link_type`, `blnotifier_link_kind`, `blnotifier_link_kind_image_extensions`, `blnotifier_link_kind_file_extensions`, `blnotifier_menu_location_label`, `blnotifier_header_footer_links`, `blnotifier_auto_omit_redirects`, `blnotifier_auto_omit_redirect_note`, `blnotifier_verify_link_on_page_enabled`, `blnotifier_verify_link_normalize`, `blnotifier_export_results_headers`, `blnotifier_export_link_browser_headers`, `blnotifier_export_results_rows`, `blnotifier_export_link_browser_rows`, `blnotifier_omit_quick_add_post_types`, and `blnotifier_admin_menu_title`
+* Update: Added new developer filters — `blnotifier_link_type`, `blnotifier_link_kind`, `blnotifier_link_kind_image_extensions`, `blnotifier_link_kind_file_extensions`, `blnotifier_menu_location_label`, `blnotifier_header_footer_links`, `blnotifier_auto_omit_redirects`, `blnotifier_auto_omit_redirect_note`, `blnotifier_export_results_headers`, `blnotifier_export_link_browser_headers`, `blnotifier_export_results_rows`, `blnotifier_export_link_browser_rows`, `blnotifier_omit_quick_add_post_types`, and `blnotifier_admin_menu_title`
 * Tweak: "Omit Page" action renamed to "Omit Source" for clarity
 * Update: Shortened the admin menu title to "Broken Links" and made it filterable via `blnotifier_admin_menu_title`
 

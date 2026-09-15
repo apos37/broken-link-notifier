@@ -129,6 +129,27 @@ table.page-scan .link-row .actions {
     margin-left: 8px;
 }
 
+.blnotifier-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.blnotifier-button .bln-spinner-inline {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba( 255, 255, 255, 0.4 );
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+    animation: bln-spin 0.6s linear infinite;
+}
+
+@keyframes bln-spin {
+    to { transform: rotate( 360deg ); }
+}
+
 table.page-scan th.post_title {
     width: auto;
 }
@@ -170,13 +191,12 @@ table.page-scan th.actions {
     gap: 10px;
 }
 
-#link-search-input {
-    width: 600px;
+#url-search-input {
+    width: 450px;
     padding: 0 10px;
-    height: 30px;
-    min-height: 30px;
+    height: 36px;
     font-size: 13px;
-    line-height: 1;
+    line-height: 1.4;
     border: 1px solid #d0d5dd;
     border-radius: 6px;
     background: #ffffff;
@@ -184,7 +204,7 @@ table.page-scan th.actions {
     transition: border-color .15s ease, box-shadow .15s ease;
 }
 
-#link-search-input:focus {
+#url-search-input:focus {
     border-color: #84caff;
     box-shadow: 0 0 0 3px rgba( 132, 202, 255, 0.25 );
     outline: none;
@@ -195,7 +215,7 @@ table.page-scan th.actions {
     position: absolute;
     top: 100%;
     left: 0;
-    width: 460px;
+    width: 450px;
     background: white;
     border: 1px solid #d0d5dd;
     border-top: none;

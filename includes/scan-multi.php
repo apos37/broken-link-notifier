@@ -178,6 +178,15 @@ class BLNOTIFIER_FULL_SCAN {
                     add_filter( 'wp_redirect', '__return_false', 1 );
                     add_filter( 'wp_safe_redirect', '__return_false', 1 );
 
+                    // Set up post context so shortcodes relying on get_the_ID()/is_singular() work correctly
+                    global $post;
+                    $scanned_post = get_post( $post_id );
+                    $original_post = $post;
+                    if ( $scanned_post ) {
+                        $post = $scanned_post;
+                        setup_postdata( $post );
+                    }
+
                     // Start output buffering to suppress unexpected output
                     ob_start();
 
@@ -194,6 +203,12 @@ class BLNOTIFIER_FULL_SCAN {
                     // Clear any unexpected output
                     ob_end_clean();
 
+                    // Restore the original post context
+                    if ( $scanned_post ) {
+                        $post = $original_post;
+                        wp_reset_postdata();
+                    }
+
                     // After processing the content, remove the filters to restore redirect functionality
                     remove_filter( 'wp_redirect', '__return_false', 1 );
                     remove_filter( 'wp_safe_redirect', '__return_false', 1 );
@@ -207,6 +222,12 @@ class BLNOTIFIER_FULL_SCAN {
 
                         // Extract the links
                         $links = $HELPERS->extract_links( $content );
+
+                        // Merge in remotely fetched links, if enabled
+                        if ( filter_var( get_option( 'blnotifier_remote_fetch_links' ), FILTER_VALIDATE_BOOLEAN ) ) {
+                            $remote_links = $HELPERS->get_remote_page_links( $post_id );
+                            $links = $HELPERS->merge_and_dedupe_links( $links, $remote_links );
+                        }
 
                         // Display the number of broken links found
                         if ( !empty( $links ) ) {

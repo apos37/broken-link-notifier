@@ -142,4 +142,16 @@ jQuery( $ => {
         }
     } );
 
+    let clickedSubmitButton = null;
+
+    $( document ).on( 'click', 'button[type="submit"]', function() {
+        clickedSubmitButton = this;
+    } );
+
+    $( 'form' ).on( 'submit', function() {
+        if ( clickedSubmitButton ) {
+            $( clickedSubmitButton ).prop( 'disabled', true ).html( '<span class="bln-spinner-inline"></span>Scanning...' );
+        }
+    } );
+
 } );

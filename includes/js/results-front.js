@@ -108,7 +108,7 @@ jQuery( $ => {
                         console.log( '%c Broken Link Scan Results: ', 'background: #2570AC; color: white' );
                         if ( response.notify ) {
                             console.log( '%c Bad links found: ', 'background: #222; color: #bada55' );
-                            console.error( response.notify );
+                            console.log( response.notify );
                         } else {
                             console.info( '%c No broken links found. :)', 'background: #222; color: #bada55' );
                         }

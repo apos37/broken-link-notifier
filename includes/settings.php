@@ -384,6 +384,13 @@ class BLNOTIFIER_SETTINGS {
         // Other checkboxes
         $checkboxes = [
             [ 
+                'name'     => 'remote_fetch_links',
+                'label'    => 'Also Fetch Pages Remotely When Scanning',
+                'default'  => false,
+                'box'      => 'scanning',
+                'comments' => 'In addition to reading a page\'s stored content, also fetches the live published URL and scans its HTML for links. This catches links rendered by shortcodes or templates that depend on live page context (common with listing/directory themes), at the cost of a slower scan since it makes a real web request per page. Only applies to published pages.'
+            ],
+            [ 
                 'name'     => 'allow_redirects',
                 'label'    => 'Allow Redirects',
                 'default'  => true,
@@ -412,13 +419,6 @@ class BLNOTIFIER_SETTINGS {
                 'comments' => 'Includes warnings in all scans'
             ],
             [ 
-                'name'     => 'verify_link_on_page',
-                'label'    => 'Verify Link Still Exists on Page When Checking Status',
-                'default'  => true,
-                'box'      => 'scanning',
-                'comments' => 'When checking a link\'s status, also confirm it\'s still referenced on its source page. If it\'s not, the result is removed automatically with a "No longer found on page" message instead of just checking whether the URL itself works. Disable this on sites with a lot of results if checking feels slow, since it adds an extra content scan per link.'
-            ],
-            [ 
                 'name'     => 'enable_good_links',
                 'label'    => 'Show Good Links in Results',
                 'default'  => false,
@@ -427,7 +427,7 @@ class BLNOTIFIER_SETTINGS {
             ],
             [ 
                 'name'     => 'enable_delete_source',
-                'label'    => 'Enable Delete Source Action Link',
+                'label'    => 'Enable "Trash Page" Action Link',
                 'default'  => false,
                 'box'      => 'scanning',
                 'comments' => 'An action link will appear on the Results tab under the source where you can trash the page entirely'

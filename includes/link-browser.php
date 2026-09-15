@@ -451,6 +451,14 @@ class BLNOTIFIER_LINK_BROWSER {
                 add_filter( 'wp_redirect', '__return_false', 1 );
                 add_filter( 'wp_safe_redirect', '__return_false', 1 );
 
+                global $post;
+                $scanned_post = get_post( $post_id );
+                $original_post = $post;
+                if ( $scanned_post ) {
+                    $post = $scanned_post;
+                    setup_postdata( $post );
+                }
+
                 ob_start();
                 try {
                     $content = apply_filters( 'the_content', $get_the_content );
@@ -461,11 +469,22 @@ class BLNOTIFIER_LINK_BROWSER {
                 }
                 ob_end_clean();
 
+                if ( $scanned_post ) {
+                    $post = $original_post;
+                    wp_reset_postdata();
+                }
+
                 remove_filter( 'wp_redirect', '__return_false', 1 );
                 remove_filter( 'wp_safe_redirect', '__return_false', 1 );
 
                 if ( $content ) {
                     $links = $HELPERS->extract_links( $content );
+
+                    if ( filter_var( get_option( 'blnotifier_remote_fetch_links' ), FILTER_VALIDATE_BOOLEAN ) ) {
+                        $remote_links = $HELPERS->get_remote_page_links( $post_id );
+                        $links = $HELPERS->merge_and_dedupe_links( $links, $remote_links );
+                    }
+
                     foreach ( $links as $link ) {
                         if ( $this->store_link( $link, $post_id ) ) {
                             $count_found++;

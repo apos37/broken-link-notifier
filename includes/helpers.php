@@ -816,6 +816,11 @@ class BLNOTIFIER_HELPERS {
                         // Get the link in the href attribute.
                         $linkHref = $this->sanitize_link( $link->getAttribute( $html_link_source ) );
     
+                        // Skip inline data URIs (e.g. embedded base64 SVGs/images) - not real, checkable links
+                        if ( stripos( $linkHref, 'data:' ) === 0 ) {
+                            continue;
+                        }
+    
                         // Add the link to our array.
                         $matches[] = $linkHref;
                     }
@@ -824,7 +829,7 @@ class BLNOTIFIER_HELPERS {
         }
     
         // Return
-        return $matches;
+        return apply_filters( 'blnotifier_extracted_links', $matches, $content );
     } // End extract_links()
 
 
@@ -1825,56 +1830,65 @@ class BLNOTIFIER_HELPERS {
 
 
     /**
-     * Check whether a link string still appears in a source post's rendered content
+     * Fetch a post's live published URL and extract links from the raw HTML
      *
-     * @param string $link
      * @param int $post_id
-     * @return boolean
+     * @return array
      */
-    public function link_still_on_page( $link, $post_id ) {
-        if ( !apply_filters( 'blnotifier_verify_link_on_page_enabled', true, $link, $post_id ) ) {
-            return true;
+    public function get_remote_page_links( $post_id ) {
+        $post = get_post( $post_id );
+        if ( !$post || $post->post_status !== 'publish' ) {
+            return [];
         }
 
-        if ( !$post_id || !get_post( $post_id ) ) {
-            return false;
+        $url = get_permalink( $post_id );
+        if ( !$url ) {
+            return [];
         }
 
-        $get_the_content = get_the_content( null, false, $post_id );
-        if ( !$get_the_content || strpos( $get_the_content, '[redirect_this_page' ) !== false ) {
-            return false;
+        $response = wp_remote_get( $url, [
+            'timeout'     => absint( get_option( 'blnotifier_timeout', 5 ) ),
+            'sslverify'   => filter_var( get_option( 'blnotifier_ssl_verify', true ), FILTER_VALIDATE_BOOLEAN ),
+            'user-agent'  => $this->get_user_agent( $url ),
+            'redirection' => absint( get_option( 'blnotifier_max_redirects', 5 ) ),
+        ] );
+
+        if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+            return [];
         }
 
-        add_filter( 'wp_redirect', '__return_false', 1 );
-        add_filter( 'wp_safe_redirect', '__return_false', 1 );
-
-        ob_start();
-        try {
-            $content = apply_filters( 'the_content', $get_the_content );
-        } catch ( Exception $e ) {
-            $content = '';
-        }
-        ob_end_clean();
-
-        remove_filter( 'wp_redirect', '__return_false', 1 );
-        remove_filter( 'wp_safe_redirect', '__return_false', 1 );
-
-        if ( !$content ) {
-            return false;
+        $body = wp_remote_retrieve_body( $response );
+        if ( !$body ) {
+            return [];
         }
 
-        $links = $this->extract_links( $content );
-        $normalized_target = apply_filters( 'blnotifier_verify_link_normalize', $this->str_replace_on_link( $link ), $link );
+        return $this->extract_links( $body );
+    } // End get_remote_page_links()
 
-        foreach ( $links as $found_link ) {
-            $normalized_found = apply_filters( 'blnotifier_verify_link_normalize', $this->str_replace_on_link( $found_link ), $found_link );
-            if ( $normalized_found === $normalized_target ) {
-                return true;
+
+    /**
+     * Merge content-based and remote-fetched links, removing duplicates
+     *
+     * @param array $content_links
+     * @param array $remote_links
+     * @return array
+     */
+    public function merge_and_dedupe_links( $content_links, $remote_links ) {
+        $merged = array_merge( $content_links, $remote_links );
+        $seen = [];
+        $result = [];
+
+        foreach ( $merged as $link ) {
+            $key = strtolower( trim( $link ) );
+            if ( $key === '' || isset( $seen[ $key ] ) ) {
+                continue;
             }
+            $seen[ $key ] = true;
+            $result[] = $link;
         }
 
-        return false;
-    } // End link_still_on_page()
+        return $result;
+    } // End merge_and_dedupe_links()
 
 }
 

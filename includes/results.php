@@ -609,6 +609,24 @@ class BLNOTIFIER_RESULTS {
 
 
     /**
+     * Get the valid per-page choices, and coerce a given value to the nearest valid one
+     *
+     * @param mixed $value
+     * @return int
+     */
+    public function sanitize_per_page( $value ) {
+        $value = absint( $value );
+        $allowed = (new BLNOTIFIER_HELPERS)->is_test_mode() ? [ 2, 10, 25, 50, 100 ] : [ 10, 25, 50, 100 ];
+
+        if ( in_array( $value, $allowed, true ) ) {
+            return $value;
+        }
+
+        return 25;
+    } // End sanitize_per_page()
+
+
+    /**
      * Render the tablenav row (bulk actions, per page, pagination) - top or bottom
      *
      * @param string $position 'top' or 'bottom'
@@ -631,7 +649,7 @@ class BLNOTIFIER_RESULTS {
             </div>
             <div class="alignleft actions">
                 <label for="bln-results-per-page-<?php echo esc_attr( $position ); ?>" class="screen-reader-text">Results per page</label>
-                <select class="bln-results-per-page" id="bln-results-per-page-<?php echo esc_attr( $position ); ?>">
+                <select class="bln-results-per-page" id="bln-results-per-page-<?php echo esc_attr( $position ); ?>" autocomplete="off">
                     <?php if ( $is_test_mode ) : ?>
                         <option value="2"<?php selected( $per_page, 2 ); ?>>2 per page</option>
                     <?php endif; ?>
@@ -962,6 +980,9 @@ class BLNOTIFIER_RESULTS {
                 foreach ( $header_links as &$header_link ) {
                     $count_links++;
                     $header_link = $HELPERS->sanitize_link( $header_link );
+                    if ( $header_link === '' ) {
+                        continue;
+                    }
                     $status = $HELPERS->check_link( $header_link );
                     if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
                         $count_notify++;
@@ -977,6 +998,9 @@ class BLNOTIFIER_RESULTS {
                 foreach ( $content_links as &$content_link ) {
                     $count_links++;
                     $content_link = $HELPERS->sanitize_link( $content_link );
+                    if ( $content_link === '' ) {
+                        continue;
+                    }
                     $status = $HELPERS->check_link( $content_link );
                     if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
                         $count_notify++;
@@ -992,6 +1016,9 @@ class BLNOTIFIER_RESULTS {
                 foreach ( $footer_links as &$footer_link ) {
                     $count_links++;
                     $footer_link = $HELPERS->sanitize_link( $footer_link );
+                    if ( $footer_link === '' ) {
+                        continue;
+                    }
                     $status = $HELPERS->check_link( $footer_link );
                     if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
                         $count_notify++;
@@ -1028,6 +1055,9 @@ class BLNOTIFIER_RESULTS {
             if ( $show_good_links_in_results ) {
                 foreach ( $good_links as $location => $gl ) {
                     foreach ( $gl as $status ) {
+                        if ( empty( $status[ 'link' ] ) || $status[ 'link' ] === 'Unknown' || $status[ 'type' ] === 'omitted' ) {
+                            continue;
+                        }
                         $this->add( [
                             'type'     => $status[ 'type' ],
                             'code'     => $status[ 'code' ],
@@ -1119,30 +1149,6 @@ class BLNOTIFIER_RESULTS {
 
             // Source exists
             } else {
-
-                // Check if the link is still actually referenced on the page (optional)
-                $verify_on_page = filter_var( get_option( 'blnotifier_verify_link_on_page', true ), FILTER_VALIDATE_BOOLEAN );
-                if ( $verify_on_page && !$HELPERS->link_still_on_page( $link, $source_id ) ) {
-                    $remove = $this->remove( $HELPERS->str_replace_on_link( $link ), $link_id );
-                    $status = [
-                        'type' => 'removed',
-                        'code' => $code,
-                        'text' => __( 'No longer found on page.', 'broken-link-notifier' ),
-                        'link' => $link
-                    ];
-
-                    if ( $remove ) {
-                        $result[ 'type' ] = 'success';
-                        $result[ 'status' ] = $status;
-                        $result[ 'link' ] = $link;
-                        $result[ 'link_id' ] = $link_id;
-                    } else {
-                        $result[ 'type' ] = 'error';
-                        $result[ 'msg' ] = __( 'Could not remove link. Please try again.', 'broken-link-notifier' );
-                    }
-
-                    self::send_ajax_or_redirect( $result );
-                }
 
                 // Check status
                 $status = $HELPERS->check_link( $link );
@@ -1483,7 +1489,7 @@ class BLNOTIFIER_RESULTS {
         $page     = isset( $_REQUEST[ 'page' ] ) ? absint( wp_unslash( $_REQUEST[ 'page' ] ) ) : 1;
         $per_page = isset( $_REQUEST[ 'per_page' ] ) ? absint( wp_unslash( $_REQUEST[ 'per_page' ] ) ) : absint( get_option( 'blnotifier_per_page', 50 ) );
         $page     = max( 1, $page );
-        $per_page = $per_page > 0 ? $per_page : 50;
+        $per_page = isset( $_REQUEST[ 'per_page' ] ) ? $this->sanitize_per_page( wp_unslash( $_REQUEST[ 'per_page' ] ) ) : $this->sanitize_per_page( get_option( 'blnotifier_per_page', 25 ) );
 
         update_option( 'blnotifier_per_page', $per_page );
 
@@ -1700,7 +1706,7 @@ class BLNOTIFIER_RESULTS {
             wp_enqueue_script( $handle );
 
             $counts = $this->get_counts();
-            $per_page = absint( get_option( 'blnotifier_per_page', 50 ) );
+            $per_page = $this->sanitize_per_page( get_option( 'blnotifier_per_page', 25 ) );
 
             $table_handle = 'blnotifier_results_table_script';
             wp_register_script( $table_handle, BLNOTIFIER_PLUGIN_JS_PATH.'results-table.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );

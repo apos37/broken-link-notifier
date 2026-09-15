@@ -9,8 +9,10 @@ if ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( w
     $s = '';
 }
 
+// Which field was actually used to submit
 $scan_source = isset( $_GET[ 'scan_source' ] ) ? sanitize_key( wp_unslash( $_GET[ 'scan_source' ] ) ) : 'text';
 
+// Restore the picker's selection server-side, only when the picker was used
 $selected_post_type = '';
 $selected_post_id = 0;
 
@@ -19,6 +21,7 @@ if ( $scan_source === 'picker' && $s !== '' && is_numeric( $s ) ) {
     $selected_post_type = get_post_type( $selected_post_id ) ?: '';
 }
 
+// The text field only ever shows a value when the text-search path was actually used
 $s_display = ( $scan_source === 'text' ) ? $s : '';
 if ( $scan_source === 'text' && $s !== '' && is_numeric( $s ) ) {
     $existing_title = get_the_title( $s );
@@ -111,7 +114,13 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
             ?>
             <br><br><br>
             <h2>Content Scan Results for "<?php echo wp_kses_post( $display_s ); ?>"</h2>
-            <p><em>Does not include links in the <code>&#x3c;header&#x3e;</code> or <code>&#x3c;footer&#x3e;</code>. Also, <strong>remember</strong> that links will not include content if it is hidden behind conditional logic.</strong></em></p>
+            <?php $remote_fetch_enabled = filter_var( get_option( 'blnotifier_remote_fetch_links' ), FILTER_VALIDATE_BOOLEAN ); ?>
+            <?php if ( $remote_fetch_enabled ) : ?>
+                <p><em>Links were also fetched from the live published page, in addition to its stored content.</em></p>
+            <?php else : ?>
+                <p><em>Does not include links in the <code>&#x3c;header&#x3e;</code> or <code>&#x3c;footer&#x3e;</code>. Also, <strong>remember</strong> that links will not include content if it is hidden behind conditional logic.</em></p>
+            <?php endif; ?>
+            <br><br>
             <?php
             // If found
             if ( $found ) {
@@ -129,10 +138,33 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                     <?php
 
                 // Search the content
-                } elseif ( $content = apply_filters( 'the_content', $get_the_content ) ) {
+                } else {
+
+                    global $post;
+                    $scanned_post = get_post( $post_id );
+                    $original_post = $post;
+                    if ( $scanned_post ) {
+                        $post = $scanned_post;
+                        setup_postdata( $post );
+                    }
+
+                    $content = apply_filters( 'the_content', $get_the_content );
+
+                    if ( $scanned_post ) {
+                        $post = $original_post;
+                        wp_reset_postdata();
+                    }
+
+                    if ( $content ) {
                     
                     // Get the links
                     $links = $HELPERS->extract_links( $content );
+
+                    // Merge in remotely fetched links, if enabled
+                    if ( filter_var( get_option( 'blnotifier_remote_fetch_links' ), FILTER_VALIDATE_BOOLEAN ) ) {
+                        $remote_links = $HELPERS->get_remote_page_links( $post_id );
+                        $links = $HELPERS->merge_and_dedupe_links( $links, $remote_links );
+                    }
 
                     // Did we find any
                     if ( !empty( $links ) ) {
@@ -240,11 +272,12 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                         <?php
                     }
 
-                // Content missing
-                } else {
-                    ?>
-                    <em>Content not found.</em>
-                    <?php
+                    // Content missing
+                    } else {
+                        ?>
+                        <em>Content not found.</em>
+                        <?php
+                    }
                 }
 
             // Not found

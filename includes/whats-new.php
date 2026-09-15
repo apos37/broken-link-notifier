@@ -111,10 +111,6 @@ class BLNOTIFIER_WHATS_NEW {
                             <p>New header, navigation, and layout across every page, built to match the rest of the PluginRx family.</p>
                         </li>
                         <li>
-                            <strong>Smarter Results verification</strong>
-                            <p>Verifying a link now also confirms it's still referenced on its source page, and automatically clears it with a clear reason if it's not.</p>
-                        </li>
-                        <li>
                             <strong>And much more</strong>
                             <p>Smarter Settings tools, quick-add helpers on Omitted Links/Pages, autocomplete on Page Scan and Link Search, automatic redirect detection, flexible CSV exports, and a batch of new developer filters.</p>
                         </li>
