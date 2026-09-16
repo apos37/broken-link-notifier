@@ -47,6 +47,7 @@ class BLNOTIFIER_SETTINGS {
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 
         // AJAX
+        add_action( 'wp_ajax_blnotifier_clear_cache', [ $this, 'ajax_clear_cache' ] );
         add_action( 'wp_ajax_blnotifier_test_notification', [ $this, 'ajax_test_notification' ] );
         add_action( 'wp_ajax_blnotifier_save_settings', [ $this, 'ajax_save_settings' ] );
 
@@ -104,9 +105,7 @@ class BLNOTIFIER_SETTINGS {
 
 
     /**
-     * Settings fields
-     *
-     * @return void
+     * Register the settings fields for the plugin.
      */
     public function settings_fields() {
         // Add section
@@ -117,73 +116,222 @@ class BLNOTIFIER_SETTINGS {
             $this->page_slug
         );
 
-        // Has updated settings
-        $has_updated_settings = 'blnotifier_has_updated_settings';
-        register_setting( $this->page_slug, $has_updated_settings, [ $this, 'sanitize_boolean' ] );
+        // Has updated settings (internal flag, not user-facing)
+        register_setting( $this->page_slug, 'blnotifier_has_updated_settings', [ $this, 'sanitize_boolean' ] );
 
-        // Pause front-end scanning
-        $pause_frontend_scanning_option_name = 'blnotifier_pause_frontend_scanning';
-        register_setting( $this->page_slug, $pause_frontend_scanning_option_name, [ $this, 'sanitize_checkbox' ] );
-        add_settings_field(
-            $pause_frontend_scanning_option_name,
-            'Pause Front-End Scanning',
-            [ $this, 'field_checkbox' ],
-            $this->page_slug,
-            'general',
+        // The master field list, in display order. Reorder entries here to reorder the settings page.
+        $fields = [
+
+            // Scanning Behavior
             [
-                'class'    => $pause_frontend_scanning_option_name,
-                'name'     => $pause_frontend_scanning_option_name,
+                'type'     => 'checkbox',
+                'name'     => 'pause_frontend_scanning',
+                'label'    => 'Pause Front-End Scanning',
                 'default'  => false,
                 'box'      => 'scanning',
                 'comments' => 'You can pause front-end scanning if you just want to scan manually; disabling this means you will NOT get notified when someone visits a page with broken links'
-            ]
-        );
-
-        // Enable emailing
-        $enable_emailing_option_name = 'blnotifier_enable_emailing';
-        register_setting( $this->page_slug, $enable_emailing_option_name, [ $this, 'sanitize_checkbox' ] );
-        add_settings_field(
-            $enable_emailing_option_name,
-            'Enable Emailing',
-            [ $this, 'field_checkbox' ],
-            $this->page_slug,
-            'general',
+            ],
             [
-                'class'    => $enable_emailing_option_name,
-                'name'     => $enable_emailing_option_name,
+                'type'     => 'checkbox',
+                'name'     => 'remote_fetch_links',
+                'label'    => 'Also Fetch Pages Remotely During Page Scan, Site Scan & Link Browser',
+                'default'  => false,
+                'box'      => 'scanning',
+                'comments' => 'Only applies to Page Scan, Site Scan, and Link Browser (not front-end scanning, which already reads the live page as visitors see it). In addition to reading a page\'s stored content, also fetches the live published URL and scans its HTML for links. This catches links rendered by shortcodes or templates that depend on live page context (common with listing/directory themes), at the cost of a slower scan since it makes a real web request per page. Only applies to published pages.'
+            ],
+            [
+                'type'     => 'number',
+                'name'     => 'max_links_per_page',
+                'label'    => 'Max Links Per Page',
+                'default'  => 200,
+                'min'      => 0,
+                'box'      => 'scanning',
+                'comments' => 'Maximum number of links to check per page (0 for unlimited) - this is to prevent attacks and timeouts on pages with a large number of links'
+            ],
+            [
+                'type'     => 'checkbox',
+                'name'     => 'enable_warnings',
+                'label'    => 'Enable Warnings',
+                'default'  => true,
+                'box'      => 'scanning',
+                'comments' => 'Includes warnings in all scans'
+            ],
+            [
+                'type'     => 'checkbox',
+                'name'     => 'enable_good_links',
+                'label'    => 'Show Good Links in Results',
+                'default'  => false,
+                'box'      => 'scanning',
+                'comments' => 'Includes good links on results page for verification purposes only (more performance heavy — click Verify Link Statuses to check and clear them)'
+            ],
+            [
+                'type'     => 'checkbox',
+                'name'     => 'enable_delete_source',
+                'label'    => 'Enable Delete Source Action Link',
+                'default'  => false,
+                'box'      => 'scanning',
+                'comments' => 'An action link will appear on the Results tab under the source where you can trash the page entirely'
+            ],
+            [
+                'type'     => 'checkbox',
+                'name'     => 'include_images',
+                'label'    => 'Check for Broken Images',
+                'default'  => true,
+                'box'      => 'scanning',
+                'comments' => 'Includes image src links in all scans'
+            ],
+            [
+                'type'     => 'checkbox',
+                'name'     => 'ssl_verify',
+                'label'    => 'Warn if SSL is Not Verified',
+                'default'  => true,
+                'box'      => 'scanning',
+                'comments' => 'If you are not concerned about insecure links, you can disable this'
+            ],
+            [
+                'type'     => 'checkbox',
+                'name'     => 'scan_header',
+                'label'    => 'Scan <code>&#x3c;header&#x3e;</code> Elements',
+                'default'  => false,
+                'box'      => 'scanning',
+                'comments' => 'Only applies to page load scans - the header elements usually include the navigation menu(s) at the top of the page'
+            ],
+            [
+                'type'     => 'checkbox',
+                'name'     => 'scan_footer',
+                'label'    => 'Scan <code>&#x3c;footer&#x3e;</code> Elements',
+                'default'  => false,
+                'box'      => 'scanning',
+                'comments' => 'Only applies to page load scans - the footer elements include any links at the bottom of every page'
+            ],
+            [
+                'type'     => 'checkboxes',
+                'name'     => 'post_types',
+                'label'    => 'Enable Scanning for These Post Types',
+                'options'  => $this->get_post_type_choices(),
+                'default'  => [ 'post', 'page' ],
+                'box'      => 'scanning',
+                'comments' => 'Controls which post types are included in Site Scan\'s link discovery, front-end page-load scanning, and (if enabled) legacy Multi-Scan.'
+            ],
+
+            // Advanced
+            [
+                'type'     => 'text',
+                'name'     => 'user_agent',
+                'label'    => 'User Agent',
+                'default'  => 'WordPress/{blog_version}; {blog_url}',
+                'box'      => 'advanced',
+                'comments' => 'Only change this if you know what you are doing. Default is "WordPress/{blog_version}; {blog_url}" (WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ) . ')'
+            ],
+            [
+                'type'     => 'number',
+                'name'     => 'timeout',
+                'label'    => 'Timeout (seconds)',
+                'default'  => 5,
+                'min'      => 5,
+                'box'      => 'advanced',
+                'comments' => 'How long to try to connect to a link\'s server before quitting'
+            ],
+            [
+                'type'     => 'number',
+                'name'     => 'max_redirects',
+                'label'    => 'Max Redirects',
+                'default'  => 5,
+                'min'      => 0,
+                'box'      => 'advanced',
+                'comments' => 'Maximum number of redirects before giving up on a link (will only be used if you allow redirects below)'
+            ],
+            [
+                'type'     => 'checkbox',
+                'name'     => 'allow_redirects',
+                'label'    => 'Allow Redirects',
+                'default'  => true,
+                'box'      => 'advanced',
+                'comments' => 'Changes the method of checking for broken links from <code>HEAD</code> to <code>GET</code>. May cause issues linking to larger documents.'
+            ],
+            [
+                'type'     => 'checkbox',
+                'name'     => 'documents_use_head',
+                'label'    => 'Force Documents to Use <code>HEAD</code> Requests',
+                'default'  => false,
+                'box'      => 'advanced',
+                'comments' => 'If you have enabled allowing redirects (above), by default images, videos, and audio files force the use of <code>HEAD</code> requests rather than <code>GET</code>. Some servers automatically block <code>HEAD</code> requests for documents, so we don\'t force them by default. If you are having issues with large documents not completing a scan, then you can try enabling this option to see if it helps. If they are blocked, at least you will know why.'
+            ],
+            [
+                'type'     => 'checkbox',
+                'name'     => 'show_in_console',
+                'label'    => 'Show Results in Dev Console',
+                'default'  => false,
+                'box'      => 'advanced',
+                'comments' => 'Only applies to page load scans. Note that this is visible to anyone viewing your site\'s browser console, not just admins, so it\'s best left off unless you\'re actively troubleshooting or support has asked you to turn it on to help diagnose an issue.'
+            ],
+            [
+                'type'     => 'number',
+                'name'     => 'cache',
+                'label'    => 'Length of Time to Cache Good Links (in Seconds)',
+                'default'  => 0,
+                'min'      => 0,
+                'box'      => 'advanced',
+                'comments' => 'Use 0 to disable caching. If you are experienced performance issues, you can set the value to 28800 (8 hours), 43200 (12 hours), 86400 (24 hours) or whatever you feel is best. Broken and warning links will never be cached. Deactivating or uninstalling the plugin will clear the cache completely.'
+            ],
+            [
+                'type'  => 'clear_cache',
+                'name'  => 'clear_cache_tools',
+                'label' => 'Cache',
+                'box'   => 'advanced',
+            ],
+            [
+                'type'     => 'checkbox',
+                'name'     => 'uninstall_cleanup',
+                'label'    => 'Remove Data on Uninstall',
+                'default'  => false,
+                'box'      => 'advanced',
+                'comments' => 'Enable this option to automatically remove the database tables that the links are stored in and all options when the plugin is uninstalled.'
+            ],
+            [
+                'type'  => 'html',
+                'name'  => 'settings_backup_tools',
+                'label' => 'Backup & Reset',
+                'box'   => 'advanced',
+            ],
+
+            // Notification Methods
+            [
+                'type'     => 'checkbox',
+                'name'     => 'enable_emailing',
+                'label'    => 'Enable Emailing',
                 'default'  => true,
                 'box'      => 'notifications',
                 'comments' => 'You can turn off email notifications and still get website notifications'
-            ]
-        );
-
-        // Emails
-        $emails_option_name = 'blnotifier_emails';
-        register_setting( $this->page_slug, $emails_option_name, 'sanitize_text_field' );
-        add_settings_field(
-            $emails_option_name,
-            'Emails to Send Notifications',
-            [ $this, 'field_emails_with_test' ],
-            $this->page_slug,
-            'general',
+            ],
             [
-                'class'    => $emails_option_name,
-                'name'     => $emails_option_name,
+                'type'     => 'emails_with_test',
+                'name'     => 'emails',
+                'label'    => 'Emails to Send Notifications',
                 'default'  => get_bloginfo( 'admin_email' ),
                 'box'      => 'notifications',
                 'toggle'   => 'blnotifier_enable_emailing',
                 'comments' => 'Separated by commas'
-            ]
-        );
-
-        // Webhook fields
-        $webhook_fields = [
-            [ 
-                'name'              => 'discord',
-                'label'             => 'Discord',
-                'comments'          => 'URL should look like this: https://discord.com/api/webhooks/xxx/xxx...',
-                'accordion_title'   => 'How to Connect to Discord',
-                'accordion_content' => '<p>Using Discord to receive notifications is easy to set up, and often a more reliable method since emails can end up getting lost in cyberspace sometimes. The instructions below assume you already have a Discord account.</p>
+            ],
+            [
+                'type'     => 'checkbox',
+                'name'     => 'enable_discord',
+                'label'    => 'Enable Discord Notifications',
+                'default'  => false,
+                'box'      => 'notifications',
+                'comments' => 'You can also send notifications to a Discord channel'
+            ],
+            [
+                'type'               => 'url_with_test',
+                'name'               => 'discord',
+                'label'              => 'Discord Webhook URL',
+                'default'            => '',
+                'box'                => 'notifications',
+                'toggle'             => 'blnotifier_enable_discord',
+                'test_type'          => 'discord',
+                'comments'           => 'URL should look like this: https://discord.com/api/webhooks/xxx/xxx...',
+                'accordion_title'    => 'How to Connect to Discord',
+                'accordion_content'  => '<p>Using Discord to receive notifications is easy to set up, and often a more reliable method since emails can end up getting lost in cyberspace sometimes. The instructions below assume you already have a Discord account.</p>
         <p><strong>Set Up:</strong></p>
         <ol>
         <li><a href="https://support.discord.com/hc/en-us/articles/204849977-How-do-I-create-a-server" target="_blank">Create a server</a> if you don\'t already have one (it\'s free and easy)</li>
@@ -200,11 +348,24 @@ class BLNOTIFIER_SETTINGS {
         </ol>'
             ],
             [
-                'name'              => 'slack',
-                'label'             => 'Slack',
-                'comments'          => 'URL should look like this: https://hooks.slack.com/services/xxx/xxx/xxx',
-                'accordion_title'   => 'How to Connect to Slack',
-                'accordion_content' => '<p>Using Slack to receive notifications is straightforward. The instructions below assume you already have a Slack account and workspace.</p>
+                'type'     => 'checkbox',
+                'name'     => 'enable_slack',
+                'label'    => 'Enable Slack Notifications',
+                'default'  => false,
+                'box'      => 'notifications',
+                'comments' => 'You can also send notifications to a Slack channel'
+            ],
+            [
+                'type'               => 'url_with_test',
+                'name'               => 'slack',
+                'label'              => 'Slack Webhook URL',
+                'default'            => '',
+                'box'                => 'notifications',
+                'toggle'             => 'blnotifier_enable_slack',
+                'test_type'          => 'slack',
+                'comments'           => 'URL should look like this: https://hooks.slack.com/services/xxx/xxx/xxx',
+                'accordion_title'    => 'How to Connect to Slack',
+                'accordion_content'  => '<p>Using Slack to receive notifications is straightforward. The instructions below assume you already have a Slack account and workspace.</p>
         <p><strong>Set Up:</strong></p>
         <ol>
         <li>Go to <a href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a></li>
@@ -223,12 +384,25 @@ class BLNOTIFIER_SETTINGS {
         <li>Visit a page that you know has new broken links (if the broken links are added to your <a href="'.esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'results' ) ).'">Results</a> page, then you will need to delete them before testing again since it will only show the results once)</li>
         </ol>'
             ],
-            [ 
-                'name'              => 'msteams',
-                'label'             => 'Microsoft Teams',
-                'comments'          => 'URL should look like this: https://yourdomain.webhook.office.com/xxx/xxx...',
-                'accordion_title'   => 'How to Connect to Microsoft Teams',
-                'accordion_content' => '<p>Using Microsoft Teams to receive notifications is easy to set up, too, and it\'s helpful for teams to work together on fixing the links. The instructions below assume you already have a Microsoft account and Teams installed.</p>
+            [
+                'type'     => 'checkbox',
+                'name'     => 'enable_msteams',
+                'label'    => 'Enable Microsoft Teams Notifications',
+                'default'  => false,
+                'box'      => 'notifications',
+                'comments' => 'You can also send notifications to a Microsoft Teams channel'
+            ],
+            [
+                'type'               => 'url_with_test',
+                'name'               => 'msteams',
+                'label'              => 'Microsoft Teams Webhook URL',
+                'default'            => '',
+                'box'                => 'notifications',
+                'toggle'             => 'blnotifier_enable_msteams',
+                'test_type'          => 'msteams',
+                'comments'           => 'URL should look like this: https://yourdomain.webhook.office.com/xxx/xxx...',
+                'accordion_title'    => 'How to Connect to Microsoft Teams',
+                'accordion_content'  => '<p>Using Microsoft Teams to receive notifications is easy to set up, too, and it\'s helpful for teams to work together on fixing the links. The instructions below assume you already have a Microsoft account and Teams installed.</p>
         <p><strong>Set Up:</strong></p>
         <ol>
         <li>Go to Apps</li>
@@ -246,378 +420,79 @@ class BLNOTIFIER_SETTINGS {
         <li>Enable "Show Results in Dev Console" so you can verify scanning results are being picked up</li>
         <li>Visit a page that you know has new broken links (if the broken links are added to your <a href="'.esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'results' ) ).'">Results</a> page, then you will need to delete them before testing again since it will only show the results once)</li>
         </ol>'
-            ]
-        ];
-        foreach ( $webhook_fields as $webhook_field ) {
+            ],
 
-            // Enable checkbox
-            $enable_option_name = 'blnotifier_enable_'.$webhook_field[ 'name' ];
-            register_setting( $this->page_slug, $enable_option_name, [ $this, 'sanitize_checkbox' ] );
-            add_settings_field(
-                $enable_option_name,
-                'Enable '.$webhook_field[ 'label' ].' Notifications',
-                [ $this, 'field_checkbox' ],
-                $this->page_slug,
-                'general',
-                [
-                    'class'    => $enable_option_name,
-                    'name'     => $enable_option_name,
-                    'default'  => false,
-                    'box'      => 'notifications',
-                    'comments' => 'You can also send notifications to a '.$webhook_field[ 'label' ].' channel'
-                ]
-            );
-
-            // The url
-            $url_field_option_name = 'blnotifier_'.$webhook_field[ 'name' ];
-            register_setting( $this->page_slug, $url_field_option_name, [ $this, 'sanitize_url' ] );
-            add_settings_field(
-                $url_field_option_name,
-                $webhook_field[ 'label' ].' Webhook URL',
-                [ $this, 'field_url_with_test' ],
-                $this->page_slug,
-                'general',
-                [
-                    'class'              => $url_field_option_name,
-                    'name'               => $url_field_option_name,
-                    'default'            => '',
-                    'box'                => 'notifications',
-                    'toggle'             => $enable_option_name,
-                    'comments'           => $webhook_field[ 'comments' ],
-                    'test_type'          => $webhook_field[ 'name' ],
-                    'accordion_title'    => $webhook_field[ 'accordion_title' ],
-                    'accordion_content'  => $webhook_field[ 'accordion_content' ],
-                ]
-            );
-        }
-
-        // Text
-        $user_agent_option_name = 'blnotifier_user_agent';
-        register_setting( $this->page_slug, $user_agent_option_name, 'sanitize_text_field' );
-        add_settings_field(
-            $user_agent_option_name,
-            'User Agent',
-            [ $this, 'field_text' ],
-            $this->page_slug,
-            'general',
+            // Access Control
             [
-                'class'    => $user_agent_option_name,
-                'name'     => $user_agent_option_name,
-                'default'  => 'WordPress/{blog_version}; {blog_url}',
-                'box'      => 'advanced',
-                'comments' => 'Only change this if you know what you are doing. Default is "WordPress/{blog_version}; {blog_url}" (WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ) . ')'
-            ]
-        );
-
-        // Define an array of number fields
-        $number_fields = [
-            [ 
-                'name'     => 'timeout',
-                'label'    => 'Timeout (seconds)',
-                'default'  => 5,
-                'min'      => 5,
-                'box'      => 'advanced',
-                'comments' => 'How long to try to connect to a link\'s server before quitting'
-            ],
-            [ 
-                'name'     => 'max_redirects',
-                'label'    => 'Max Redirects',
-                'default'  => 5,
-                'min'      => 0,
-                'box'      => 'advanced',
-                'comments' => 'Maximum number of redirects before giving up on a link (will only be used if you allow redirects below)'
-            ],
-            [ 
-                'name'     => 'max_links_per_page',
-                'label'    => 'Max Links Per Page',
-                'default'  => 200,
-                'min'      => 0,
-                'box'      => 'scanning',
-                'comments' => 'Maximum number of links to check per page (0 for unlimited) - this is to prevent attacks and timeouts on pages with a large number of links'
-            ],
-        ];
-
-        // Add a setting for the delay between scan requests
-        $scan_delay_option_name = 'blnotifier_scan_delay_ms';
-        register_setting( $this->page_slug, $scan_delay_option_name, 'absint' );
-        add_settings_field(
-            $scan_delay_option_name,
-            'Delay Between Scan Requests (ms)',
-            [ $this, 'field_number' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $scan_delay_option_name,
-                'name'     => $scan_delay_option_name,
-                'default'  => 0,
-                'min'      => 0,
-                'box'      => 'advanced',
-                'comments' => 'Adds a pause between each request during Link Browser and Site Scan scans. Use this if scanning is putting too much load on your server. 0 disables the delay.'
-            ]
-        );
-
-        // Loop through the array to add number fields
-        foreach ( $number_fields as $field ) {
-            $field_option_name = 'blnotifier_' . $field[ 'name' ];
-            
-            // Register the field with a sanitization callback
-            register_setting( $this->page_slug, $field_option_name, 'absint' );
-            
-            // Add the number field to the settings page
-            add_settings_field(
-                $field_option_name,
-                $field[ 'label' ],
-                [ $this, 'field_number' ],
-                $this->page_slug,
-                'general',
-                [
-                    'class'    => $field_option_name,
-                    'box'      => $field[ 'box' ],
-                    'name'     => $field_option_name,
-                    'default'  => $field[ 'default' ],
-                    'min'      => $field[ 'min' ],
-                    'comments' => $field[ 'comments' ]
-                ]
-            );
-        }
-
-        // Other checkboxes
-        $checkboxes = [
-            [ 
-                'name'     => 'remote_fetch_links',
-                'label'    => 'Also Fetch Pages Remotely When Scanning',
-                'default'  => false,
-                'box'      => 'scanning',
-                'comments' => 'In addition to reading a page\'s stored content, also fetches the live published URL and scans its HTML for links. This catches links rendered by shortcodes or templates that depend on live page context (common with listing/directory themes), at the cost of a slower scan since it makes a real web request per page. Only applies to published pages.'
-            ],
-            [ 
-                'name'     => 'allow_redirects',
-                'label'    => 'Allow Redirects',
-                'default'  => true,
-                'box'      => 'advanced',
-                'comments' => 'Changes the method of checking for broken links from <code>HEAD</code> to <code>GET</code>. May cause issues linking to larger documents.'
-            ],
-            [ 
-                'name'     => 'documents_use_head',
-                'label'    => 'Force Documents to Use <code>HEAD</code> Requests',
-                'default'  => false,
-                'box'      => 'advanced',
-                'comments' => 'If you have enabled allowing redirects (above), by default images, videos, and audio files force the use of <code>HEAD</code> requests rather than <code>GET</code>. Some servers automatically block <code>HEAD</code> requests for documents, so we don\'t force them by default. If you are having issues with large documents not completing a scan, then you can try enabling this option to see if it helps. If they are blocked, at least you will know why.'
-            ],
-            [ 
-                'name'     => 'include_images', 
-                'label'    => 'Check for Broken Images',
-                'default'  => true,
-                'box'      => 'scanning',
-                'comments' => 'Includes image src links in all scans'
-            ],
-            [ 
-                'name'     => 'enable_warnings',
-                'label'    => 'Enable Warnings',
-                'default'  => true,
-                'box'      => 'scanning',
-                'comments' => 'Includes warnings in all scans'
-            ],
-            [ 
-                'name'     => 'enable_good_links',
-                'label'    => 'Show Good Links in Results',
-                'default'  => false,
-                'box'      => 'scanning',
-                'comments' => 'Includes good links on results page for verification purposes only (more performance heavy — click Verify Link Statuses to check and clear them)'
-            ],
-            [ 
-                'name'     => 'enable_delete_source',
-                'label'    => 'Enable "Trash Page" Action Link',
-                'default'  => false,
-                'box'      => 'scanning',
-                'comments' => 'An action link will appear on the Results tab under the source where you can trash the page entirely'
-            ],
-            
-            [ 
-                'name'     => 'ssl_verify', 
-                'label'    => 'Warn if SSL is Not Verified',
-                'default'  => true,
-                'box'      => 'scanning',
-                'comments' => 'If you are not concerned about insecure links, you can disable this'
-            ],
-            [ 
-                'name'     => 'scan_header', 
-                'label'    => 'Scan <code>&#x3c;header&#x3e;</code> Elements', 
-                'default'  => false,
-                'box'      => 'scanning',
-                'comments' => 'Only applies to page load scans - the header elements usually include the navigation menu(s) at the top of the page'
-            ],
-            [ 
-                'name'     => 'scan_footer', 
-                'label'    => 'Scan <code>&#x3c;footer&#x3e;</code> Elements', 
-                'default'  => false,
-                'box'      => 'scanning',
-                'comments' => 'Only applies to page load scans - the footer elements include any links at the bottom of every page'
-            ],
-            [ 
-                'name'     => 'show_in_console', 
-                'label'    => 'Show Results in Dev Console', 
-                'default'  => false,
-                'box'      => 'advanced',
-                'comments' => 'Only applies to page load scans'
-            ]
-        ];
-        foreach ( $checkboxes as $checkbox ) {
-            $checkbox_option_name = 'blnotifier_'.$checkbox[ 'name' ];
-            register_setting( $this->page_slug, $checkbox_option_name, [ $this, 'sanitize_checkbox' ] );
-            add_settings_field(
-                $checkbox_option_name,
-                $checkbox[ 'label' ],
-                [ $this, 'field_checkbox' ],
-                $this->page_slug,
-                'general',
-                [
-                    'class'    => $checkbox_option_name,
-                    'name'     => $checkbox_option_name,
-                    'default'  => $checkbox[ 'default' ],
-                    'box'      => $checkbox[ 'box' ],
-                    'comments' => $checkbox[ 'comments' ]
-                ]
-            );
-        }
-
-        // User Roles for Editing Links
-        $roles_option_name = 'blnotifier_editable_roles';
-        register_setting( $this->page_slug, $roles_option_name, [ $this, 'sanitize_checkboxes' ] );
-        add_settings_field(
-            $roles_option_name,
-            'Allow These Additional Roles to Manage Broken Links',
-            [ $this, 'field_checkboxes' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $roles_option_name,
-                'name'     => $roles_option_name,
-                'box'      => 'access',
-                'options'  => $this->get_editable_roles_choices(),
-            ]
-        );
-
-        // REST API
-        $enable_rest_api_option_name = 'blnotifier_enable_rest_api';
-        register_setting( $this->page_slug, $enable_rest_api_option_name, [ $this, 'sanitize_checkbox' ] );
-        add_settings_field(
-            $enable_rest_api_option_name,
-            'Enable REST API',
-            [ $this, 'field_checkbox' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $enable_rest_api_option_name,
-                'name'     => $enable_rest_api_option_name,
+                'type'     => 'checkbox',
+                'name'     => 'enable_rest_api',
+                'label'    => 'Enable REST API',
                 'default'  => false,
                 'box'      => 'access',
                 'comments' => 'Exposes a read/delete REST API endpoint for use with AI agents and external tools.'
-            ]
-        );
-
-        $api_key_option_name = 'blnotifier_api_key';
-        register_setting( $this->page_slug, $api_key_option_name, 'sanitize_text_field' );
-        add_settings_field(
-            $api_key_option_name,
-            'API Key',
-            [ $this, 'field_api_key' ],
-            $this->page_slug,
-            'general',
+            ],
             [
-                'class'    => $api_key_option_name,
-                'name'     => $api_key_option_name,
+                'type' => 'api_key',
+                'name' => 'api_key',
+                'label' => 'API Key',
+                'box'  => 'access',
+            ],
+            [
+                'type'     => 'checkboxes',
+                'name'     => 'editable_roles',
+                'label'    => 'Allow These Additional Roles to Manage Broken Links',
+                'options'  => $this->get_editable_roles_choices(),
                 'box'      => 'access',
-                'comments' => 'Send as a header <code>X-API-Key: your_key</code> or as a query param <code>?api_key=your_key</code>. Save Settings to persist a newly generated key.',
-            ]
-        );
+            ],
 
-        // Caching
-        $cache_option_name = 'blnotifier_cache';
-        register_setting( $this->page_slug, $cache_option_name, 'sanitize_text_field' );
-        add_settings_field(
-            $cache_option_name,
-            'Length of Time to Cache Good Links (in Seconds)',
-            [ $this, 'field_number' ],
-            $this->page_slug,
-            'general',
+            // Status Codes
             [
-                'class'    => $cache_option_name,
-                'name'     => $cache_option_name,
-                'default'  => 0,
-                'min'      => 0,
-                'box'      => 'advanced',
-                'comments' => 'Use 0 to disable caching. If you are experienced performance issues, you can set the value to 28800 (8 hours), 43200 (12 hours), 86400 (24 hours) or whatever you feel is best. Broken and warning links will never be cached. Deactivating or uninstalling the plugin will clear the cache completely.'
-            ]
-        );
+                'type'    => 'status_codes',
+                'name'    => 'status_codes',
+                'label'   => 'Status Codes',
+                'options' => (new BLNOTIFIER_HELPERS)->get_status_codes(),
+                'box'     => 'status_codes',
+            ],
+        ];
 
-        // Post types
-        $post_types_option_name = 'blnotifier_post_types';
-        register_setting( $this->page_slug, $post_types_option_name, [ $this, 'sanitize_checkboxes' ] );
-        add_settings_field(
-            $post_types_option_name,
-            'Enable Scanning for These Post Types',
-            [ $this, 'field_checkboxes' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $post_types_option_name,
-                'name'     => $post_types_option_name,
-                'options'  => $this->get_post_type_choices(),
-                'default'  => [ 'post', 'page' ],
-                'box'      => 'scanning',
-            ]
-        );
+        // Map each field type to its sanitize callback and render callback
+        $type_map = [
+            'checkbox'          => [ 'sanitize' => [ $this, 'sanitize_checkbox' ],   'render' => [ $this, 'field_checkbox' ] ],
+            'checkboxes'        => [ 'sanitize' => [ $this, 'sanitize_checkboxes' ], 'render' => [ $this, 'field_checkboxes' ] ],
+            'number'            => [ 'sanitize' => 'absint',                         'render' => [ $this, 'field_number' ] ],
+            'text'              => [ 'sanitize' => 'sanitize_text_field',            'render' => [ $this, 'field_text' ] ],
+            'url_with_test'     => [ 'sanitize' => [ $this, 'sanitize_url' ],        'render' => [ $this, 'field_url_with_test' ] ],
+            'emails_with_test'  => [ 'sanitize' => 'sanitize_text_field',            'render' => [ $this, 'field_emails_with_test' ] ],
+            'status_codes'      => [ 'sanitize' => [],                               'render' => [ $this, 'field_status_codes' ] ],
+            'api_key'           => [ 'sanitize' => 'sanitize_text_field',            'render' => [ $this, 'field_api_key' ] ],
+            'html'              => [ 'sanitize' => null,                             'render' => [ $this, 'field_backup_tools' ] ],
+            'clear_cache'       => [ 'sanitize' => null,                             'render' => [ $this, 'field_clear_cache' ] ],
+        ];
 
-        // Status codes
-        $status_codes_option_name = 'blnotifier_status_codes';
-        register_setting( $this->page_slug, $status_codes_option_name, [] );
-        add_settings_field(
-            $status_codes_option_name,
-            'Status Codes',
-            [ $this, 'field_status_codes' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $status_codes_option_name,
-                'name'     => $status_codes_option_name,
-                'options'  => (new BLNOTIFIER_HELPERS)->get_status_codes(),
-                'box'      => 'status_codes',
-            ]
-        );   
+        // Register and add each field in order
+        foreach ( $fields as $field ) {
+            $option_name = 'blnotifier_' . $field[ 'name' ];
+            $type_info = $type_map[ $field[ 'type' ] ];
 
-        // Uninstall database cleanup
-        $uninstall_cleanup_option_name = 'blnotifier_uninstall_cleanup';
-        register_setting( $this->page_slug, $uninstall_cleanup_option_name, [ $this, 'sanitize_checkbox' ] );
-        add_settings_field(
-            $uninstall_cleanup_option_name,
-            'Remove Data on Uninstall',
-            [ $this, 'field_checkbox' ],
-            $this->page_slug,
-            'general',
-            [
-                'class'    => $uninstall_cleanup_option_name,
-                'name'     => $uninstall_cleanup_option_name,
-                'default'  => false,
-                'box'      => 'advanced',
-                'comments' => 'Enable this option to automatically remove the database tables that the links are stored in and all options when the plugin is uninstalled.'
-            ]
-        );
+            if ( $type_info[ 'sanitize' ] !== null ) {
+                register_setting( $this->page_slug, $option_name, $type_info[ 'sanitize' ] );
+            }
 
-        // Backup/reset tools
-        $backup_option_name = 'blnotifier_settings_backup_tools';
-        add_settings_field(
-            $backup_option_name,
-            'Backup & Reset',
-            [ $this, 'field_backup_tools' ],
-            $this->page_slug,
-            'general',
-            [
-                'class' => $backup_option_name,
-                'name'  => $backup_option_name,
-                'box'   => 'advanced',
-            ]
-        );
+            $args = $field;
+            $args[ 'class' ] = $option_name;
+            $args[ 'name' ]  = $option_name;
+            unset( $args[ 'type' ], $args[ 'label' ], $args[ 'box' ] );
+            $args[ 'box' ] = $field[ 'box' ];
+
+            add_settings_field(
+                $option_name,
+                $field[ 'label' ],
+                $type_info[ 'render' ],
+                $this->page_slug,
+                'general',
+                $args
+            );
+        }
     } // End settings_fields()
 
 
@@ -1199,6 +1074,25 @@ class BLNOTIFIER_SETTINGS {
 
 
     /**
+     * Render the Clear Cache button
+     *
+     * @param array $args
+     * @return void
+     */
+    public function field_clear_cache( $args ) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'blnotifier_cache';
+        $count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" ); // phpcs:ignore
+        ?>
+        <div class="blnotifier-backup-tools">
+            <button type="button" id="blnotifier-clear-cache" class="blnotifier-button">Clear Cache</button>
+            <span id="blnotifier-cache-count">Currently caching <?php echo absint( $count ); ?> link<?php echo $count == 1 ? '' : 's'; ?>.</span>
+        </div>
+        <?php
+    } // End field_clear_cache()
+
+
+    /**
      * Get a flat list of field metadata for JS-side download/upload/reset
      *
      * @return array
@@ -1267,16 +1161,39 @@ class BLNOTIFIER_SETTINGS {
             $handle = 'blnotifier_settings_script';
             wp_register_script( $handle, BLNOTIFIER_PLUGIN_JS_PATH.'settings.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );
             wp_localize_script( $handle, 'blnotifier_settings', [
-                'api_key'      => get_option( 'blnotifier_api_key', '' ),
-                'nonce'        => wp_create_nonce( 'blnotifier_test_notification' ),
-                'save_nonce'   => wp_create_nonce( 'blnotifier_save_settings' ),
-                'fields'       => $this->get_field_definitions_for_js(),
-                'ajaxurl'      => admin_url( 'admin-ajax.php' ),
+                'api_key'           => get_option( 'blnotifier_api_key', '' ),
+                'nonce'             => wp_create_nonce( 'blnotifier_test_notification' ),
+                'clear_cache_nonce' => wp_create_nonce( 'blnotifier_clear_cache' ),
+                'save_nonce'        => wp_create_nonce( 'blnotifier_save_settings' ),
+                'fields'            => $this->get_field_definitions_for_js(),
+                'ajaxurl'           => admin_url( 'admin-ajax.php' ),
             ] );
             wp_enqueue_script( $handle );
             wp_enqueue_script( 'jquery' );
         }
     } // End enqueue_scripts()
+
+
+    /**
+     * AJAX handler for clearing the cache
+     *
+     * @return void
+     */
+    public function ajax_clear_cache() {
+        if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), 'blnotifier_clear_cache' ) ) {
+            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+        }
+
+        if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
+            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+        }
+
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'blnotifier_cache';
+        $wpdb->query( "TRUNCATE TABLE $table_name" ); // phpcs:ignore
+
+        wp_send_json_success();
+    } // End ajax_clear_cache()
 
 
     /**

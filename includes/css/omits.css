@@ -87,16 +87,25 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    width: 100%;
 }
 
 #bln-quick-add-field select.blnotifier-select-field {
     width: 100%;
-    padding: 8px 10px;
+    max-width: 100%;
+    margin: 0;
+    padding: 8px 30px 8px 10px;
     font-size: 13px;
     line-height: 1.4;
     border: 1px solid #d0d5dd;
     border-radius: 6px;
-    background: #ffffff;
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%231e1e1e%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px top 55%;
+    background-size: 16px 16px;
+    -webkit-appearance: none;
+    appearance: none;
     height: 36px;
     box-sizing: border-box;
 }

@@ -39,29 +39,57 @@ jQuery( $ => {
                     }
                 } );
                 currentPage = response.data.page;
-                renderPagination( response.data.page, response.data.total_pages );
+                renderPagination( response.data.page, response.data.total_pages, response.data.total );
             }
             updateExportUrl();
         } );
     }
 
-    const renderPagination = ( page, totalPages ) => {
-        const container = $( '#bln-link-browser-pagination' );
-        container.empty();
+    const renderPagination = ( page, totalPages, totalItems ) => {
+        $( '.bln-link-browser-pagination' ).each( function() {
+            const container = $( this );
+            container.empty();
 
-        if ( totalPages <= 1 ) {
-            return;
-        }
+            const countLabel = $( '<span class="displaying-num"></span>' ).text( totalItems + ' item' + ( totalItems == 1 ? '' : 's' ) );
 
-        const prevBtn = $( '<button type="button" class="button" id="bln-pagination-prev">Previous</button>' );
-        prevBtn.prop( 'disabled', page <= 1 );
+            const wrapper = $( '<span class="pagination-links"></span>' );
 
-        const nextBtn = $( '<button type="button" class="button" id="bln-pagination-next">Next</button>' );
-        nextBtn.prop( 'disabled', page >= totalPages );
+            const atFirst = page <= 1;
+            const atLast = page >= totalPages;
 
-        const label = $( '<span class="bln-pagination-label"> Page ' + page + ' of ' + totalPages + ' </span>' );
+            if ( atFirst ) {
+                wrapper.append( $( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&laquo;</span>' ) );
+            } else {
+                wrapper.append( $( '<button type="button" class="first-page button bln-lb-first"><span class="screen-reader-text">First page</span><span aria-hidden="true">&laquo;</span></button>' ) );
+            }
 
-        container.append( prevBtn, label, nextBtn );
+            if ( atFirst ) {
+                wrapper.append( $( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&lsaquo;</span>' ) );
+            } else {
+                wrapper.append( $( '<button type="button" class="prev-page button bln-lb-prev"><span class="screen-reader-text">Previous page</span><span aria-hidden="true">&lsaquo;</span></button>' ) );
+            }
+
+            const pagingInput = $( '<span class="paging-input"></span>' );
+            pagingInput.append( $( '<label for="bln-lb-current-page-selector" class="screen-reader-text">Current Page</label>' ) );
+            const currentPageInput = $( '<input class="current-page bln-lb-current-page" id="bln-lb-current-page-selector" type="text" name="paged" size="1" aria-describedby="table-paging">' ).val( page );
+            pagingInput.append( currentPageInput );
+            pagingInput.append( $( '<span class="tablenav-paging-text"></span>' ).html( ' of <span class="total-pages">' + totalPages + '</span>' ) );
+            wrapper.append( pagingInput );
+
+            if ( atLast ) {
+                wrapper.append( $( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&rsaquo;</span>' ) );
+            } else {
+                wrapper.append( $( '<button type="button" class="next-page button bln-lb-next"><span class="screen-reader-text">Next page</span><span aria-hidden="true">&rsaquo;</span></button>' ) );
+            }
+
+            if ( atLast ) {
+                wrapper.append( $( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&raquo;</span>' ) );
+            } else {
+                wrapper.append( $( '<button type="button" class="last-page button bln-lb-last"><span class="screen-reader-text">Last page</span><span aria-hidden="true">&raquo;</span></button>' ) );
+            }
+
+            container.append( countLabel, wrapper );
+        } );
     }
 
     const scanNext = () => {
@@ -161,12 +189,38 @@ jQuery( $ => {
     } );
 
     // Pagination clicks
-    $( document ).on( 'click', '#bln-pagination-prev', function() {
+    $( document ).on( 'click', '.bln-lb-first', function() {
+        fetchTable( 1 );
+    } );
+    $( document ).on( 'click', '.bln-lb-prev', function() {
         fetchTable( currentPage - 1 );
     } );
-
-    $( document ).on( 'click', '#bln-pagination-next', function() {
+    $( document ).on( 'click', '.bln-lb-next', function() {
         fetchTable( currentPage + 1 );
+    } );
+    $( document ).on( 'click', '.bln-lb-last', function() {
+        const totalPages = parseInt( $( this ).closest( '.pagination-links' ).find( '.total-pages' ).text(), 10 );
+        fetchTable( totalPages );
+    } );
+
+    $( document ).on( 'keypress', '.bln-lb-current-page', function( e ) {
+        if ( e.which === 13 ) {
+            e.preventDefault();
+            const totalPages = parseInt( $( this ).closest( '.pagination-links' ).find( '.total-pages' ).text(), 10 );
+            let target = parseInt( $( this ).val(), 10 );
+            if ( isNaN( target ) || target < 1 ) target = 1;
+            if ( target > totalPages ) target = totalPages;
+            fetchTable( target );
+        }
+    } );
+    $( document ).on( 'blur', '.bln-lb-current-page', function() {
+        const totalPages = parseInt( $( this ).closest( '.pagination-links' ).find( '.total-pages' ).text(), 10 );
+        let target = parseInt( $( this ).val(), 10 );
+        if ( isNaN( target ) || target < 1 ) target = 1;
+        if ( target > totalPages ) target = totalPages;
+        if ( target !== currentPage ) {
+            fetchTable( target );
+        }
     } );
 
     // Toggle pages list

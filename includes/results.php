@@ -346,8 +346,40 @@ class BLNOTIFIER_RESULTS {
         // Perform any actions that people want to use
         do_action( 'blnotifier_notify', $flagged, $flagged_count, $all_links, $source_url );
 
+        // Allow notifications to be filtered
+        $flagged = apply_filters( 'blnotifier_notify_flagged', $flagged, $flagged_count, $all_links, $source_url );
+
+        // Check if warnings are enabled.
+        $warnings_enabled_check = filter_var( get_option( 'blnotifier_enable_warnings' ), FILTER_VALIDATE_BOOLEAN );
+
+        // Count broken and warning links that should be notified.
+        $broken_count = 0;
+        $warning_count = 0;
+
+        foreach ( $flagged as $section ) {
+            foreach ( $section as $f ) {
+                if ( $f[ 'type' ] == 'broken' ) {
+                    $broken_count++;
+                } elseif ( $f[ 'type' ] == 'warning' && $warnings_enabled_check ) {
+                    $warning_count++;
+                }
+            }
+        }
+
         // Only notify flagged
         if ( $flagged_count > 0 ) {
+
+            // Subject & Message
+            if ( $broken_count > 0 && $warning_count > 0 ) {
+                $subject = 'Broken Links and Warnings Found';
+                $message = 'The following broken links and warnings were found on '.$source_url.':';
+            } elseif ( $broken_count > 0 ) {
+                $subject = 'Broken Links Found';
+                $message = 'The following broken links were found on '.$source_url.':';
+            } else {
+                $subject = 'Link Warnings Found';
+                $message = 'The following link warnings were found on '.$source_url.':';
+            }
     
             // Check if we are emailing
             if ( get_option( 'blnotifier_enable_emailing' ) ) {
@@ -362,30 +394,29 @@ class BLNOTIFIER_RESULTS {
                     $headers[] = 'From: '.BLNOTIFIER_NAME.' <'.get_bloginfo( 'admin_email' ).'>';
                     $headers[] = 'Content-Type: text/html; charset=UTF-8';
 
-                    // Subject
-                    $subject = 'Broken Links Found';
-
-                    // Message
-                    $message = 'The following broken links were found today on '.$source_url.':<br><br>';
+                    // Addt. Message Breaks
+                    $message .= '<br><br>';
                     
-                    $broken_links = [];
+                    // Notification links array
+                    $notification_links = [];
                     foreach ( $flagged as $key => $section ) {
                         $message .= strtoupper( $key ).':<br><br>';
                         foreach ( $section as $f ) {
-                            if ( $f[ 'type' ] == 'broken' && !$this->already_added( $f[ 'link' ] ) ) {
-                                $broken_links[] = 'URL: '.$f[ 'link' ].'<br>Status Code: '.$f[ 'code' ].' - '.$f[ 'text' ];
+                            if ( ( $f[ 'type' ] == 'broken' || $f[ 'type' ] == 'warning' ) && !$this->already_added( $f[ 'link' ] ) ) {
+                                $label = $f[ 'type' ] == 'warning' ? 'Warning' : 'Broken Link';
+                                $notification_links[] = $label.': '.$f[ 'link' ].'<br>Status Code: '.$f[ 'code' ].' - '.$f[ 'text' ];
                             }
                         }
                     }
 
                     // Verify before sending
-                    if ( !empty( $broken_links ) ) {
+                    if ( !empty( $notification_links ) ) {
 
                         // Results page link
-                        $results_page_link = '<br><br>You can see all broken links here:<br>'.(new BLNOTIFIER_MENU)->get_plugin_page( 'results' ).'<br><br>';
+                        $results_page_link = '<br><br>You can see all issues here:<br>'.(new BLNOTIFIER_MENU)->get_plugin_page( 'results' ).'<br><br>';
 
                         // Add links and footer
-                        $message .= implode( '<br><br>', $broken_links ).$results_page_link.'<br><br><hr><br>'.get_bloginfo( 'name' ).'<br><em>'.BLNOTIFIER_NAME.' Plugin<br></em>';
+                        $message .= implode( '<br><br>', $notification_links ).$results_page_link.'<br><br><hr><br>'.get_bloginfo( 'name' ).'<br><em>'.BLNOTIFIER_NAME.' Plugin<br></em>';
                         
                         // Filters
                         $emails = apply_filters( 'blnotifier_email_emails', $emails, $flagged, $source_url );
@@ -423,9 +454,9 @@ class BLNOTIFIER_RESULTS {
                     ];
                     foreach ( $flagged as $key => $section ) {
                         foreach ( $section as $f ) {
-                            if ( $f[ 'type' ] == 'broken' && !$this->already_added( $f[ 'link' ] ) ) {
+                            if ( ( $f[ 'type' ] == 'broken' || $f[ 'type' ] == 'warning' ) && !$this->already_added( $f[ 'link' ] ) ) {
                                 $discord_args[ 'fields' ][] = [
-                                    'name'   => 'Broken Link:',
+                                    'name'   => $f[ 'type' ] == 'warning' ? 'Warning' : 'Broken Link',
                                     'value'  => html_entity_decode( $f[ 'link' ] ).'
                                     Status Code: '.$f[ 'code' ].' - '.$f[ 'text' ],
                                     'inline' => false
@@ -447,17 +478,18 @@ class BLNOTIFIER_RESULTS {
                 $slack_webhook = get_option( 'blnotifier_slack' );
                 if ( $slack_webhook && $SLACK->sanitize_webhook_url( $slack_webhook ) != '' ) {
                     $slack_args = [
-                        'title'  => 'Broken Links Found',
+                        'title'  => $subject,
                         'source' => $source_url,
                         'fields' => []
                     ];
                     foreach ( $flagged as $key => $section ) {
                         foreach ( $section as $f ) {
-                            if ( $f[ 'type' ] == 'broken' && !$this->already_added( $f[ 'link' ] ) ) {
+                            if ( ( $f[ 'type' ] == 'broken' || $f[ 'type' ] == 'warning' ) && !$this->already_added( $f[ 'link' ] ) ) {
                                 $slack_args[ 'fields' ][] = [
-                                    'link' => $f[ 'link' ],
-                                    'code' => $f[ 'code' ],
-                                    'text' => $f[ 'text' ],
+                                    'label' => $f[ 'type' ] == 'warning' ? 'Warning:' : 'Broken Link:',
+                                    'link'  => $f[ 'link' ],
+                                    'code'  => $f[ 'code' ],
+                                    'text'  => $f[ 'text' ],
                                 ];
                             }
                         }
@@ -478,17 +510,17 @@ class BLNOTIFIER_RESULTS {
 
                     $msteams_args = [
                         'site_name'     => get_bloginfo( 'name' ),
-                        'title'         => 'Broken Links Found',
-                        'msg'           => 'The following broken links were found:',
+                        'title'         => $subject,
+                        'msg'           => $message,
                         'img_url'       => '',
                         'source_url'    => $source_url,
                         'facts'         => []
                     ];
                     foreach ( $flagged as $key => $section ) {
                         foreach ( $section as $f ) {
-                            if ( $f[ 'type' ] == 'broken' && !$this->already_added( $f[ 'link' ] ) ) {
+                            if ( ( $f[ 'type' ] == 'broken' || $f[ 'type' ] == 'warning' ) && !$this->already_added( $f[ 'link' ] ) ) {
                                 $msteams_args[ 'facts' ][] = [
-                                    'name'   => 'Broken Link:',
+                                    'name'   => $f[ 'type' ] == 'warning' ? 'Warning:' : 'Broken Link:',
                                     'value'  => '['.$f[ 'link' ].']('.$f[ 'link' ].') \
                                     _Status Code: **'.$f[ 'code' ].'** - '.$f[ 'text' ].'_',
                                 ];
@@ -961,19 +993,19 @@ class BLNOTIFIER_RESULTS {
             $HELPERS = new BLNOTIFIER_HELPERS;
 
             // Codes
-            $bad_status_codes = $HELPERS->get_bad_status_codes();
-            $warning_status_codes = $HELPERS->get_warning_status_codes();
-            $notify_status_codes = array_merge( $bad_status_codes, $warning_status_codes );
             $show_good_links_in_results = get_option( 'blnotifier_enable_good_links' );
+            $warnings_enabled_check = filter_var( get_option( 'blnotifier_enable_warnings' ), FILTER_VALIDATE_BOOLEAN );
 
             // Start timing
             $start = $HELPERS->start_timer();
 
             // Store the links we're going to notify
             $notify = [];
+            $broken_links = [];
+            $warning_links = [];
+            $good_links = [];
             $count_links = 0;
             $count_notify = 0;
-            $good_links = [];
 
             // Header links
             if ( !empty( $header_links ) ) {
@@ -984,9 +1016,16 @@ class BLNOTIFIER_RESULTS {
                         continue;
                     }
                     $status = $HELPERS->check_link( $header_link );
-                    if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
+                    if ( $status[ 'type' ] === 'broken' ) {
                         $count_notify++;
                         $notify[ 'header' ][] = $status;
+                        $broken_links[ 'header' ][] = $status;
+                    } elseif ( $status[ 'type' ] === 'warning' ) {
+                        if ( $warnings_enabled_check ) {
+                            $count_notify++;
+                            $notify[ 'header' ][] = $status;
+                        }
+                        $warning_links[ 'header' ][] = $status;
                     } else {
                         $good_links[ 'header' ][] = $status;
                     }
@@ -1002,9 +1041,16 @@ class BLNOTIFIER_RESULTS {
                         continue;
                     }
                     $status = $HELPERS->check_link( $content_link );
-                    if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
+                    if ( $status[ 'type' ] === 'broken' ) {
                         $count_notify++;
                         $notify[ 'content' ][] = $status;
+                        $broken_links[ 'content' ][] = $status;
+                    } elseif ( $status[ 'type' ] === 'warning' ) {
+                        if ( $warnings_enabled_check ) {
+                            $count_notify++;
+                            $notify[ 'content' ][] = $status;
+                        }
+                        $warning_links[ 'content' ][] = $status;
                     } else {
                         $good_links[ 'content' ][] = $status;
                     }
@@ -1020,9 +1066,16 @@ class BLNOTIFIER_RESULTS {
                         continue;
                     }
                     $status = $HELPERS->check_link( $footer_link );
-                    if ( in_array( $status[ 'code' ], $notify_status_codes ) ) {
+                    if ( $status[ 'type' ] === 'broken' ) {
                         $count_notify++;
                         $notify[ 'footer' ][] = $status;
+                        $broken_links[ 'footer' ][] = $status;
+                    } elseif ( $status[ 'type' ] === 'warning' ) {
+                        if ( $warnings_enabled_check ) {
+                            $count_notify++;
+                            $notify[ 'footer' ][] = $status;
+                        }
+                        $warning_links[ 'footer' ][] = $status;
                     } else {
                         $good_links[ 'footer' ][] = $status;
                     }
@@ -1035,9 +1088,9 @@ class BLNOTIFIER_RESULTS {
 
             $current_user_id = get_current_user_id();
 
-            // Add posts
-            foreach ( $notify as $location => $n ) {
-                foreach ( $n as $status ) {
+            // Add broken links
+            foreach ( $broken_links as $location => $items ) {
+                foreach ( $items as $status ) {
                     $this->add( [
                         'type'     => $status[ 'type' ],
                         'code'     => $status[ 'code' ],
@@ -1051,7 +1104,25 @@ class BLNOTIFIER_RESULTS {
                 }
             }
 
-            // Add posts
+            // Add warning links, only if warnings are enabled
+            if ( $warnings_enabled_check ) {
+                foreach ( $warning_links as $location => $items ) {
+                    foreach ( $items as $status ) {
+                        $this->add( [
+                            'type'     => $status[ 'type' ],
+                            'code'     => $status[ 'code' ],
+                            'text'     => $status[ 'text' ],
+                            'link'     => $status[ 'link' ],
+                            'source'   => $source_url,
+                            'author'   => $current_user_id,
+                            'location' => $location,
+                            'method'   => 'visit'
+                        ] );
+                    }
+                }
+            }
+
+            // Add good links, only if showing good links is enabled
             if ( $show_good_links_in_results ) {
                 foreach ( $good_links as $location => $gl ) {
                     foreach ( $gl as $status ) {
@@ -1084,8 +1155,21 @@ class BLNOTIFIER_RESULTS {
 
             // Return
             $result[ 'type' ] = 'success';
-            $result[ 'notify' ] = $notify;
-            $result[ 'good_links' ] = $good_links;
+            $result[ 'scanned' ] = [
+                'header'  => $header_links ?: [],
+                'content' => $content_links ?: [],
+                'footer'  => $footer_links ?: [],
+            ];
+            $result[ 'results' ] = [
+                'broken'  => $broken_links,
+                'warning' => $warning_links,
+                'good'    => $good_links,
+            ];
+            $result[ 'warnings_enabled' ] = $warnings_enabled_check;
+            $result[ 'status_codes' ] = [
+                'broken'  => $HELPERS->get_bad_status_codes() ?: [],
+                'warning' => $HELPERS->get_warning_status_codes() ?: [],
+            ] ?: [];
             $result[ 'timing' ] = 'Results were generated in '.$total_time.' seconds ('.$sec_per_link.'/link)';
 
         // Nope

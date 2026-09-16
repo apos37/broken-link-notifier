@@ -41,6 +41,7 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                 <input type="hidden" name="_wpnonce" value="<?php echo sanitize_key( wp_create_nonce( 'blnotifier_scan_single' ) ); ?>">
                 <input type="hidden" name="page" value="<?php echo esc_html( BLNOTIFIER_TEXTDOMAIN ); ?>">
                 <input type="hidden" name="tab" value="<?php echo esc_attr( $tab ); ?>">
+                <input type="hidden" name="scan_source" id="scan-source-field" value="text">
 
                 <div class="bln-scan-option">
                     <label class="bln-scan-option-label">Browse for a Page</label>
@@ -71,7 +72,7 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                                 <option value="">Choose a Post Type First...</option>
                             <?php endif; ?>
                         </select>
-                        <button type="submit" id="bln-scan-picker-button" class="blnotifier-button" name="scan_source" value="picker">Scan Now</button>
+                        <button type="submit" id="bln-scan-picker-button" class="blnotifier-button">Scan Now</button>
                     </div>
                 </div>
 
@@ -83,7 +84,7 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                         <input type="text" id="url-search-input" autocomplete="off" value="<?php echo esc_attr( $s_display ); ?>">
                         <input type="hidden" name="scan" id="url-search-value" value="<?php echo esc_attr( $s ); ?>">
                         <div id="bln-scan-suggestions"></div>
-                        <button type="submit" id="url-search-button" class="blnotifier-button" name="scan_source" value="text">Scan Now</button>
+                        <button type="submit" id="url-search-button" class="blnotifier-button">Scan Now</button>
                     </div>
                 </div>
             </form>

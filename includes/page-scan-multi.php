@@ -22,7 +22,7 @@ $HELPERS = new BLNOTIFIER_HELPERS;
 
 <div class="blnotifier-box">
     <div class="blnotifier-box-body">
-        <p>Our Multi-Scan is different than most plugins. It doesn't just scan the whole website and give you results like you would expect. Sorry to make things complicated for you. The reason we don't do that, though, is because most hosts do not allow for such a big load all at once. It causes a slew of issues and often times out. Generally speaking, doing a full scan like that is better to be done off-site. Here are a few links to consider:</p>
+        <p><a href="<?php echo esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'site-scan' ) ); ?>">Site Scan</a> covers everything linked from your own pages and menus, but may take awhile to complete depending on how many pages and links you have. If you want a more exhaustive crawl (including pages not linked from anywhere on your site), here are a few off-site tools worth considering:</p>
         <ul>
             <?php
             foreach ( $HELPERS->get_suggested_offsite_checkers() as $name => $url ) {

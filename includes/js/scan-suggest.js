@@ -144,6 +144,14 @@ jQuery( $ => {
 
     let clickedSubmitButton = null;
 
+    $( '#bln-scan-picker-button' ).on( 'click', function() {
+        $( '#scan-source-field' ).val( 'picker' );
+    } );
+
+    $( '#url-search-button' ).on( 'click', function() {
+        $( '#scan-source-field' ).val( 'text' );
+    } );
+
     $( document ).on( 'click', 'button[type="submit"]', function() {
         clickedSubmitButton = this;
     } );

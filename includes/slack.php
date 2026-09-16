@@ -73,6 +73,7 @@ class BLNOTIFIER_SLACK {
 
         if ( !empty( $args[ 'fields' ] ) ) {
             foreach ( $args[ 'fields' ] as $field ) {
+                $label = isset( $field[ 'label' ] ) ? sanitize_text_field( $field[ 'label' ] ) : ( $field[ 'type' ] == 'warning' ? 'Warning:' : 'Broken Link:' );
                 $link = esc_url( $field[ 'link' ] );
                 $code = absint( $field[ 'code' ] );
                 $text = sanitize_text_field( $field[ 'text' ] );
@@ -80,7 +81,7 @@ class BLNOTIFIER_SLACK {
                     'type' => 'section',
                     'text' => [
                         'type' => 'mrkdwn',
-                        'text' => '*Broken Link:* <'.$link.'|'.$link.'>'."\n".'*Status Code:* '.$code.' - '.$text,
+                        'text' => '*'.$label.'* <'.$link.'|'.$link.'>'."\n".'*Status Code:* '.$code.' - '.$text,
                     ],
                 ];
             }

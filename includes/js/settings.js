@@ -255,6 +255,25 @@ jQuery( $ => {
         $( '#bln-warning-codes-summary' ).text( warning.length ? warning.join( ', ' ) : 'None' );
     }
 
+    // --- CLEAR CACHE ---
+    $( document ).on( 'click', '#blnotifier-clear-cache', function() {
+        const button = $( this );
+        const originalText = button.text();
+        button.prop( 'disabled', true ).html( '<span class="blnotifier-spinner-inline"></span>Clearing...' );
+
+        $.post( blnotifier_settings.ajaxurl, {
+            action: 'blnotifier_clear_cache',
+            nonce: blnotifier_settings.clear_cache_nonce
+        }, function( response ) {
+            button.prop( 'disabled', false ).text( originalText );
+            if ( response.success ) {
+                $( '#blnotifier-cache-count' ).text( 'Currently caching 0 links.' );
+            } else {
+                alert( 'Could not clear cache.' );
+            }
+        } );
+    } );
+
     // --- DOWNLOAD SETTINGS ---
     $( '#blnotifier-download-settings-btn' ).on( 'click', function( e ) {
         e.preventDefault();

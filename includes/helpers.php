@@ -1221,7 +1221,7 @@ class BLNOTIFIER_HELPERS {
         if ( ! isset( $parts[ 'scheme' ], $parts[ 'host' ] ) ) {
             return [
                 'type' => 'broken',
-                'code' => 0,
+                'code' => 666,
                 'text' => 'Blocked: invalid or malformed URL',
                 'link' => $url
             ];
@@ -1231,7 +1231,7 @@ class BLNOTIFIER_HELPERS {
         if ( ! in_array( $scheme, [ 'http', 'https' ], true ) ) {
             return [
                 'type' => 'broken',
-                'code' => 0,
+                'code' => 666,
                 'text' => 'Blocked: unsupported URL scheme',
                 'link' => $url
             ];
@@ -1260,7 +1260,7 @@ class BLNOTIFIER_HELPERS {
         if ( empty( $ips ) ) {
             return [
                 'type' => 'broken',
-                'code' => 0,
+                'code' => 666,
                 'text' => 'Blocked: host could not be resolved',
                 'link' => $url
             ];
@@ -1270,7 +1270,7 @@ class BLNOTIFIER_HELPERS {
             if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) === false ) {
                 return [
                     'type' => 'broken',
-                    'code' => 0,
+                    'code' => 666,
                     'text' => 'Blocked: resolved to internal or reserved IP address',
                     'link' => $url
                 ];
@@ -1371,7 +1371,12 @@ class BLNOTIFIER_HELPERS {
             $type = 'broken';
 
         // Warnings
-        } elseif ( in_array( $code, $this->get_warning_status_codes() ) ) {
+        } elseif ( in_array( $code, $this->get_warning_status_codes( true ) ) ) {
+            $type = 'warning';
+
+        // Code 0 is always inconclusive (timeout, connection reset, DNS blip, etc.)
+        // and should never be silently treated as good, regardless of settings
+        } elseif ( $code === 0 ) {
             $type = 'warning';
 
         // Good links

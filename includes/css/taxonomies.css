@@ -216,3 +216,41 @@
     gap: 10px;
     align-items: center;
 }
+
+/* Bulk Actions */
+
+#bulk-action-selector-top,
+#bulk-action-selector-bottom {
+    padding: 8px 30px 8px 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%231e1e1e%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px top 55%;
+    background-size: 16px 16px;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+#bulk-action-selector-top:focus,
+#bulk-action-selector-bottom:focus {
+    border-color: #84caff;
+    box-shadow: 0 0 0 3px rgba( 132, 202, 255, 0.25 );
+    outline: none;
+}
+
+#doaction,
+#doaction2 {
+    height: 36px !important;
+    min-height: 36px !important;
+    box-sizing: border-box;
+}
+
+.tablenav .actions {
+    padding: 0 8px 9px 0;
+}

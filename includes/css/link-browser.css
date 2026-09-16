@@ -107,3 +107,80 @@ table.link-browser td.actions a {
     width: 20px;
     height: 20px;
 }
+
+.bln-link-browser-pagination .displaying-num {
+    margin-right: 10px;
+}
+
+.bln-link-browser-pagination .pagination-links {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bln-link-browser-pagination .paging-input {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 2px;
+}
+
+#bln-link-browser-kind,
+#bln-link-browser-per-page {
+    padding: 8px 30px 8px 10px;
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%231e1e1e%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px top 55%;
+    background-size: 16px 16px;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+#bln-link-browser-kind:focus,
+#bln-link-browser-per-page:focus {
+    border-color: #84caff;
+    box-shadow: 0 0 0 3px rgba( 132, 202, 255, 0.25 );
+    outline: none;
+}
+
+#bln-link-browser-search {
+    padding: 0 10px;
+    height: 36px;
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background: #ffffff;
+    box-sizing: border-box;
+}
+
+#bln-link-browser-search:focus {
+    border-color: #84caff;
+    box-shadow: 0 0 0 3px rgba( 132, 202, 255, 0.25 );
+    outline: none;
+}
+
+.bln-lb-current-page {
+    padding: 0 8px;
+    height: 36px;
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid #d0d5dd !important;
+    border-radius: 6px !important;
+    background: #ffffff;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.bln-lb-current-page:focus {
+    border-color: #84caff;
+    box-shadow: 0 0 0 3px rgba( 132, 202, 255, 0.25 );
+    outline: none;
+}

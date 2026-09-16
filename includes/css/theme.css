@@ -418,12 +418,18 @@ input[type="submit"].blnotifier-button {
 /* Select Fields */
 
 .blnotifier-select-field {
-    padding: 8px 10px;
+    padding: 8px 30px 8px 10px;
     font-size: 13px;
     line-height: 1.4;
     border: 1px solid #d0d5dd;
     border-radius: 6px;
-    background: #ffffff;
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%231e1e1e%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px top 55%;
+    background-size: 16px 16px;
+    -webkit-appearance: none;
+    appearance: none;
     height: 36px;
     box-sizing: border-box;
     transition: border-color .15s ease, box-shadow .15s ease;
@@ -433,4 +439,26 @@ input[type="submit"].blnotifier-button {
     border-color: #84caff;
     box-shadow: 0 0 0 3px rgba( 132, 202, 255, 0.25 );
     outline: none;
+}
+
+.tablenav .actions {
+    padding: 0 8px 9px 0;
+}
+
+/* Spinner */
+
+.blnotifier-spinner-inline {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba( 255, 255, 255, 0.4 );
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+    animation: bln-spin 0.6s linear infinite;
+}
+
+@keyframes bln-spin {
+    to { transform: rotate( 360deg ); }
 }

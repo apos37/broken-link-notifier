@@ -225,6 +225,26 @@ table.page-scan th.actions {
     box-shadow: 0 2px 5px rgba( 0, 0, 0, 0.1 );
 }
 
+#link-search-input {
+    width: 600px;
+    padding: 0 10px;
+    height: 36px;
+    min-height: 36px;
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    background: #ffffff;
+    box-sizing: border-box;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+#link-search-input:focus {
+    border-color: #84caff;
+    box-shadow: 0 0 0 3px rgba( 132, 202, 255, 0.25 );
+    outline: none;
+}
+
 #bln-link-autocomplete-wrap {
     position: relative;
     display: inline-block;
@@ -305,4 +325,11 @@ table.page-scan th.actions {
     flex: 1;
     height: 1px;
     background: #eaecf0;
+}
+
+#bln-scan-picker-button,
+#url-search-button {
+    height: 36px !important;
+    min-height: 36px !important;
+    box-sizing: border-box;
 }

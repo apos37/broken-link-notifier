@@ -34,6 +34,7 @@ $counts = $LINK_BROWSER->get_counts();
                     <option value="100">100 per page</option>
                 </select>
             </div>
+            <div class="tablenav-pages bln-link-browser-pagination"></div>
             <br class="clear">
         </div>
 
@@ -52,7 +53,10 @@ $counts = $LINK_BROWSER->get_counts();
             </tbody>
         </table>
 
-        <div id="bln-link-browser-pagination"></div>
+        <div class="tablenav bottom">
+            <div class="tablenav-pages bln-link-browser-pagination"></div>
+            <br class="clear">
+        </div>
 
     </div>
 </div>
