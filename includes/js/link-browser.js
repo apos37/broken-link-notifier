@@ -225,7 +225,13 @@ jQuery( $ => {
 
     // Toggle pages list
     $( document ).on( 'click', '.pages-toggle', function() {
-        $( this ).siblings( '.pages-list' ).slideToggle( 150 );
+        const $toggle = $( this );
+        const $list = $toggle.siblings( '.pages-list' );
+
+        $list.slideToggle( 150, function() {
+            const isOpen = $list.is( ':visible' );
+            $toggle.text( isOpen ? $toggle.data( 'less-text' ) : $toggle.data( 'more-text' ) );
+        } );
     } );
 
     // Check status

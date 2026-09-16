@@ -681,8 +681,8 @@ class BLNOTIFIER_LINK_BROWSER {
 
             $pages_html = implode( '<br>', $visible_pages );
             if ( !empty( $hidden_pages ) ) {
-                $pages_html .= '<br><span class="pages-toggle">View other pages</span>';
                 $pages_html .= '<div class="pages-list">' . implode( '<br>', $hidden_pages ) . '</div>';
+                $pages_html .= '<br><span class="pages-toggle" data-more-text="View More" data-less-text="View Less">View More</span>';
             }
 
             $type_class = 'type-' . sanitize_html_class( $row->type );
