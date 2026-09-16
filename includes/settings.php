@@ -242,6 +242,15 @@ class BLNOTIFIER_SETTINGS {
                 'comments' => 'Maximum number of redirects before giving up on a link (will only be used if you allow redirects below)'
             ],
             [
+                'type'     => 'number',
+                'name'     => 'scan_delay_ms',
+                'label'    => 'Delay Between Scan Requests (ms)',
+                'default'  => 0,
+                'min'      => 0,
+                'box'      => 'advanced',
+                'comments' => 'Adds a pause between each request during Link Browser and Site Scan scans. Use this if scanning is putting too much load on your server. 0 disables the delay.'
+            ],
+            [
                 'type'     => 'checkbox',
                 'name'     => 'allow_redirects',
                 'label'    => 'Allow Redirects',
@@ -653,6 +662,7 @@ class BLNOTIFIER_SETTINGS {
             echo '</div>';
         }
     } // field_checkboxes()
+
 
     /**
      * Custom callback function to print status codes field
