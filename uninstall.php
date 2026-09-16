@@ -65,6 +65,7 @@ $options = [
     'link_browser_last_scan',
     'scan_delay_ms',
     'site_scan_last_check',
+    'settings_backup_tools',
     'whats_new_seen',
     'test_mode',
 ];

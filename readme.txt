@@ -126,15 +126,17 @@ https://youtu.be/gM9Qy0HLplU
 * Update: Added a "Search All Pages" action to Link Browser that hands off directly to Link Search
 * Update: Settings page reorganized into categorized sections, saves via AJAX with a dirty-state reminder and Ctrl+S support, and includes step-by-step setup accordions for Discord, Slack, and Microsoft Teams
 * Update: Added Download Settings, Upload Settings, and Reset All Settings tools to the Settings page
+* Update: Added an option to clear cached good links
 * Update: Removed the Export tab; export is now available directly from Results (exports whatever is currently filtered) and Link Browser (exports all discovered links, respecting filters and search)
 * Update: Omitted Links and Omitted Pages screens restyled to match the rest of the plugin, with search moved to the page header
-* Update: Added autocomplete suggestions by title (in addition to URL and Post ID) to the Page Scan search field
+* Update: Added quick-add fields and autocomplete suggestions by title to the Page Scan search field
 * Update: Added an optional delay between requests during Link Browser and Site Scan scans, for sites needing to reduce server load
-* Update: Added a "What's New" overlay introducing major updates
 * Update: Removed all help documentation since we have links to the Help Guide and Developer Docs on the website
-* Update: Added new developer filters — `blnotifier_link_type`, `blnotifier_link_kind`, `blnotifier_link_kind_image_extensions`, `blnotifier_link_kind_file_extensions`, `blnotifier_menu_location_label`, `blnotifier_header_footer_links`, `blnotifier_auto_omit_redirects`, `blnotifier_auto_omit_redirect_note`, `blnotifier_export_results_headers`, `blnotifier_export_link_browser_headers`, `blnotifier_export_results_rows`, `blnotifier_export_link_browser_rows`, `blnotifier_omit_quick_add_post_types`, and `blnotifier_admin_menu_title`
+* Update: Added new developer filters — `blnotifier_link_type`, `blnotifier_link_kind`, `blnotifier_link_kind_image_extensions`, `blnotifier_link_kind_file_extensions`, `blnotifier_menu_location_label`, `blnotifier_header_footer_links`, `blnotifier_auto_omit_redirects`, `blnotifier_auto_omit_redirect_note`, `blnotifier_export_results_headers`, `blnotifier_export_link_browser_headers`, `blnotifier_export_results_rows`, `blnotifier_export_link_browser_rows`, `blnotifier_omit_quick_add_post_types`, `blnotifier_admin_menu_title`, and `blnotifier_notify_flagged`
 * Tweak: "Omit Page" action renamed to "Omit Source" for clarity
 * Update: Shortened the admin menu title to "Broken Links" and made it filterable via `blnotifier_admin_menu_title`
+* Update: Overhauled the front-end console log debugger with better styling, grouping, and more data
+* Update: Added a "What's New" overlay introducing major updates
 
 = 1.3.8 =
 * Tweak: Added "Broken for X days" note under the date on the Results page
