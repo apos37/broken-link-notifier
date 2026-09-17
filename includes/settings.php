@@ -221,8 +221,8 @@ class BLNOTIFIER_SETTINGS {
                 'label'    => __( 'User Agent', 'broken-link-notifier' ),
                 'default'  => 'WordPress/{blog_version}; {blog_url}',
                 'box'      => 'advanced',
-                /* translators: %1$s is the default user agent format, %2$s is the WordPress version, and %3$s is the site's URL. */
                 'comments' => sprintf(
+                    /* translators: %1$s is the default user agent format, %2$s is the WordPress version, and %3$s is the site's URL. */
                     __( 'Only change this if you know what you are doing. Default is "%1$s" (WordPress/%2$s; %3$s)', 'broken-link-notifier' ),
                     'WordPress/{blog_version}; {blog_url}',
                     get_bloginfo( 'version' ),
@@ -346,8 +346,8 @@ class BLNOTIFIER_SETTINGS {
                 'test_type'          => 'discord',
                 'comments'           => __( 'URL should look like this: https://discord.com/api/webhooks/xxx/xxx...', 'broken-link-notifier' ),
                 'accordion_title'    => __( 'How to Connect to Discord', 'broken-link-notifier' ),
-                /* translators: %1$s is the URL of the Broken Link Notifier Results page. */
                 'accordion_content'  => sprintf(
+                    /* translators: %1$s is the URL of the Broken Link Notifier Results page. */
                     __( '<p>Using Discord to receive notifications is easy to set up, and often a more reliable method since emails can end up getting lost in cyberspace sometimes. The instructions below assume you already have a Discord account.</p>
                     <p><strong>Set Up:</strong></p>
                     <ol>
@@ -384,8 +384,8 @@ class BLNOTIFIER_SETTINGS {
                 'test_type'          => 'slack',
                 'comments'           => __( 'URL should look like this: https://hooks.slack.com/services/xxx/xxx/xxx', 'broken-link-notifier' ),
                 'accordion_title'    => __( 'How to Connect to Slack', 'broken-link-notifier' ),
-                /* translators: %1$s is the URL of the Broken Link Notifier Results page. */
                 'accordion_content'  => sprintf(
+                    /* translators: %1$s: URL for the Results page */
                     __( '<p>Using Slack to receive notifications is straightforward. The instructions below assume you already have a Slack account and workspace.</p>
                     <p><strong>Set Up:</strong></p>
                     <ol>
@@ -426,6 +426,7 @@ class BLNOTIFIER_SETTINGS {
                 'comments'           => __( 'URL should look like this: https://yourdomain.webhook.office.com/xxx/xxx...', 'broken-link-notifier' ),
                 'accordion_title'    => __( 'How to Connect to Microsoft Teams', 'broken-link-notifier' ),
                 'accordion_content'  => sprintf(
+                    /* translators: %1$s: URL for the Results page */
                     __( '<p>Using Microsoft Teams to receive notifications is easy to set up, too, and it\'s helpful for teams to work together on fixing the links. The instructions below assume you already have a Microsoft account and Teams installed.</p>
                     <p><strong>Set Up:</strong></p>
                     <ol>
@@ -565,7 +566,7 @@ class BLNOTIFIER_SETTINGS {
         $has_value = !empty( $value );
         $toggle = isset( $args[ 'toggle' ] ) ? ' data-toggle="'.esc_attr( $args[ 'toggle' ] ).'"' : '';
         ?>
-        <div class="blnotifier-notification-field"<?php echo $toggle; ?>>
+        <div class="blnotifier-notification-field"<?php echo esc_attr( $toggle ); ?>>
             <input type="url" id="<?php echo esc_attr( $args[ 'name' ] ); ?>" name="<?php echo esc_attr( $args[ 'name' ] ); ?>" value="<?php echo esc_attr( $value ); ?>"/>
             <button type="button" class="blnotifier-button blnotifier-test-btn" data-type="<?php echo esc_attr( $args[ 'test_type' ] ); ?>" data-field="<?php echo esc_attr( $args[ 'name' ] ); ?>" <?php echo !$has_value ? 'disabled' : ''; ?>>
                 <?php esc_html_e( 'Send Test', 'broken-link-notifier' ); ?>
@@ -591,7 +592,7 @@ class BLNOTIFIER_SETTINGS {
         $has_value = !empty( $value );
         $toggle = isset( $args[ 'toggle' ] ) ? ' data-toggle="'.esc_attr( $args[ 'toggle' ] ).'"' : '';
         ?>
-        <div class="blnotifier-notification-field"<?php echo $toggle; ?>>
+        <div class="blnotifier-notification-field"<?php echo esc_attr( $toggle ); ?>>
             <input type="text" id="<?php echo esc_attr( $args[ 'name' ] ); ?>" name="<?php echo esc_attr( $args[ 'name' ] ); ?>" value="<?php echo esc_attr( $value ); ?>" pattern="([a-zA-Z0-9+_.\-]+@[a-zA-Z0-9.\-]+.[a-zA-Z0-9]+)(\s*,\s*([a-zA-Z0-9+_.\-]+@[a-zA-Z0-9.\-]+.[a-zA-Z0-9]+))*"/>
             <button type="button" class="blnotifier-button blnotifier-test-btn" data-type="email" data-field="<?php echo esc_attr( $args[ 'name' ] ); ?>" <?php echo !$has_value ? 'disabled' : ''; ?>>
                 <?php esc_html_e( 'Send Test', 'broken-link-notifier' ); ?>
@@ -632,7 +633,7 @@ class BLNOTIFIER_SETTINGS {
             esc_attr( $args[ 'name' ] ),
             esc_html( checked( 1, $value, false ) ),
             wp_kses_post( isset( $args[ 'label' ] ) ? $args[ 'label' ] : '' ),
-            $this->render_tooltip( isset( $args[ 'comments' ] ) ? $args[ 'comments' ] : '' )
+            wp_kses_post( $this->render_tooltip( isset( $args[ 'comments' ] ) ? $args[ 'comments' ] : '' ) )
         );        
     } // End field_checkbox()
 
@@ -765,12 +766,12 @@ class BLNOTIFIER_SETTINGS {
                     esc_attr( $args[ 'name' ] . '_' . $code ),
                     esc_attr( $args[ 'name' ] ),
                     esc_attr( $code ),
-                    $checked_good,
-                    __( 'Good', 'broken-link-notifier' ),
-                    $checked_warning,
-                    __( 'Warning', 'broken-link-notifier' ),
-                    $checked_broken,
-                    __( 'Broken', 'broken-link-notifier' ),
+                    esc_attr( $checked_good ),
+                    esc_html__( 'Good', 'broken-link-notifier' ),
+                    esc_attr( $checked_warning ),
+                    esc_html__( 'Warning', 'broken-link-notifier' ),
+                    esc_attr( $checked_broken ),
+                    esc_html__( 'Broken', 'broken-link-notifier' ),
                     esc_html( strtoupper( $type ) )
                 );
             }
@@ -995,7 +996,7 @@ class BLNOTIFIER_SETTINGS {
             echo '</div>';
         } else {
             echo '<div class="blnotifier-field">';
-            echo '<label for="'.esc_attr( $name ).'"'.$toggle_attr.'>'.wp_kses_post( $field[ 'title' ] ).$this->render_tooltip( $comments ).'</label>';
+            echo '<label for="'.esc_attr( $name ).'"'.esc_attr( $toggle_attr ).'>'.wp_kses_post( $field[ 'title' ] ).wp_kses_post( $this->render_tooltip( $comments ) ).'</label>';
             call_user_func( $field[ 'callback' ], $args );
             echo '</div>';
         }

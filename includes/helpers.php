@@ -553,52 +553,6 @@ class BLNOTIFIER_HELPERS {
 
 
     /**
-     * Convert time to elapsed string
-     *
-     * @param string $datetime
-     * @param boolean $full
-     * @return string
-     */
-    public function time_elapsed_string( $datetime, $full = false ) {
-        $now = new DateTime;
-        $ago = new DateTime( $datetime );
-        $diff = $now->diff( $ago );
-
-        $diff->w = floor( $diff->d / 7);
-        $diff->d -= $diff->w * 7;
-
-        $units = [
-            'y' => [ __( '%d year', 'broken-link-notifier' ), __( '%d years', 'broken-link-notifier' ) ],
-            'm' => [ __( '%d month', 'broken-link-notifier' ), __( '%d months', 'broken-link-notifier' ) ],
-            'w' => [ __( '%d week', 'broken-link-notifier' ), __( '%d weeks', 'broken-link-notifier' ) ],
-            'd' => [ __( '%d day', 'broken-link-notifier' ), __( '%d days', 'broken-link-notifier' ) ],
-            'h' => [ __( '%d hour', 'broken-link-notifier' ), __( '%d hours', 'broken-link-notifier' ) ],
-            'i' => [ __( '%d minute', 'broken-link-notifier' ), __( '%d minutes', 'broken-link-notifier' ) ],
-            's' => [ __( '%d second', 'broken-link-notifier' ), __( '%d seconds', 'broken-link-notifier' ) ],
-        ];
-
-        $string = [];
-        foreach ( $units as $k => $forms ) {
-            if ( $diff->$k ) {
-                $string[ $k ] = sprintf( _n( $forms[0], $forms[1], $diff->$k, 'broken-link-notifier' ), $diff->$k );
-            }
-        }
-
-        if ( !$full ) {
-            $string = array_slice( $string, 0, 1 );
-        }
-
-        return $string
-            ? sprintf(
-                /* translators: %s: a duration, e.g. "3 days" or "2 hours, 5 minutes" */
-                __( '%s ago', 'broken-link-notifier' ),
-                implode( ', ', $string )
-            )
-            : __( 'just now', 'broken-link-notifier' );
-    } // End time_elapsed_string()
-
-
-    /**
      * Check if a link is on YouTube, if so return ID
      * Does not check if the video is valid
      *
@@ -1547,7 +1501,7 @@ class BLNOTIFIER_HELPERS {
             global $wpdb;
             $table = $wpdb->prefix . 'blnotifier_cache';
     
-            $rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY last_checked DESC", ARRAY_A );
+            $rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY last_checked DESC", ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
             $na = '--';
     

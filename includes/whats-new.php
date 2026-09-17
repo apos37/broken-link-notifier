@@ -94,11 +94,11 @@ class BLNOTIFIER_WHATS_NEW {
                 <div class="blnotifier-whats-new-header">
                     <img src="<?php echo esc_url( BLNOTIFIER_PLUGIN_IMG_PATH.'logo-transparent.png' ); ?>" alt="<?php echo esc_attr( BLNOTIFIER_NAME ); ?>" class="logo">
                     <?php
-                    /* translators: %1$s is the plugin name and %2$s is the plugin version. */
                     printf(
                         '<h1>%1$s</h1>',
                         esc_html(
                             sprintf(
+                                /* translators: %1$s is the plugin name and %2$s is the plugin version. */
                                 __( 'What\'s New in %1$s %2$s', 'broken-link-notifier' ),
                                 BLNOTIFIER_NAME,
                                 '2.0'

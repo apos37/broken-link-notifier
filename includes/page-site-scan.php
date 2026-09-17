@@ -60,7 +60,7 @@ $has_discovery_run = !empty( $last_discovery[ 'time' ] );
 <p class="blnotifier-desc"><?php
 printf(
     /* translators: %s is a link to the Results page. */
-    __( 'Site Scan works in two steps. First it discovers every link on your site (reusing the same data as Link Browser, so if you\'ve already run that, you don\'t need to start over). Then it checks each one for broken links and warnings, adding any it finds to your %s page.', 'broken-link-notifier' ),
+    esc_html__( 'Site Scan works in two steps. First it discovers every link on your site (reusing the same data as Link Browser, so if you\'ve already run that, you don\'t need to start over). Then it checks each one for broken links and warnings, adding any it finds to your %s page.', 'broken-link-notifier' ),
     '<a href="' . esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'results' ) ) . '">' . esc_html__( 'Results', 'broken-link-notifier' ) . '</a>'
 );
 ?></p>

@@ -69,12 +69,12 @@ class BLNOTIFIER_SCAN {
     public function ajax() {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            exit( __( 'No naughty business please.', 'broken-link-notifier' ) );
+            exit( esc_html__( 'No naughty business please.', 'broken-link-notifier' ) );
         }        
 
         // Check permissions
         if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
-            exit( __( 'Unauthorized access.', 'broken-link-notifier' ) );
+            exit( esc_html__( 'Unauthorized access.', 'broken-link-notifier' ) );
         }
 
         // Initiate helpers

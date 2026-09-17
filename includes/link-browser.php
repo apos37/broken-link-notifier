@@ -254,7 +254,7 @@ class BLNOTIFIER_LINK_BROWSER {
             $is_current = ( $current_filter === $key );
             $aria = $is_current ? ' aria-current="page"' : '';
             echo '<li class="'.esc_attr( $key ).'">';
-            echo '<a href="#" data-filter="'.esc_attr( $key ).'" class="bln-lb-status-filter'.( $is_current ? ' current' : '' ).'"'.$aria.'>'.esc_html( $link[ 'label' ] ).' <span class="count">('.absint( $link[ 'count' ] ).')</span></a>';
+            echo '<a href="#" data-filter="'.esc_attr( $key ).'" class="bln-lb-status-filter'.( $is_current ? ' current' : '' ).'"'.esc_attr( $aria ).'>'.esc_html( $link[ 'label' ] ).' <span class="count">('.absint( $link[ 'count' ] ).')</span></a>';
             if ( $key !== $last_key ) {
                 echo ' |';
             }

@@ -49,11 +49,11 @@ class BLNOTIFIER_EXPORT {
 
         // Capability check: only allow admins or users with manage_options capability
         if ( !current_user_can( 'manage_options' ) ) {
-            wp_die( __( 'You do not have permission to export links.', 'broken-link-notifier' ) );
+            wp_die( esc_html__( 'You do not have permission to export links.', 'broken-link-notifier' ) );
         }
 
         if ( !wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET[ '_wpnonce' ] ) ), $this->nonce ) ) {
-            wp_die( __( 'Security check failed.', 'broken-link-notifier' ) );
+            wp_die( esc_html__( 'Security check failed.', 'broken-link-notifier' ) );
         }
 
         $type = sanitize_key( $_GET[ 'export' ] );
@@ -76,7 +76,7 @@ class BLNOTIFIER_EXPORT {
         }
 
         if ( empty( $links ) ) {
-            wp_die( __( 'No links found to export.', 'broken-link-notifier' ) );
+            wp_die( esc_html__( 'No links found to export.', 'broken-link-notifier' ) );
         }
 
         $this->send_csv_headers( $type );

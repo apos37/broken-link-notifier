@@ -11,10 +11,12 @@ $per_page = $RESULTS->sanitize_per_page( get_option( 'blnotifier_per_page', 25 )
 $counts = $RESULTS->get_counts();
 $warnings_enabled = filter_var( get_option( 'blnotifier_enable_warnings' ), FILTER_VALIDATE_BOOLEAN );
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $table_name is a hardcoded prefix + fixed name, not user input; $per_page is bound via prepare().
 $initial_rows = $wpdb->get_results( $wpdb->prepare(
     "SELECT * FROM $table_name ORDER BY created_at ASC LIMIT %d OFFSET 0",
     $per_page
 ) );
+// phpcs:enable
 ?>
 
 <p class="blnotifier-desc"><?php echo esc_html__( 'This page shows the results of your scans. Click "Verify Link Statuses" above to recheck whatever links are currently visible on the page — it does not remove the links from your pages or rescan them for new ones. After fixing a broken link, you will need to clear the result below. Then when you rescan the page it should not show up here again. Note that the plugin will still find broken links if you simply hide them on the page.', 'broken-link-notifier' ); ?></p>

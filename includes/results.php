@@ -218,6 +218,7 @@ class BLNOTIFIER_RESULTS {
         // 2. Old Hash
         $old_hash = md5( strtolower( untrailingslashit( $link_clean ) ) );
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; both values are bound via prepare().
         $exists = $wpdb->get_var(
             $wpdb->prepare(
                 "SELECT id FROM $table_name WHERE link_hash = %s OR link_hash = %s LIMIT 1",
@@ -225,6 +226,7 @@ class BLNOTIFIER_RESULTS {
                 $old_hash
             )
         );
+        // phpcs:enable
 
         return ! empty( $exists );
     } // End already_added()
@@ -261,6 +263,7 @@ class BLNOTIFIER_RESULTS {
             return __( 'Invalid source:', 'broken-link-notifier' ) . ' ' . esc_url( $source_url );
         }
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- $table_name is a hardcoded prefix + fixed name, not user input; all values are bound via the $wpdb->insert() format array.
         $inserted = $wpdb->insert(
             $table_name,
             [
@@ -278,6 +281,7 @@ class BLNOTIFIER_RESULTS {
             ],
             [ '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%d', '%d', '%s' ]
         );
+        // phpcs:enable
 
         if ( $inserted ) {
             return $wpdb->insert_id;
@@ -301,11 +305,13 @@ class BLNOTIFIER_RESULTS {
 
         // 1. Try deleting by ID first if provided
         if ( $id ) {
+            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- $table_name is a hardcoded prefix + fixed name, not user input; all values are bound via the $wpdb->delete() format array.
             $deleted = $wpdb->delete(
                 $table_name,
                 [ 'id' => absint( $id ) ],
                 [ '%d' ]
             );
+            // phpcs:enable
         }
 
         // 2. Fallback to hash lookup if ID didn't work or wasn't provided
@@ -320,6 +326,7 @@ class BLNOTIFIER_RESULTS {
             // Old Logic Hash (Legacy)
             $old_hash = md5( strtolower( untrailingslashit( $link ) ) );
 
+            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; both values are bound via prepare().
             $deleted = $wpdb->query(
                 $wpdb->prepare(
                     "DELETE FROM $table_name WHERE link_hash = %s OR link_hash = %s",
@@ -327,6 +334,7 @@ class BLNOTIFIER_RESULTS {
                     $old_hash
                 )
             );
+            // phpcs:enable
         }
 
         return ( false !== $deleted && $deleted > 0 );
@@ -561,9 +569,11 @@ class BLNOTIFIER_RESULTS {
         global $wpdb;
         $table_name = $wpdb->prefix . $this->table_name;
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; type values are bound via prepare().
         $total_broken  = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE type = %s", 'broken' ) );
         $total_warning = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name WHERE type = %s", 'warning' ) );
         $total_all     = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" );
+        // phpcs:enable
 
         $internal_broken  = 0;
         $external_broken  = 0;
@@ -572,7 +582,9 @@ class BLNOTIFIER_RESULTS {
 
         $LINK_BROWSER = new BLNOTIFIER_LINK_BROWSER;
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; type value is bound via prepare().
         $broken_links = $wpdb->get_col( $wpdb->prepare( "SELECT link FROM $table_name WHERE type = %s", 'broken' ) );
+        // phpcs:enable
         foreach ( $broken_links as $link ) {
             if ( $LINK_BROWSER->determine_type( $link ) === 'internal' ) {
                 $internal_broken++;
@@ -581,7 +593,9 @@ class BLNOTIFIER_RESULTS {
             }
         }
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; type value is bound via prepare().
         $warning_links = $wpdb->get_col( $wpdb->prepare( "SELECT link FROM $table_name WHERE type = %s", 'warning' ) );
+        // phpcs:enable
         foreach ( $warning_links as $link ) {
             if ( $LINK_BROWSER->determine_type( $link ) === 'internal' ) {
                 $internal_warning++;
@@ -633,7 +647,7 @@ class BLNOTIFIER_RESULTS {
             $class = $is_current ? ' class="current"' : '';
             $aria = $is_current ? ' aria-current="page"' : '';
             echo '<li class="'.esc_attr( $key ).'">';
-            echo '<a href="#" data-filter="'.esc_attr( $key ).'" class="bln-status-filter'.( $is_current ? ' current' : '' ).'"'.$aria.'>'.esc_html( $link[ 'label' ] ).' <span class="count">('.absint( $link[ 'count' ] ).')</span></a>';
+            echo '<a href="#" data-filter="'.esc_attr( $key ).'" class="bln-status-filter'.( $is_current ? ' current' : '' ).'"'.esc_attr( $aria ).'>'.esc_html( $link[ 'label' ] ).' <span class="count">('.absint( $link[ 'count' ] ).')</span></a>';
             if ( $key !== $last_key ) {
                 echo ' |';
             }
@@ -782,12 +796,12 @@ class BLNOTIFIER_RESULTS {
                 </td>
                 <td class="link">
                     <a href="<?php echo esc_url( $link->link ); ?>" class="link-url" target="_blank" rel="noopener"><?php echo esc_html( $link->link ); ?></a>
-                    <div class="row-actions"><?php echo implode( ' | ', $link_actions ); ?></div>
+                    <div class="row-actions"><?php echo wp_kses_post( implode( ' | ', $link_actions ) ); ?></div>
                 </td>
                 <td class="source" data-source-id="<?php echo esc_attr( $source_id ); ?>">
                     <a href="<?php echo esc_url( $source_url ); ?>" class="source-url" target="_blank" rel="noopener"><?php echo esc_html( $source_id ? $source_title : $source_url ); ?></a>
                     <?php if ( $source_actions ) : ?>
-                        <div class="row-actions"><?php echo implode( ' | ', $source_actions ); ?></div>
+                        <div class="row-actions"><?php echo wp_kses_post( implode( ' | ', $source_actions ) ); ?></div>
                     <?php endif; ?>
                 </td>
                 <td class="source_pt"><?php echo esc_html( $post_type_name ); ?></td>
@@ -803,6 +817,7 @@ class BLNOTIFIER_RESULTS {
                             echo esc_html__( 'Broken today', 'broken-link-notifier' );
                         } else {
                             echo esc_html( sprintf(
+                                /* translators: %d: number of days the link has been broken */
                                 _n( 'Broken for %d day', 'Broken for %d days', $days_broken, 'broken-link-notifier' ),
                                 $days_broken
                             ) );
@@ -914,6 +929,7 @@ class BLNOTIFIER_RESULTS {
         $max_links = absint( get_option( 'blnotifier_max_links_per_page', 200 ) );
         $total_links = count( $header_links ) + count( $content_links ) + count( $footer_links );
         if ( $total_links > $max_links ) {
+            /* translators: %d: maximum number of links allowed per scan */
             $error_msg = sprintf( __( 'Too many links in one scan. Max allowed: %d.', 'broken-link-notifier' ), $max_links );
 
             // If the user is an admin/manager, append the instruction
@@ -1456,12 +1472,12 @@ class BLNOTIFIER_RESULTS {
     public function ajax_delete_result() {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_delete ) ) {
-            exit( __( 'No naughty business please.', 'broken-link-notifier' ) );
+            exit( esc_html__( 'No naughty business please.', 'broken-link-notifier' ) );
         }
 
         $HELPERS = new BLNOTIFIER_HELPERS;
         if ( !$HELPERS->user_can_manage_broken_links() ) {
-            exit( __( 'Unauthorized access.', 'broken-link-notifier' ) );
+            exit( esc_html__( 'Unauthorized access.', 'broken-link-notifier' ) );
         }
     
         // Remove the link
@@ -1486,12 +1502,12 @@ class BLNOTIFIER_RESULTS {
     public function ajax_delete_source() {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_delete ) ) {
-            exit( __( 'No naughty business please.', 'broken-link-notifier' ) );
+            exit( esc_html__( 'No naughty business please.', 'broken-link-notifier' ) );
         }
 
         // Check permissions
         if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
-            exit( __( 'Unauthorized access.', 'broken-link-notifier' ) );
+            exit( esc_html__( 'Unauthorized access.', 'broken-link-notifier' ) );
         }
 
         // Make sure we are allowed to delete the source
@@ -1597,16 +1613,21 @@ class BLNOTIFIER_RESULTS {
         if ( $scope === 'all' ) {
 
             $count_query = "SELECT COUNT(*) FROM $table_name $where_sql";
-            $total = !empty( $where_values ) ? (int) $wpdb->get_var( $wpdb->prepare( $count_query, $where_values ) ) : (int) $wpdb->get_var( $count_query ); // phpcs:ignore
+
+            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
+            $total = !empty( $where_values ) ? (int) $wpdb->get_var( $wpdb->prepare( $count_query, $where_values ) ) : (int) $wpdb->get_var( $count_query );
 
             $offset = ( $page - 1 ) * $per_page;
             $query_values = array_merge( $where_values, [ $per_page, $offset ] );
-            $rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC LIMIT %d OFFSET %d", $query_values ) ); // phpcs:ignore
+            $rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC LIMIT %d OFFSET %d", $query_values ) );
+            // phpcs:enable
 
         // Internal/external scope: filter in PHP, then paginate manually
         } else {
 
-            $all_rows = !empty( $where_values ) ? $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC", $where_values ) ) : $wpdb->get_results( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC" ); // phpcs:ignore
+            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
+            $all_rows = !empty( $where_values ) ? $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC", $where_values ) ) : $wpdb->get_results( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC" );
+            // phpcs:enable
 
             $LINK_BROWSER = new BLNOTIFIER_LINK_BROWSER;
             $filtered_rows = array_values( array_filter( $all_rows, function( $row ) use ( $LINK_BROWSER, $scope ) {

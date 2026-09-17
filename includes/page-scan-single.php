@@ -267,8 +267,8 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                         
                         // If cornerstone
                         if ( is_plugin_active( 'cornerstone/cornerstone.php' ) ) {
-                            /* translators: %s: URL for editing the page in Cornerstone. */
                             $incl_solution = sprintf(
+                                /* translators: %s: URL for editing the page in Cornerstone. */
                                 __( ' If you know there are links on the page, try <a href="%s" target="_blank">editing the page in Cornerstone</a> and resaving it. Sometimes the content is saved correctly after editing it outside of Cornerstone, so resaving in Cornerstone helps repopulate the data where we can read the links.', 'broken-link-notifier' ),
                                 esc_url( home_url( '/cornerstone/edit/' . $post_id ) )
                             );
