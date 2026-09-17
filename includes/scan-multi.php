@@ -95,14 +95,14 @@ class BLNOTIFIER_FULL_SCAN {
         // Add page scan to all post types
         if ( in_array( $post->post_type, $post_types ) ) {
             $nonce = wp_create_nonce( 'blnotifier_scan_single' );
-            $actions[ 'scan' ] = '<a class="scan-page" href="'.(new BLNOTIFIER_MENU)->get_plugin_page( 'scan-single' ).'&scan='.$link.'&_wpnonce='. $nonce.'" target="_blank">Scan for Broken Links</a>';
+            $actions[ 'scan' ] = '<a class="scan-page" href="'.(new BLNOTIFIER_MENU)->get_plugin_page( 'scan-single' ).'&scan='.$link.'&_wpnonce='. $nonce.'" target="_blank">'.__( 'Scan for Broken Links', 'broken-link-notifier' ).'</a>';
         }
 
         // Only when scanning
         if ( $this->do_stuff() ) {
             if ( in_array( $post->post_type, $post_types ) ) {
                 if ( !(new BLNOTIFIER_OMITS)->is_omitted( $link, 'pages' ) ) {
-                    $actions[ 'omit-future' ] = '<a class="omit-page" href="#" data-link="'.$link.'" data-post-id="'.$post->ID.'">Omit from Scans</a>';
+                    $actions[ 'omit-future' ] = '<a class="omit-page" href="#" data-link="'.$link.'" data-post-id="'.$post->ID.'">'.__( 'Omit from Scans', 'broken-link-notifier' ).'</a>';
                 }
             }
         }
@@ -150,15 +150,15 @@ class BLNOTIFIER_FULL_SCAN {
             // Skip not published
             $post_status = get_post_status( $post_id );
             if ( $post_status != 'publish' && $post_status != 'private' ) {
-                $results = '<em>Skipping - not published</em>';
+                $results = '<em>'.__( 'Skipping - not published', 'broken-link-notifier' ).'</em>';
 
             // Skip posts page
             } elseif ( $post_id == get_option( 'page_for_posts' ) ) {
-                $results = '<em>Skipping Posts Archive Page since it will never have broken links</em>';
+                $results = '<em>'.__( 'Skipping Posts Archive Page since it will never have broken links', 'broken-link-notifier' ).'</em>';
 
             // Skip omitted pages
             } elseif ( (new BLNOTIFIER_OMITS)->is_omitted( $permalink, 'pages' ) ) {
-                $results = '<em>Omitted</em>';
+                $results = '<em>'.__( 'Omitted', 'broken-link-notifier' ).'</em>';
 
             // Otherwise we're good to go.
             } else {
@@ -170,7 +170,7 @@ class BLNOTIFIER_FULL_SCAN {
                 if ( strpos( $get_the_content, '[redirect_this_page') !== false ) {
 
                     // Skip for redirecting
-                    $results = '<em>Skipping since this page is only redirecting to another page</em>';
+                    $results = '<em>'.__( 'Skipping since this page is only redirecting to another page', 'broken-link-notifier' ).'</em>';
 
                 } elseif ( $get_the_content ) {
 
@@ -215,7 +215,7 @@ class BLNOTIFIER_FULL_SCAN {
 
                     // Handle redirects
                     if ( $redirect_detected ) {
-                        $results = '<em>This page redirects, skipping...</em>';
+                        $results = '<em>'.__( 'This page redirects, skipping...', 'broken-link-notifier' ).'</em>';
 
                     // Or else extract the links
                     } else {
@@ -237,19 +237,35 @@ class BLNOTIFIER_FULL_SCAN {
 
                             // Start container
                             $results = '<div id="bln-results-'.$post_id.'" class="bln-scan-results">
-                                <span class="progress dotdotdot"><em>Pending</em></span>';
+                                <span class="progress dotdotdot"><em>'.__( 'Pending', 'broken-link-notifier' ).'</em></span>';
 
                                 // HELPERS
                                 $HELPERS = new BLNOTIFIER_HELPERS;
 
-                                // Add the counts
-                                $results .= '<div id="bln-counts-'.$post_id.'" class="bln-count-cont">
-                                    <span class="count-links"><strong>'.$count_links.'</strong> link'.$HELPERS->include_s( $count_links ).' found</span>
-                                    <span class="count-broken-links"><strong>0</strong> broken link(s) found</span>
-                                    <span class="count-warning-links"><strong>0</strong> warning link(s) found</span>
-                                    <span class="count-error-links"><strong>0</strong> error(s) occured</span>
-                                    <div class="time-loaded">Results generated in <strong><span class="timing">0</span> seconds</strong></div>
-                                </div>';
+                                // Add the counts.
+                                $results .= sprintf(
+                                    '<div id="bln-counts-%1$d" class="bln-count-cont">
+                                        <span class="count-links"><strong>%2$d</strong> %3$s %4$s</span>
+                                        <span class="count-broken-links"><strong>0</strong> %5$s</span>
+                                        <span class="count-warning-links"><strong>0</strong> %6$s</span>
+                                        <span class="count-error-links"><strong>0</strong> %7$s</span>
+                                        <div class="time-loaded">%8$s <strong><span class="timing">0</span> %9$s</strong></div>
+                                    </div>',
+                                    $post_id,
+                                    $count_links,
+                                    /* translators: Used after the number of links. */
+                                    _n( 'link', 'links', $count_links, 'broken-link-notifier' ),
+                                    /* translators: Used after the number of links. */
+                                    __( 'found', 'broken-link-notifier' ),
+                                    /* translators: Used after the number of broken links. */
+                                    __( 'broken links found', 'broken-link-notifier' ),
+                                    /* translators: Used after the number of warning links. */
+                                    __( 'warning links found', 'broken-link-notifier' ),
+                                    /* translators: Used after the number of errors. */
+                                    __( 'errors occurred', 'broken-link-notifier' ),
+                                    __( 'Results generated in', 'broken-link-notifier' ),
+                                    __( 'seconds', 'broken-link-notifier' )
+                                );
 
                             // End container
                             $results .= '</div>';
@@ -267,20 +283,20 @@ class BLNOTIFIER_FULL_SCAN {
                                     $page_url = urlencode( $link );
 
                                     // If it is broken, then display this with JS
-                                    $results .= '<li class="link" data-link="'.$link.'" data-post-id="'.$post_id.'"><strong><a class="url" href="'.$link.'" target="_blank">'.$link.'</a></strong><div class="status"></div><div class="actions"><a class="omit-link" href="#">Omit</a> | <a href="'.$permalink.'?blink='.$page_url.'" target="_blank">Find On Page</a></div></li>';
+                                    $results .= '<li class="link" data-link="'.$link.'" data-post-id="'.$post_id.'"><strong><a class="url" href="'.$link.'" target="_blank">'.$link.'</a></strong><div class="status"></div><div class="actions"><a class="omit-link" href="#">'.__( 'Omit', 'broken-link-notifier' ).'</a> | <a href="'.$permalink.'?blink='.$page_url.'" target="_blank">'.__( 'Find On Page', 'broken-link-notifier' ).'</a></div></li>';
                                 }
 
                             // End the list
                             $results .= '</ul>';
 
                         } else {
-                            $results = '<em>No links found</em>';
+                            $results = '<em>'.__( 'No links found', 'broken-link-notifier' ).'</em>';
                         }
                     }
                     
                 // No content
                 } else {
-                    $results = '<em>No content found</em>';
+                    $results = '<em>'.__( 'No content found', 'broken-link-notifier' ).'</em>';
                 }
             }
 

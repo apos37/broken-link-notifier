@@ -18,14 +18,14 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
         <div class="url-search-bar">
             <form method="get" action="<?php echo esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( $tab ) ); ?>">
                 <input type="hidden" name="_wpnonce" value="<?php echo sanitize_key( wp_create_nonce( 'blnotifier_link_search' ) ); ?>">
-                <label for="link-search-input"><h2>Enter a Link URL to Find Pages it Appears On</h2></label><br>
+                <label for="link-search-input"><h2><?php echo esc_html__( 'Enter a Link URL to Find Pages it Appears On', 'broken-link-notifier' ); ?></h2></label><br>
                 <input type="hidden" name="page" value="<?php echo esc_html( BLNOTIFIER_TEXTDOMAIN ); ?>">
                 <input type="hidden" name="tab" value="<?php echo esc_attr( $tab ); ?>">
                 <div id="bln-link-autocomplete-wrap">
                     <input type="text" name="search" id="link-search-input" value="<?php echo esc_html( $s ); ?>">
                     <div id="bln-link-suggestions"></div>
                 </div>
-                <input type="submit" value="Search Now" id="url-search-button" class="blnotifier-button" style="margin-left: 5px;"/>
+                <input type="submit" value="<?php echo esc_attr__( 'Search Now', 'broken-link-notifier' ); ?>" id="url-search-button" class="blnotifier-button" style="margin-left: 5px;"/>
             </form>
         </div>
 
@@ -57,18 +57,18 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
             $posts = $wpdb->get_results( $query ); // phpcs:ignore
 
             $post_statuses = [
-                'publish' => 'Published',
-                'draft'   => 'Draft',
-                'pending' => 'Pending Review',
-                'private' => 'Private',
-                'trash'   => 'Trash'
+                'publish' => __( 'Published', 'broken-link-notifier' ),
+                'draft'   => __( 'Draft', 'broken-link-notifier' ),
+                'pending' => __( 'Pending Review', 'broken-link-notifier' ),
+                'private' => __( 'Private', 'broken-link-notifier' ),
+                'trash'   => __( 'Trash', 'broken-link-notifier' )
             ];
 
             $post_types = get_post_types( [], 'objects' );
             ?>
 
             <br><br>
-            <h2>Search Results for "<?php echo wp_kses_post( $s ); ?>"</h2>
+            <h2><?php echo esc_html__( 'Search Results for', 'broken-link-notifier' ); ?> "<?php echo wp_kses_post( $s ); ?>"</h2>
 
             <?php
             // If found
@@ -77,10 +77,10 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                 <table class="page-scan wp-list-table widefat fixed striped table-view-list">
                     <thead>
                         <tr>
-                            <th class="post_title">Post/Page Title</th>
-                            <th class="post_status">Status</th>
-                            <th class="post_type">Post Type</th>
-                            <th class="actions">Actions</th>
+                            <th class="post_title"><?php echo esc_html__( 'Post/Page Title', 'broken-link-notifier' ); ?></th>
+                            <th class="post_status"><?php echo esc_html__( 'Status', 'broken-link-notifier' ); ?></th>
+                            <th class="post_type"><?php echo esc_html__( 'Post Type', 'broken-link-notifier' ); ?></th>
+                            <th class="actions"><?php echo esc_html__( 'Actions', 'broken-link-notifier' ); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -101,7 +101,7 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                                 <td class="post_title"><?php echo esc_html( $post->post_title ); ?></td>
                                 <td class="post_status"><?php echo esc_html( $post_status_label ); ?></td>
                                 <td class="post_type"><?php echo esc_html( $post_type_label ); ?></td>
-                                <td class="actions"><a href="<?php echo esc_url( add_query_arg( 'blink', $s, get_the_permalink( $post->ID ) ) ); ?>" target="_blank">Show Me</a></td>
+                                <td class="actions"><a href="<?php echo esc_url( add_query_arg( 'blink', $s, get_the_permalink( $post->ID ) ) ); ?>" target="_blank"><?php echo esc_html__( 'Show Me', 'broken-link-notifier' ); ?></a></td>
                             </tr>
                             <?php
                         }
@@ -109,10 +109,10 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th class="post_title">Post/Page Title</th>
-                            <th class="post_status">Status</th>
-                            <th class="post_type">Post Type</th>
-                            <th class="actions">Actions</th>
+                            <th class="post_title"><?php echo esc_html__( 'Post/Page Title', 'broken-link-notifier' ); ?></th>
+                            <th class="post_status"><?php echo esc_html__( 'Status', 'broken-link-notifier' ); ?></th>
+                            <th class="post_type"><?php echo esc_html__( 'Post Type', 'broken-link-notifier' ); ?></th>
+                            <th class="actions"><?php echo esc_html__( 'Actions', 'broken-link-notifier' ); ?></th>
                         </tr>
                     </tfoot>
                 </table>
@@ -121,7 +121,7 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
             // Not found
             } else {
                 ?>
-                <em>Link not found. Please try again.</em>
+                <em><?php echo esc_html__( 'Link not found. Please try again.', 'broken-link-notifier' ); ?></em>
                 <?php
             }
         }

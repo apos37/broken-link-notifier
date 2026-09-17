@@ -85,10 +85,10 @@ class BLNOTIFIER_LINK_BROWSER {
             $last_scanned_text = __( 'Not scanned yet', 'broken-link-notifier' );
         }
         ?>
-        <button type="button" id="bln-run-link-browser-scan" class="blnotifier-button">Discover Links</button>
+        <button type="button" id="bln-run-link-browser-scan" class="blnotifier-button"><?php esc_html_e( 'Discover Links', 'broken-link-notifier' ); ?></button>
         <span class="bln-spinner" id="bln-scan-spinner" style="display:none;"></span>
         <span id="bln-link-browser-progress" style="display:none;">
-            <em>Scanning <span id="bln-progress-done">0</span>/<span id="bln-progress-total">0</span> pages...</em>
+            <em><?php esc_html_e( 'Scanning', 'broken-link-notifier' ); ?> <span id="bln-progress-done">0</span>/<span id="bln-progress-total">0</span> <?php esc_html_e( 'pages...', 'broken-link-notifier' ); ?></em>
         </span>
         <span id="bln-last-scanned"><?php echo esc_html( $last_scanned_text ); ?></span>
         <?php
@@ -106,8 +106,8 @@ class BLNOTIFIER_LINK_BROWSER {
             return;
         }
         ?>
-        <a href="<?php echo esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'site-scan' ) ); ?>" class="blnotifier-button">Go to Site Scan</a>
-        <a href="#" id="bln-export-link-browser" class="blnotifier-button">Export to CSV</a>
+        <a href="<?php echo esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'site-scan' ) ); ?>" class="blnotifier-button"><?php esc_html_e( 'Go to Site Scan', 'broken-link-notifier' ); ?></a>
+        <a href="#" id="bln-export-link-browser" class="blnotifier-button"><?php esc_html_e( 'Export to CSV', 'broken-link-notifier' ); ?></a>
         <?php
     } // End render_subheader_right()
 
@@ -147,6 +147,23 @@ class BLNOTIFIER_LINK_BROWSER {
             'export_nonce'  => wp_create_nonce( 'blnotifier_export_nonce' ),
             'ajaxurl'       => admin_url( 'admin-ajax.php' ),
             'scan_delay_ms' => absint( get_option( 'blnotifier_scan_delay_ms', 0 ) ),
+            'text'          => [
+                'loading'        => __( 'Loading', 'broken-link-notifier' ),
+                'first_page'     => __( 'First page', 'broken-link-notifier' ),
+                'previous_page'  => __( 'Previous page', 'broken-link-notifier' ),
+                'next_page'      => __( 'Next page', 'broken-link-notifier' ),
+                'last_page'      => __( 'Last page', 'broken-link-notifier' ),
+                'scan_complete'  => __( 'Scan complete', 'broken-link-notifier' ),
+                'no_scan'        => __( 'Could not start scan.', 'broken-link-notifier' ),
+                'discovering'    => __( 'Discovering...', 'broken-link-notifier' ),
+                'discover_links' => __( 'Discover Links', 'broken-link-notifier' ),
+                'no_links_found' => __( 'No links found', 'broken-link-notifier' ),
+                'error'          => __( 'Error', 'broken-link-notifier' ),
+                'server_error'   => __( 'Server error', 'broken-link-notifier' ),
+                'error_link'     => __( 'Error checking link', 'broken-link-notifier' ),
+                'omit_link'      => __( 'Omit this link from all future scans?', 'broken-link-notifier' ),
+                'no_omit'        => __( 'Could not omit link.', 'broken-link-notifier' )
+            ]
         ] );
         wp_enqueue_script( $handle );
     } // End enqueue_scripts()
@@ -224,9 +241,9 @@ class BLNOTIFIER_LINK_BROWSER {
      */
     public function render_status_counts( $counts, $current_filter ) {
         $links = [
-            'all'      => [ 'label' => 'All', 'count' => $counts[ 'total' ] ],
-            'internal' => [ 'label' => 'Internal', 'count' => $counts[ 'internal' ] ],
-            'external' => [ 'label' => 'External', 'count' => $counts[ 'external' ] ],
+            'all'      => [ 'label' => __( 'All', 'broken-link-notifier' ), 'count' => $counts[ 'total' ] ],
+            'internal' => [ 'label' => __( 'Internal', 'broken-link-notifier' ), 'count' => $counts[ 'internal' ] ],
+            'external' => [ 'label' => __( 'External', 'broken-link-notifier' ), 'count' => $counts[ 'external' ] ],
         ];
 
         $keys = array_keys( $links );
@@ -399,11 +416,11 @@ class BLNOTIFIER_LINK_BROWSER {
      */
     public function ajax_get_queue() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !$this->has_access() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         global $wpdb;
@@ -424,16 +441,16 @@ class BLNOTIFIER_LINK_BROWSER {
      */
     public function ajax_scan_post() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !$this->has_access() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         $post_id = isset( $_REQUEST[ 'postID' ] ) ? absint( wp_unslash( $_REQUEST[ 'postID' ] ) ) : 0;
         if ( !$post_id ) {
-            wp_send_json_error( [ 'msg' => 'No post ID provided.' ] );
+            wp_send_json_error( [ 'msg' => __( 'No post ID provided.', 'broken-link-notifier' ) ] );
         }
 
         $HELPERS = new BLNOTIFIER_HELPERS;
@@ -503,7 +520,11 @@ class BLNOTIFIER_LINK_BROWSER {
                 if ( $permalink && !$OMITS->is_omitted( $permalink, 'pages' ) ) {
                     $note = apply_filters(
                         'blnotifier_auto_omit_redirect_note',
-                        'Automatically omitted on '.$HELPERS->convert_timezone().' — this page appears to redirect elsewhere, which prevents its links from being scanned.',
+                        sprintf(
+                            /* translators: %s: date and time the page was auto-omitted */
+                            __( 'Automatically omitted on %s — this page appears to redirect elsewhere, which prevents its links from being scanned.', 'broken-link-notifier' ),
+                            $HELPERS->convert_timezone()
+                        ),
                         $post_id,
                         $permalink
                     );
@@ -523,11 +544,11 @@ class BLNOTIFIER_LINK_BROWSER {
      */
     public function ajax_finish_scan() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !$this->has_access() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         $HELPERS = new BLNOTIFIER_HELPERS;
@@ -556,11 +577,11 @@ class BLNOTIFIER_LINK_BROWSER {
      */
     public function ajax_table() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !$this->has_access() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         global $wpdb;
@@ -576,7 +597,7 @@ class BLNOTIFIER_LINK_BROWSER {
 
         if ( !$this->table_exists() ) {
             ob_start();
-            echo '<tr><td colspan="5"><em>Run a scan to see results.</em></td></tr>'; // phpcs:ignore
+            echo '<tr><td colspan="5"><em>' . esc_html__( 'Run a scan to see results.', 'broken-link-notifier' ) . '</em></td></tr>'; // phpcs:ignore
             $rows_html = ob_get_clean();
 
             wp_send_json_success( [
@@ -637,7 +658,7 @@ class BLNOTIFIER_LINK_BROWSER {
      */
     public function render_rows( $rows ) {
         if ( empty( $rows ) ) {
-            echo '<tr><td colspan="5"><em>No links found.</em></td></tr>'; // phpcs:ignore
+            echo '<tr><td colspan="5"><em>' . esc_html__( 'No links found.', 'broken-link-notifier' ) . '</em></td></tr>'; // phpcs:ignore
             return;
         }
 
@@ -661,7 +682,7 @@ class BLNOTIFIER_LINK_BROWSER {
                             $first_source_id = 0;
                             $first_is_menu = true;
                         }
-                        $valid_pages[] = '<a href="'.esc_url( $menu_edit_link ).'">'.esc_html( $menu_obj->name ).' (Menu)</a>';
+                        $valid_pages[] = '<a href="'.esc_url( $menu_edit_link ).'">'.esc_html( $menu_obj->name ).' (' . esc_html__( 'Menu', 'broken-link-notifier' ) . ')</a>';
                     }
                 } else {
                     $post = get_post( $source );
@@ -682,7 +703,7 @@ class BLNOTIFIER_LINK_BROWSER {
             $pages_html = implode( '<br>', $visible_pages );
             if ( !empty( $hidden_pages ) ) {
                 $pages_html .= '<div class="pages-list">' . implode( '<br>', $hidden_pages ) . '</div>';
-                $pages_html .= '<br><span class="pages-toggle" data-more-text="View More" data-less-text="View Less">View More</span>';
+                $pages_html .= '<br><span class="pages-toggle" data-more-text="' . esc_attr__( 'View More', 'broken-link-notifier' ) . '" data-less-text="' . esc_attr__( 'View Less', 'broken-link-notifier' ) . '">' . esc_html__( 'View More', 'broken-link-notifier' ) . '</span>';
             }
 
             $type_class = 'type-' . sanitize_html_class( $row->type );
@@ -690,11 +711,11 @@ class BLNOTIFIER_LINK_BROWSER {
             $scan_nonce = wp_create_nonce( 'blnotifier_scan' );
 
             if ( $first_permalink && $first_is_menu ) {
-                $show_me_link = '<a href="' . esc_url( $first_permalink ) . '" target="_blank">Show Me</a>';
+                $show_me_link = '<a href="' . esc_url( $first_permalink ) . '" target="_blank">' . esc_html__( 'Show Me', 'broken-link-notifier' ) . '</a>';
             } elseif ( $first_permalink ) {
-                $show_me_link = '<a href="' . esc_url( add_query_arg( 'blink', $row->link, $first_permalink ) ) . '" target="_blank">Show Me</a>';
+                $show_me_link = '<a href="' . esc_url( add_query_arg( 'blink', $row->link, $first_permalink ) ) . '" target="_blank">' . esc_html__( 'Show Me', 'broken-link-notifier' ) . '</a>';
             } else {
-                $show_me_link = '<span class="disabled">Show Me</span>';
+                $show_me_link = '<span class="disabled">' . esc_html__( 'Show Me', 'broken-link-notifier' ) . '</span>';
             }
             ?>
             <tr class="link-row" data-link-id="<?php echo absint( $row->id ); ?>">
@@ -710,14 +731,14 @@ class BLNOTIFIER_LINK_BROWSER {
                 </td>
                 <td class="actions">
                     <?php echo wp_kses_post( $show_me_link ); ?> |
-                    <a href="#" class="check-status" data-link="<?php echo esc_attr( $row->link ); ?>" data-post-id="<?php echo absint( $first_source_id ); ?>" data-nonce="<?php echo esc_attr( $scan_nonce ); ?>">Check Status</a> |
+                    <a href="#" class="check-status" data-link="<?php echo esc_attr( $row->link ); ?>" data-post-id="<?php echo absint( $first_source_id ); ?>" data-nonce="<?php echo esc_attr( $scan_nonce ); ?>"><?php echo esc_html__( 'Check Status', 'broken-link-notifier' ); ?></a> |
                     <a href="<?php echo esc_url( add_query_arg( [
                         'page'     => BLNOTIFIER_TEXTDOMAIN,
                         'tab'      => 'link-search',
                         'search'   => $row->link,
                         '_wpnonce' => wp_create_nonce( 'blnotifier_link_search' ),
-                    ], admin_url( 'admin.php' ) ) ); ?>">Search All Pages</a> |
-                    <a href="#" class="omit-link" data-link="<?php echo esc_attr( $row->link ); ?>" data-link-id="<?php echo absint( $row->id ); ?>">Omit Link</a>
+                    ], admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html__( 'Search All Pages', 'broken-link-notifier' ); ?></a> |
+                    <a href="#" class="omit-link" data-link="<?php echo esc_attr( $row->link ); ?>" data-link-id="<?php echo absint( $row->id ); ?>"><?php echo esc_html__( 'Omit Link', 'broken-link-notifier' ); ?></a>
                     <span class="bln-spinner" style="display:none;"></span>
                 </td>
             </tr>
@@ -733,25 +754,25 @@ class BLNOTIFIER_LINK_BROWSER {
      */
     public function ajax_omit_link() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !$this->has_access() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         $link = isset( $_REQUEST[ 'link' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'link' ] ) ) : '';
         $link_id = isset( $_REQUEST[ 'linkID' ] ) ? absint( wp_unslash( $_REQUEST[ 'linkID' ] ) ) : 0;
 
         if ( !$link || !$link_id ) {
-            wp_send_json_error( [ 'msg' => 'Missing data.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Missing data.', 'broken-link-notifier' ) ] );
         }
 
         $OMITS = new BLNOTIFIER_OMITS;
         $omitted = $OMITS->add( $link, 'links', 'link-browser' );
 
         if ( $omitted !== true ) {
-            wp_send_json_error( [ 'msg' => 'Could not omit link.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Could not omit link.', 'broken-link-notifier' ) ] );
         }
 
         global $wpdb;

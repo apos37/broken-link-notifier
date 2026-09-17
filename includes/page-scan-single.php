@@ -44,10 +44,10 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                 <input type="hidden" name="scan_source" id="scan-source-field" value="text">
 
                 <div class="bln-scan-option">
-                    <label class="bln-scan-option-label">Browse for a Page</label>
+                    <label class="bln-scan-option-label"><?php echo esc_html__( 'Browse for a Page', 'broken-link-notifier' ); ?></label>
                     <div id="bln-scan-picker">
                         <select id="bln-scan-picker-post-type" class="blnotifier-select-field">
-                            <option value="">Choose a Post Type...</option>
+                            <option value=""><?php echo esc_html__( 'Choose a Post Type...', 'broken-link-notifier' ); ?></option>
                             <?php foreach ( (new BLNOTIFIER_OMITS)->get_scannable_post_type_choices() as $key => $label ) : ?>
                                 <option value="<?php echo esc_attr( $key ); ?>" <?php selected( $selected_post_type, $key ); ?>><?php echo esc_html( $label ); ?></option>
                             <?php endforeach; ?>
@@ -64,27 +64,27 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                                     'fields'         => 'ids',
                                 ] );
                                 ?>
-                                <option value="">Choose a Page...</option>
+                                <option value=""><?php echo esc_html__( 'Choose a Page...', 'broken-link-notifier' ); ?></option>
                                 <?php foreach ( $picker_posts as $picker_post_id ) : ?>
-                                    <option value="<?php echo absint( $picker_post_id ); ?>" <?php selected( $selected_post_id, $picker_post_id ); ?>><?php echo esc_html( get_the_title( $picker_post_id ) ?: '(no title)' ); ?></option>
+                                    <option value="<?php echo absint( $picker_post_id ); ?>" <?php selected( $selected_post_id, $picker_post_id ); ?>><?php echo esc_html( get_the_title( $picker_post_id ) ?: esc_html__( '(no title)', 'broken-link-notifier' ) ); ?></option>
                                 <?php endforeach; ?>
                             <?php else : ?>
-                                <option value="">Choose a Post Type First...</option>
+                                <option value=""><?php echo esc_html__( 'Choose a Post Type First...', 'broken-link-notifier' ); ?></option>
                             <?php endif; ?>
                         </select>
-                        <button type="submit" id="bln-scan-picker-button" class="blnotifier-button">Scan Now</button>
+                        <button type="submit" id="bln-scan-picker-button" class="blnotifier-button"><?php echo esc_html__( 'Scan Now', 'broken-link-notifier' ); ?></button>
                     </div>
                 </div>
 
                 <div class="bln-scan-divider"><span>OR</span></div>
 
                 <div class="bln-scan-option">
-                    <label for="url-search-input" class="bln-scan-option-label">Enter a URL, Post ID, or Title</label>
+                    <label for="url-search-input" class="bln-scan-option-label"><?php echo esc_html__( 'Enter a URL, Post ID, or Title', 'broken-link-notifier' ); ?></label>
                     <div id="bln-scan-search-wrap">
                         <input type="text" id="url-search-input" autocomplete="off" value="<?php echo esc_attr( $s_display ); ?>">
                         <input type="hidden" name="scan" id="url-search-value" value="<?php echo esc_attr( $s ); ?>">
                         <div id="bln-scan-suggestions"></div>
-                        <button type="submit" id="url-search-button" class="blnotifier-button">Scan Now</button>
+                        <button type="submit" id="url-search-button" class="blnotifier-button"><?php echo esc_html__( 'Scan Now', 'broken-link-notifier' ); ?></button>
                     </div>
                 </div>
             </form>
@@ -114,12 +114,15 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
             }
             ?>
             <br><br><br>
-            <h2>Content Scan Results for "<?php echo wp_kses_post( $display_s ); ?>"</h2>
+            <h2><?php
+            /* translators: %s: post title or URL being scanned. */
+            printf( esc_html__( 'Content Scan Results for "%s"', 'broken-link-notifier' ), wp_kses_post( $display_s ) );
+            ?></h2>
             <?php $remote_fetch_enabled = filter_var( get_option( 'blnotifier_remote_fetch_links' ), FILTER_VALIDATE_BOOLEAN ); ?>
             <?php if ( $remote_fetch_enabled ) : ?>
-                <p><em>Links were also fetched from the live published page, in addition to its stored content.</em></p>
+                <p><em><?php echo esc_html__( 'Links were also fetched from the live published page, in addition to its stored content.', 'broken-link-notifier' ); ?></em></p>
             <?php else : ?>
-                <p><em>Does not include links in the <code>&#x3c;header&#x3e;</code> or <code>&#x3c;footer&#x3e;</code>. Also, <strong>remember</strong> that links will not include content if it is hidden behind conditional logic.</em></p>
+                <p><em><?php echo esc_html__( 'Does not include links in the <code>&#x3c;header&#x3e;</code> or <code>&#x3c;footer&#x3e;</code>. Also, remember that links will not include content if it is hidden behind conditional logic.', 'broken-link-notifier' ); ?></em></p>
             <?php endif; ?>
             <br><br>
             <?php
@@ -135,7 +138,7 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                 // Redirects from shortcodes
                 if ( strpos( $get_the_content, '[redirect_this_page') !== false ) {
                     ?>
-                    <em>This page is only redirecting to another page. Try a different page.</em>
+                    <em><?php echo esc_html__( 'This page is only redirecting to another page. Try a different page.', 'broken-link-notifier' ); ?></em>
                     <?php
 
                 // Search the content
@@ -172,16 +175,16 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
 
                         // Edit buttons
                         $buttons = [
-                            '<a class="blnotifier-button view" href="'.$permalink.'" target="_blank">View</a>',
-                            '<a class="blnotifier-button edit" href="'.add_query_arg( [ 'post' => $post_id, 'action' => 'edit' ], admin_url( 'post.php' ) ).'">Edit</a>',
+                            '<a class="blnotifier-button view" href="'.$permalink.'" target="_blank">'.esc_html__( 'View', 'broken-link-notifier' ).'</a>',
+                            '<a class="blnotifier-button edit" href="'.add_query_arg( [ 'post' => $post_id, 'action' => 'edit' ], admin_url( 'post.php' ) ).'">'.esc_html__( 'Edit', 'broken-link-notifier' ).'</a>',
                         ];
                         if ( is_plugin_active( 'cornerstone/cornerstone.php' ) ) {
-                            $buttons[] = '<a class="blnotifier-button edit-in-cornerstone" href="'.home_url( '/cornerstone/edit/'.$post_id ).'">Edit in Cornerstone</a>';
+                            $buttons[] = '<a class="blnotifier-button edit-in-cornerstone" href="'.home_url( '/cornerstone/edit/'.$post_id ).'">'.esc_html__( 'Edit in Cornerstone', 'broken-link-notifier' ).'</a>';
                         }
                         ?>
                         <div class="above-table-cont">
                             <div class="page-count">
-                                <strong>Total Links Found:</strong> <?php echo absint( count( $links ) ); ?>
+                                <strong><?php echo esc_html__( 'Total Links Found:', 'broken-link-notifier' ); ?></strong> <?php echo absint( count( $links ) ); ?>
                             </div>
                             <div class="page-actions">
                                 <?php echo wp_kses_post( implode( ' ', $buttons ) ); ?>
@@ -193,13 +196,13 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                         <table class="page-scan wp-list-table widefat fixed striped table-view-list">
                             <thead>
                                 <tr>
-                                    <th class="link">Link</th>
-                                    <th class="title">Title (if local)</th>
-                                    <th class="status">Status</th>
-                                    <th class="code">Code</th>
-                                    <th class="message">Message</th>
-                                    <th class="speed">Speed</th>
-                                    <th class="actions">Actions</th>
+                                    <th class="link"><?php echo esc_html__( 'Link', 'broken-link-notifier' ); ?></th>
+                                    <th class="title"><?php echo esc_html__( 'Title (if local)', 'broken-link-notifier' ); ?></th>
+                                    <th class="status"><?php echo esc_html__( 'Status', 'broken-link-notifier' ); ?></th>
+                                    <th class="code"><?php echo esc_html__( 'Code', 'broken-link-notifier' ); ?></th>
+                                    <th class="message"><?php echo esc_html__( 'Message', 'broken-link-notifier' ); ?></th>
+                                    <th class="speed"><?php echo esc_html__( 'Speed', 'broken-link-notifier' ); ?></th>
+                                    <th class="actions"><?php echo esc_html__( 'Actions', 'broken-link-notifier' ); ?></th>
                                 </tr>
                             </thead>
                         <?php
@@ -208,7 +211,7 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
 
                             // Include find
                             if ( $link != '' ) {
-                                $incl_find = ' | <a href="'.add_query_arg( 'blink', $link, $s ).'" target="_blank">Find</a>';
+                                $incl_find = ' | <a href="'.add_query_arg( 'blink', $link, $s ).'" target="_blank">'.esc_html__( 'Find', 'broken-link-notifier' ).'</a>';
                             } else {
                                 $incl_find = '';
                             }
@@ -235,7 +238,7 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                             <tr class="link-row pending" data-link="<?php echo esc_html( $check_link ); ?>">
                                 <td class="link"><?php echo wp_kses_post( $link ); ?></td>
                                 <td><?php echo esc_html( $incl_title ); ?></td>
-                                <td class="type dotdotdot"><em>Pending</em></td>
+                                <td class="type dotdotdot"><em><?php echo esc_html__( 'Pending', 'broken-link-notifier' ); ?></em></td>
                                 <td class="code"></td>
                                 <td class="text"></td>
                                 <td class="speed"></td>
@@ -247,13 +250,13 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                         ?>
                             <tfoot>
                                 <tr>
-                                    <th>Link</th>
-                                    <th>Title (if local)</th>
-                                    <th>Status</th>
-                                    <th>Code</th>
-                                    <th>Message</th>
-                                    <th>Speed</th>
-                                    <th>Actions</th>
+                                    <th><?php echo esc_html__( 'Link', 'broken-link-notifier' ); ?></th>
+                                    <th><?php echo esc_html__( 'Title (if local)', 'broken-link-notifier' ); ?></th>
+                                    <th><?php echo esc_html__( 'Status', 'broken-link-notifier' ); ?></th>
+                                    <th><?php echo esc_html__( 'Code', 'broken-link-notifier' ); ?></th>
+                                    <th><?php echo esc_html__( 'Message', 'broken-link-notifier' ); ?></th>
+                                    <th><?php echo esc_html__( 'Speed', 'broken-link-notifier' ); ?></th>
+                                    <th><?php echo esc_html__( 'Actions', 'broken-link-notifier' ); ?></th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -264,19 +267,23 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                         
                         // If cornerstone
                         if ( is_plugin_active( 'cornerstone/cornerstone.php' ) ) {
-                            $incl_solution = ' If you know there are links on the page, try <a href="'.home_url( '/cornerstone/edit/'.$post_id ).'" target="_blank">editing the page in Cornerstone</a> and resaving it. Sometimes the content is saved correctly after editing it outside of Cornerstone, so resaving in Cornerstone helps repopulate the data where we can read the links.';
+                            /* translators: %s: URL for editing the page in Cornerstone. */
+                            $incl_solution = sprintf(
+                                __( ' If you know there are links on the page, try <a href="%s" target="_blank">editing the page in Cornerstone</a> and resaving it. Sometimes the content is saved correctly after editing it outside of Cornerstone, so resaving in Cornerstone helps repopulate the data where we can read the links.', 'broken-link-notifier' ),
+                                esc_url( home_url( '/cornerstone/edit/' . $post_id ) )
+                            );
                         } else {
                             $incl_solution = '';
                         }
                         ?>
-                        <em><strong>No links found.</strong><?php echo esc_html( $incl_solution ); ?></em>
+                        <em><strong><?php echo esc_html__( 'No links found.', 'broken-link-notifier' ); ?></strong><?php echo esc_html( $incl_solution ); ?></em>
                         <?php
                     }
 
                     // Content missing
                     } else {
                         ?>
-                        <em>Content not found.</em>
+                        <em><?php echo esc_html__( 'Content not found.', 'broken-link-notifier' ); ?></em>
                         <?php
                     }
                 }
@@ -284,7 +291,7 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
             // Not found
             } else {
                 ?>
-                <em>Page not found. You can only scan your site's posts, pages, and custom post types here. Please try again.</em>
+                <em><?php echo esc_html__( 'Page not found. You can only scan your site\'s posts, pages, and custom post types here. Please try again.', 'broken-link-notifier' ); ?></em>
                 <?php
             }
         }

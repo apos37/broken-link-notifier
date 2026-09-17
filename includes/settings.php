@@ -111,7 +111,7 @@ class BLNOTIFIER_SETTINGS {
         // Add section
         add_settings_section( 
             'general',
-            'Settings',
+            __( 'Settings', 'broken-link-notifier' ),
             '',
             $this->page_slug
         );
@@ -126,181 +126,187 @@ class BLNOTIFIER_SETTINGS {
             [
                 'type'     => 'checkbox',
                 'name'     => 'pause_frontend_scanning',
-                'label'    => 'Pause Front-End Scanning',
+                'label'    => __( 'Pause Front-End Scanning', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'scanning',
-                'comments' => 'You can pause front-end scanning if you just want to scan manually; disabling this means you will NOT get notified when someone visits a page with broken links'
+                'comments' => __( 'You can pause front-end scanning if you just want to scan manually; disabling this means you will NOT get notified when someone visits a page with broken links', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'remote_fetch_links',
-                'label'    => 'Also Fetch Pages Remotely During Page Scan, Site Scan & Link Browser',
+                'label'    => __( 'Also Fetch Pages Remotely During Page Scan, Site Scan & Link Browser', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'scanning',
-                'comments' => 'Only applies to Page Scan, Site Scan, and Link Browser (not front-end scanning, which already reads the live page as visitors see it). In addition to reading a page\'s stored content, also fetches the live published URL and scans its HTML for links. This catches links rendered by shortcodes or templates that depend on live page context (common with listing/directory themes), at the cost of a slower scan since it makes a real web request per page. Only applies to published pages.'
+                'comments' => __( 'Only applies to Page Scan, Site Scan, and Link Browser (not front-end scanning, which already reads the live page as visitors see it). In addition to reading a page\'s stored content, also fetches the live published URL and scans its HTML for links. This catches links rendered by shortcodes or templates that depend on live page context (common with listing/directory themes), at the cost of a slower scan since it makes a real web request per page. Only applies to published pages.', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'number',
                 'name'     => 'max_links_per_page',
-                'label'    => 'Max Links Per Page',
+                'label'    => __( 'Max Links Per Page', 'broken-link-notifier' ),
                 'default'  => 200,
                 'min'      => 0,
                 'box'      => 'scanning',
-                'comments' => 'Maximum number of links to check per page (0 for unlimited) - this is to prevent attacks and timeouts on pages with a large number of links'
+                'comments' => __( 'Maximum number of links to check per page (0 for unlimited) - this is to prevent attacks and timeouts on pages with a large number of links', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'enable_warnings',
-                'label'    => 'Enable Warnings',
+                'label'    => __( 'Enable Warnings', 'broken-link-notifier' ),
                 'default'  => true,
                 'box'      => 'scanning',
-                'comments' => 'Includes warnings in all scans'
+                'comments' => __( 'Includes warnings in all scans', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'enable_good_links',
-                'label'    => 'Show Good Links in Results',
+                'label'    => __( 'Show Good Links in Results', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'scanning',
-                'comments' => 'Includes good links on results page for verification purposes only (more performance heavy — click Verify Link Statuses to check and clear them)'
+                'comments' => __( 'Includes good links on results page for verification purposes only (more performance heavy — click Verify Link Statuses to check and clear them)', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'enable_delete_source',
-                'label'    => 'Enable Delete Source Action Link',
+                'label'    => __( 'Enable Delete Source Action Link', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'scanning',
-                'comments' => 'An action link will appear on the Results tab under the source where you can trash the page entirely'
+                'comments' => __( 'An action link will appear on the Results tab under the source where you can trash the page entirely', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'include_images',
-                'label'    => 'Check for Broken Images',
+                'label'    => __( 'Check for Broken Images', 'broken-link-notifier' ),
                 'default'  => true,
                 'box'      => 'scanning',
-                'comments' => 'Includes image src links in all scans'
+                'comments' => __( 'Includes image src links in all scans', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'ssl_verify',
-                'label'    => 'Warn if SSL is Not Verified',
+                'label'    => __( 'Warn if SSL is Not Verified', 'broken-link-notifier' ),
                 'default'  => true,
                 'box'      => 'scanning',
-                'comments' => 'If you are not concerned about insecure links, you can disable this'
+                'comments' => __( 'If you are not concerned about insecure links, you can disable this', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'scan_header',
-                'label'    => 'Scan <code>&#x3c;header&#x3e;</code> Elements',
+                'label'    => __( 'Scan <code>&#x3c;header&#x3e;</code> Elements', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'scanning',
-                'comments' => 'Only applies to page load scans - the header elements usually include the navigation menu(s) at the top of the page'
+                'comments' => __( 'Only applies to page load scans - the header elements usually include the navigation menu(s) at the top of the page', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'scan_footer',
-                'label'    => 'Scan <code>&#x3c;footer&#x3e;</code> Elements',
+                'label'    => __( 'Scan <code>&#x3c;footer&#x3e;</code> Elements', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'scanning',
-                'comments' => 'Only applies to page load scans - the footer elements include any links at the bottom of every page'
+                'comments' => __( 'Only applies to page load scans - the footer elements include any links at the bottom of every page', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'checkboxes',
                 'name'     => 'post_types',
-                'label'    => 'Enable Scanning for These Post Types',
+                'label'    => __( 'Enable Scanning for These Post Types', 'broken-link-notifier' ),
                 'options'  => $this->get_post_type_choices(),
                 'default'  => [ 'post', 'page' ],
                 'box'      => 'scanning',
-                'comments' => 'Controls which post types are included in Site Scan\'s link discovery, front-end page-load scanning, and (if enabled) legacy Multi-Scan.'
+                'comments' => __( 'Controls which post types are included in Site Scan\'s link discovery, front-end page-load scanning, and (if enabled) legacy Multi-Scan.', 'broken-link-notifier' )
             ],
 
             // Advanced
             [
                 'type'     => 'text',
                 'name'     => 'user_agent',
-                'label'    => 'User Agent',
+                'label'    => __( 'User Agent', 'broken-link-notifier' ),
                 'default'  => 'WordPress/{blog_version}; {blog_url}',
                 'box'      => 'advanced',
-                'comments' => 'Only change this if you know what you are doing. Default is "WordPress/{blog_version}; {blog_url}" (WordPress/' . get_bloginfo( 'version' ) . '; ' . get_bloginfo( 'url' ) . ')'
+                /* translators: %1$s is the default user agent format, %2$s is the WordPress version, and %3$s is the site's URL. */
+                'comments' => sprintf(
+                    __( 'Only change this if you know what you are doing. Default is "%1$s" (WordPress/%2$s; %3$s)', 'broken-link-notifier' ),
+                    'WordPress/{blog_version}; {blog_url}',
+                    get_bloginfo( 'version' ),
+                    home_url()
+                )
             ],
             [
                 'type'     => 'number',
                 'name'     => 'timeout',
-                'label'    => 'Timeout (seconds)',
+                'label'    => __( 'Timeout (seconds)', 'broken-link-notifier' ),
                 'default'  => 5,
                 'min'      => 5,
                 'box'      => 'advanced',
-                'comments' => 'How long to try to connect to a link\'s server before quitting'
+                'comments' => __( 'How long to try to connect to a link\'s server before quitting', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'number',
                 'name'     => 'max_redirects',
-                'label'    => 'Max Redirects',
+                'label'    => __( 'Max Redirects', 'broken-link-notifier' ),
                 'default'  => 5,
                 'min'      => 0,
                 'box'      => 'advanced',
-                'comments' => 'Maximum number of redirects before giving up on a link (will only be used if you allow redirects below)'
+                'comments' => __( 'Maximum number of redirects before giving up on a link (will only be used if you allow redirects below)', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'number',
                 'name'     => 'scan_delay_ms',
-                'label'    => 'Delay Between Scan Requests (ms)',
+                'label'    => __( 'Delay Between Scan Requests (ms)', 'broken-link-notifier' ),
                 'default'  => 0,
                 'min'      => 0,
                 'box'      => 'advanced',
-                'comments' => 'Adds a pause between each request during Link Browser and Site Scan scans. Use this if scanning is putting too much load on your server. 0 disables the delay.'
+                'comments' => __( 'Adds a pause between each request during Link Browser and Site Scan scans. Use this if scanning is putting too much load on your server. 0 disables the delay.', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'allow_redirects',
-                'label'    => 'Allow Redirects',
+                'label'    => __( 'Allow Redirects', 'broken-link-notifier' ),
                 'default'  => true,
                 'box'      => 'advanced',
-                'comments' => 'Changes the method of checking for broken links from <code>HEAD</code> to <code>GET</code>. May cause issues linking to larger documents.'
+                'comments' => __( 'Changes the method of checking for broken links from <code>HEAD</code> to <code>GET</code>. May cause issues linking to larger documents.', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'documents_use_head',
-                'label'    => 'Force Documents to Use <code>HEAD</code> Requests',
+                'label'    => __( 'Force Documents to Use <code>HEAD</code> Requests', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'advanced',
-                'comments' => 'If you have enabled allowing redirects (above), by default images, videos, and audio files force the use of <code>HEAD</code> requests rather than <code>GET</code>. Some servers automatically block <code>HEAD</code> requests for documents, so we don\'t force them by default. If you are having issues with large documents not completing a scan, then you can try enabling this option to see if it helps. If they are blocked, at least you will know why.'
+                'comments' => __( 'If you have enabled allowing redirects (above), by default images, videos, and audio files force the use of <code>HEAD</code> requests rather than <code>GET</code>. Some servers automatically block <code>HEAD</code> requests for documents, so we don\'t force them by default. If you are having issues with large documents not completing a scan, then you can try enabling this option to see if it helps. If they are blocked, at least you will know why.', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'show_in_console',
-                'label'    => 'Show Results in Dev Console',
+                'label'    => __( 'Show Results in Dev Console', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'advanced',
-                'comments' => 'Only applies to page load scans. Note that this is visible to anyone viewing your site\'s browser console, not just admins, so it\'s best left off unless you\'re actively troubleshooting or support has asked you to turn it on to help diagnose an issue.'
+                'comments' => __( 'Only applies to page load scans. Note that this is visible to anyone viewing your site\'s browser console, not just admins, so it\'s best left off unless you\'re actively troubleshooting or support has asked you to turn it on to help diagnose an issue.', 'broken-link-notifier' )
             ],
             [
                 'type'     => 'number',
                 'name'     => 'cache',
-                'label'    => 'Length of Time to Cache Good Links (in Seconds)',
+                'label'    => __( 'Length of Time to Cache Good Links (in Seconds)', 'broken-link-notifier' ),
                 'default'  => 0,
                 'min'      => 0,
                 'box'      => 'advanced',
-                'comments' => 'Use 0 to disable caching. If you are experienced performance issues, you can set the value to 28800 (8 hours), 43200 (12 hours), 86400 (24 hours) or whatever you feel is best. Broken and warning links will never be cached. Deactivating or uninstalling the plugin will clear the cache completely.'
+                'comments' => __( 'Use 0 to disable caching. If you are experienced performance issues, you can set the value to 28800 (8 hours), 43200 (12 hours), 86400 (24 hours) or whatever you feel is best. Broken and warning links will never be cached. Deactivating or uninstalling the plugin will clear the cache completely.', 'broken-link-notifier' ),
             ],
             [
                 'type'  => 'clear_cache',
                 'name'  => 'clear_cache_tools',
-                'label' => 'Cache',
+                'label' => __( 'Cache', 'broken-link-notifier' ),
                 'box'   => 'advanced',
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'uninstall_cleanup',
-                'label'    => 'Remove Data on Uninstall',
+                'label'    => __( 'Remove Data on Uninstall', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'advanced',
-                'comments' => 'Enable this option to automatically remove the database tables that the links are stored in and all options when the plugin is uninstalled.'
+                'comments' => __( 'Enable this option to automatically remove the database tables that the links are stored in and all options when the plugin is uninstalled.', 'broken-link-notifier' ),
             ],
             [
                 'type'  => 'html',
                 'name'  => 'settings_backup_tools',
-                'label' => 'Backup & Reset',
+                'label' => __( 'Backup & Reset', 'broken-link-notifier' ),
                 'box'   => 'advanced',
             ],
 
@@ -308,148 +314,159 @@ class BLNOTIFIER_SETTINGS {
             [
                 'type'     => 'checkbox',
                 'name'     => 'enable_emailing',
-                'label'    => 'Enable Emailing',
+                'label'    => __( 'Enable Emailing', 'broken-link-notifier' ),
                 'default'  => true,
                 'box'      => 'notifications',
-                'comments' => 'You can turn off email notifications and still get website notifications'
+                'comments' => __( 'You can turn off email notifications and still get website notifications', 'broken-link-notifier' ),
             ],
             [
                 'type'     => 'emails_with_test',
                 'name'     => 'emails',
-                'label'    => 'Emails to Send Notifications',
+                'label'    => __( 'Emails to Send Notifications', 'broken-link-notifier' ),
                 'default'  => get_bloginfo( 'admin_email' ),
                 'box'      => 'notifications',
                 'toggle'   => 'blnotifier_enable_emailing',
-                'comments' => 'Separated by commas'
+                'comments' => __( 'Separated by commas', 'broken-link-notifier' ),
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'enable_discord',
-                'label'    => 'Enable Discord Notifications',
+                'label'    => __( 'Enable Discord Notifications', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'notifications',
-                'comments' => 'You can also send notifications to a Discord channel'
+                'comments' => __( 'You can also send notifications to a Discord channel', 'broken-link-notifier' ),
             ],
             [
                 'type'               => 'url_with_test',
                 'name'               => 'discord',
-                'label'              => 'Discord Webhook URL',
+                'label'              => __( 'Discord Webhook URL', 'broken-link-notifier' ),
                 'default'            => '',
                 'box'                => 'notifications',
                 'toggle'             => 'blnotifier_enable_discord',
                 'test_type'          => 'discord',
-                'comments'           => 'URL should look like this: https://discord.com/api/webhooks/xxx/xxx...',
-                'accordion_title'    => 'How to Connect to Discord',
-                'accordion_content'  => '<p>Using Discord to receive notifications is easy to set up, and often a more reliable method since emails can end up getting lost in cyberspace sometimes. The instructions below assume you already have a Discord account.</p>
-        <p><strong>Set Up:</strong></p>
-        <ol>
-        <li><a href="https://support.discord.com/hc/en-us/articles/204849977-How-do-I-create-a-server" target="_blank">Create a server</a> if you don\'t already have one (it\'s free and easy)</li>
-        <li>Go to Server Settings > Integrations</li>
-        <li>Click on Webhooks</li>
-        <li>Click on "New Webhook" (once)</li>
-        <li>Scroll down and click on your new webhook (probably named "Captain Hook")</li>
-        <li>Name your webhook (this will be used as the name that the messages are posted by)</li>
-        <li>Choose the channel the messages should be posted in</li>
-        <li>Click on "Copy Webhook URL"; it will save to your clipboard</li>
-        <li>Add the webhook url above and enable Discord notifications</li>
-        <li>Enable "Show Results in Dev Console" so you can verify scanning results are being picked up</li>
-        <li>Visit a page that you know has new broken links (if the broken links are added to your <a href="'.esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'results' ) ).'">Results</a> page, then you will need to delete them before testing again since it will only show the results once)</li>
-        </ol>'
+                'comments'           => __( 'URL should look like this: https://discord.com/api/webhooks/xxx/xxx...', 'broken-link-notifier' ),
+                'accordion_title'    => __( 'How to Connect to Discord', 'broken-link-notifier' ),
+                /* translators: %1$s is the URL of the Broken Link Notifier Results page. */
+                'accordion_content'  => sprintf(
+                    __( '<p>Using Discord to receive notifications is easy to set up, and often a more reliable method since emails can end up getting lost in cyberspace sometimes. The instructions below assume you already have a Discord account.</p>
+                    <p><strong>Set Up:</strong></p>
+                    <ol>
+                    <li><a href="https://support.discord.com/hc/en-us/articles/204849977-How-do-I-create-a-server" target="_blank">Create a server</a> if you don\'t already have one (it\'s free and easy)</li>
+                    <li>Go to Server Settings &gt; Integrations</li>
+                    <li>Click on Webhooks</li>
+                    <li>Click on "New Webhook" (once)</li>
+                    <li>Scroll down and click on your new webhook (probably named "Captain Hook")</li>
+                    <li>Name your webhook (this will be used as the name that the messages are posted by)</li>
+                    <li>Choose the channel the messages should be posted in</li>
+                    <li>Click on "Copy Webhook URL"; it will save to your clipboard</li>
+                    <li>Add the webhook URL above and enable Discord notifications</li>
+                    <li>Enable "Show Results in Dev Console" so you can verify scanning results are being picked up</li>
+                    <li>Visit a page that you know has new broken links (if the broken links are added to your <a href="%1$s">Results</a> page, then you will need to delete them before testing again since it will only show the results once)</li>
+                    </ol>', 'broken-link-notifier' ),
+                    esc_url( ( new BLNOTIFIER_MENU )->get_plugin_page( 'results' ) )
+                ),
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'enable_slack',
-                'label'    => 'Enable Slack Notifications',
+                'label'    => __( 'Enable Slack Notifications', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'notifications',
-                'comments' => 'You can also send notifications to a Slack channel'
+                'comments' => __( 'You can also send notifications to a Slack channel', 'broken-link-notifier' ),
             ],
             [
                 'type'               => 'url_with_test',
                 'name'               => 'slack',
-                'label'              => 'Slack Webhook URL',
+                'label'              => __( 'Slack Webhook URL', 'broken-link-notifier' ),
                 'default'            => '',
                 'box'                => 'notifications',
                 'toggle'             => 'blnotifier_enable_slack',
                 'test_type'          => 'slack',
-                'comments'           => 'URL should look like this: https://hooks.slack.com/services/xxx/xxx/xxx',
-                'accordion_title'    => 'How to Connect to Slack',
-                'accordion_content'  => '<p>Using Slack to receive notifications is straightforward. The instructions below assume you already have a Slack account and workspace.</p>
-        <p><strong>Set Up:</strong></p>
-        <ol>
-        <li>Go to <a href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a></li>
-        <li>Click Create New App</li>
-        <li>Choose From scratch</li>
-        <li>Enter an app name (e.g. "Broken Link Notifier") and select your workspace</li>
-        <li>Click Create App</li>
-        <li>In the left sidebar click Incoming Webhooks</li>
-        <li>Toggle Activate Incoming Webhooks to on</li>
-        <li>Click Add New Webhook to Workspace at the bottom</li>
-        <li>Select the channel you want notifications posted to</li>
-        <li>Click Allow</li>
-        <li>Copy the webhook URL</li>
-        <li>Add the webhook url above and enable Slack notifications</li>
-        <li>Enable "Show Results in Dev Console" so you can verify scanning results are being picked up</li>
-        <li>Visit a page that you know has new broken links (if the broken links are added to your <a href="'.esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'results' ) ).'">Results</a> page, then you will need to delete them before testing again since it will only show the results once)</li>
-        </ol>'
+                'comments'           => __( 'URL should look like this: https://hooks.slack.com/services/xxx/xxx/xxx', 'broken-link-notifier' ),
+                'accordion_title'    => __( 'How to Connect to Slack', 'broken-link-notifier' ),
+                /* translators: %1$s is the URL of the Broken Link Notifier Results page. */
+                'accordion_content'  => sprintf(
+                    __( '<p>Using Slack to receive notifications is straightforward. The instructions below assume you already have a Slack account and workspace.</p>
+                    <p><strong>Set Up:</strong></p>
+                    <ol>
+                    <li>Go to <a href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a></li>
+                    <li>Click Create New App</li>
+                    <li>Choose From scratch</li>
+                    <li>Enter an app name (e.g. "Broken Link Notifier") and select your workspace</li>
+                    <li>Click Create App</li>
+                    <li>In the left sidebar click Incoming Webhooks</li>
+                    <li>Toggle Activate Incoming Webhooks to on</li>
+                    <li>Click Add New Webhook to Workspace at the bottom</li>
+                    <li>Select the channel you want notifications posted to</li>
+                    <li>Click Allow</li>
+                    <li>Copy the webhook URL</li>
+                    <li>Add the webhook URL above and enable Slack notifications</li>
+                    <li>Enable "Show Results in Dev Console" so you can verify scanning results are being picked up</li>
+                    <li>Visit a page that you know has new broken links (if the broken links are added to your <a href="%1$s">Results</a> page, then you will need to delete them before testing again since it will only show the results once)</li>
+                    </ol>', 'broken-link-notifier' ),
+                    esc_url( ( new BLNOTIFIER_MENU )->get_plugin_page( 'results' ) )
+                ),
             ],
             [
                 'type'     => 'checkbox',
                 'name'     => 'enable_msteams',
-                'label'    => 'Enable Microsoft Teams Notifications',
+                'label'    => __( 'Enable Microsoft Teams Notifications', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'notifications',
-                'comments' => 'You can also send notifications to a Microsoft Teams channel'
+                'comments' => __( 'You can also send notifications to a Microsoft Teams channel', 'broken-link-notifier' ),
             ],
             [
                 'type'               => 'url_with_test',
                 'name'               => 'msteams',
-                'label'              => 'Microsoft Teams Webhook URL',
+                'label'              => __( 'Microsoft Teams Webhook URL', 'broken-link-notifier' ),
                 'default'            => '',
                 'box'                => 'notifications',
                 'toggle'             => 'blnotifier_enable_msteams',
                 'test_type'          => 'msteams',
-                'comments'           => 'URL should look like this: https://yourdomain.webhook.office.com/xxx/xxx...',
-                'accordion_title'    => 'How to Connect to Microsoft Teams',
-                'accordion_content'  => '<p>Using Microsoft Teams to receive notifications is easy to set up, too, and it\'s helpful for teams to work together on fixing the links. The instructions below assume you already have a Microsoft account and Teams installed.</p>
-        <p><strong>Set Up:</strong></p>
-        <ol>
-        <li>Go to Apps</li>
-        <li>Search for Incoming Webhook</li>
-        <li>Click on the Incoming Webhook app</li>
-        <li>Click on "Add to a team"</li>
-        <li>Choose a channel to add the messages to</li>
-        <li>Click on "Set up connector"</li>
-        <li>Name your webhook (this will be used as the name that the messages are posted by)</li>
-        <li>Upload a logo for your webhook</li>
-        <li>Click on "Create"</li>
-        <li>Copy the webhook URL and save it (you cannot retrieve it again)</li>
-        <li>Click on "Done"</li>
-        <li>Add the webhook url above and enable Microsoft Teams notifications</li>
-        <li>Enable "Show Results in Dev Console" so you can verify scanning results are being picked up</li>
-        <li>Visit a page that you know has new broken links (if the broken links are added to your <a href="'.esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'results' ) ).'">Results</a> page, then you will need to delete them before testing again since it will only show the results once)</li>
-        </ol>'
+                'comments'           => __( 'URL should look like this: https://yourdomain.webhook.office.com/xxx/xxx...', 'broken-link-notifier' ),
+                'accordion_title'    => __( 'How to Connect to Microsoft Teams', 'broken-link-notifier' ),
+                'accordion_content'  => sprintf(
+                    __( '<p>Using Microsoft Teams to receive notifications is easy to set up, too, and it\'s helpful for teams to work together on fixing the links. The instructions below assume you already have a Microsoft account and Teams installed.</p>
+                    <p><strong>Set Up:</strong></p>
+                    <ol>
+                    <li>Go to Apps</li>
+                    <li>Search for Incoming Webhook</li>
+                    <li>Click on the Incoming Webhook app</li>
+                    <li>Click on "Add to a team"</li>
+                    <li>Choose a channel to add the messages to</li>
+                    <li>Click on "Set up connector"</li>
+                    <li>Name your webhook (this will be used as the name that the messages are posted by)</li>
+                    <li>Upload a logo for your webhook</li>
+                    <li>Click on "Create"</li>
+                    <li>Copy the webhook URL and save it (you cannot retrieve it again)</li>
+                    <li>Click on "Done"</li>
+                    <li>Add the webhook URL above and enable Microsoft Teams notifications</li>
+                    <li>Enable "Show Results in Dev Console" so you can verify scanning results are being picked up</li>
+                    <li>Visit a page that you know has new broken links (if the broken links are added to your <a href="%1$s">Results</a> page, then you will need to delete them before testing again since it will only show the results once)</li>
+                    </ol>', 'broken-link-notifier' ),
+                    esc_url( ( new BLNOTIFIER_MENU )->get_plugin_page( 'results' ) )
+                ),
             ],
 
             // Access Control
             [
                 'type'     => 'checkbox',
                 'name'     => 'enable_rest_api',
-                'label'    => 'Enable REST API',
+                'label'    => __( 'Enable REST API', 'broken-link-notifier' ),
                 'default'  => false,
                 'box'      => 'access',
-                'comments' => 'Exposes a read/delete REST API endpoint for use with AI agents and external tools.'
+                'comments' => __( 'Exposes a read/delete REST API endpoint for use with AI agents and external tools.', 'broken-link-notifier' ),
             ],
             [
                 'type' => 'api_key',
                 'name' => 'api_key',
-                'label' => 'API Key',
+                'label' => __( 'API Key', 'broken-link-notifier' ),
                 'box'  => 'access',
             ],
             [
                 'type'     => 'checkboxes',
                 'name'     => 'editable_roles',
-                'label'    => 'Allow These Additional Roles to Manage Broken Links',
+                'label'    => __( 'Allow These Additional Roles to Manage Broken Links', 'broken-link-notifier' ),
                 'options'  => $this->get_editable_roles_choices(),
                 'box'      => 'access',
             ],
@@ -458,7 +475,7 @@ class BLNOTIFIER_SETTINGS {
             [
                 'type'    => 'status_codes',
                 'name'    => 'status_codes',
-                'label'   => 'Status Codes',
+                'label'   => __( 'Status Codes', 'broken-link-notifier' ),
                 'options' => (new BLNOTIFIER_HELPERS)->get_status_codes(),
                 'box'     => 'status_codes',
             ],
@@ -700,12 +717,12 @@ class BLNOTIFIER_SETTINGS {
             ?>
             <div class="blnotifier-status-summary">
                 <div class="blnotifier-status-summary-item broken">
-                    <span class="label">Broken Status Codes</span>
-                    <span class="codes" id="bln-broken-codes-summary"><?php echo esc_html( !empty( $broken ) ? implode( ', ', $broken ) : 'None' ); ?></span>
+                    <span class="label"><?php echo esc_html__( 'Broken Status Codes', 'broken-link-notifier' ); ?></span>
+                    <span class="codes" id="bln-broken-codes-summary"><?php echo esc_html( !empty( $broken ) ? implode( ', ', $broken ) : __( 'None', 'broken-link-notifier' ) ); ?></span>
                 </div>
                 <div class="blnotifier-status-summary-item warning">
-                    <span class="label">Warning Status Codes</span>
-                    <span class="codes" id="bln-warning-codes-summary"><?php echo esc_html( !empty( $warning ) ? implode( ', ', $warning ) : 'None' ); ?></span>
+                    <span class="label"><?php echo esc_html__( 'Warning Status Codes', 'broken-link-notifier' ); ?></span>
+                    <span class="codes" id="bln-warning-codes-summary"><?php echo esc_html( !empty( $warning ) ? implode( ', ', $warning ) : __( 'None', 'broken-link-notifier' ) ); ?></span>
                 </div>
             </div>
 
@@ -722,48 +739,39 @@ class BLNOTIFIER_SETTINGS {
                 $display_code = isset( $c[ 'official' ] ) && !$c[ 'official' ] ? $code : '<a href="https://http.dev/' . $code . '" target="_blank">' . $code . '</a>';
     
                 printf(
-                    '<div class="status-row ' . esc_attr( $type ) . '">
+                    '<div class="status-row %1$s">
                         <div class="info-input">
                             <div class="code-msg">
-                                <span class="code">%s</span> <span class="message">(%s)</span>
+                                <span class="code">%2$s</span> <span class="message">(%3$s)</span>
                             </div>
-                            <div class="description">%s</div>
+                            <div class="description">%4$s</div>
                             <div class="selections">
-                                <input type="radio" id="%s_good" name="%s[%s]" value="good" %s/> 
-                                <label for="%s_good">Good</label>
-                                <input type="radio" id="%s_warning" name="%s[%s]" value="warning" %s/> 
-                                <label for="%s_warning">Warning</label>
-                                <input type="radio" id="%s_broken" name="%s[%s]" value="broken" %s/> 
-                                <label for="%s_broken">Broken</label>
+                                <input type="radio" id="%5$s_good" name="%6$s[%7$s]" value="good" %8$s />
+                                <label for="%5$s_good">%9$s</label>
+                                <input type="radio" id="%5$s_warning" name="%6$s[%7$s]" value="warning" %10$s />
+                                <label for="%5$s_warning">%11$s</label>
+                                <input type="radio" id="%5$s_broken" name="%6$s[%7$s]" value="broken" %12$s />
+                                <label for="%5$s_broken">%13$s</label>
                             </div>
                         </div>
                         <div class="indicator">
-                            <div class="type">%s</div>
+                            <div class="type">%14$s</div>
                         </div>
                     </div><br><br>',
+                    esc_attr( $type ),
                     wp_kses( $display_code, [ 'a' => [ 'href' => [], 'target' => [] ] ] ),
                     esc_html( $c[ 'msg' ] ),
                     wp_kses( $c[ 'desc' ], [ 'code' ] ),
-
-                    esc_html( $args[ 'name' ].'_'.$code ),
-                    esc_html( $args[ 'name' ] ),
+                    esc_attr( $args[ 'name' ] . '_' . $code ),
+                    esc_attr( $args[ 'name' ] ),
                     esc_attr( $code ),
-                    esc_html( $checked_good ),
-                    esc_html( $args[ 'name' ].'_'.$code ),
-
-                    esc_html( $args[ 'name' ].'_'.$code ),
-                    esc_html( $args[ 'name' ] ),
-                    esc_attr( $code ),
-                    esc_html( $checked_warning ),
-                    esc_html( $args[ 'name' ].'_'.$code ),
-
-                    esc_html( $args[ 'name' ].'_'.$code ),
-                    esc_html( $args[ 'name' ] ),
-                    esc_attr( $code ),
-                    esc_html( $checked_broken ),
-                    esc_html( $args[ 'name' ].'_'.$code ),
-
-                    esc_attr( strtoupper( $type ) )
+                    $checked_good,
+                    __( 'Good', 'broken-link-notifier' ),
+                    $checked_warning,
+                    __( 'Warning', 'broken-link-notifier' ),
+                    $checked_broken,
+                    __( 'Broken', 'broken-link-notifier' ),
+                    esc_html( strtoupper( $type ) )
                 );
             }
 
@@ -905,15 +913,15 @@ class BLNOTIFIER_SETTINGS {
         ?>
         <div class="blnotifier-api-key-wrapper">
             <div id="blnotifier-api-key-display" class="blnotifier-api-key-box <?php echo $key ? 'has-key' : 'no-key'; ?>">
-                <?php echo $key ? esc_html( $key ) : '<em>No API Key Generated</em>'; ?>
+                <?php echo $key ? esc_html( $key ) : '<em>' . esc_html__( 'No API Key Generated', 'broken-link-notifier' ) . '</em>'; ?>
             </div>
 
             <input type="hidden" id="<?php echo esc_attr( $args[ 'name' ] ); ?>" name="<?php echo esc_attr( $args[ 'name' ] ); ?>" value="<?php echo esc_attr( $key ); ?>">
 
             <div class="blnotifier-api-key-actions">
-                <button type="button" id="blnotifier-generate-key" class="blnotifier-button">Generate New API Key</button>
-                <button type="button" id="blnotifier-copy-key" class="blnotifier-button" <?php echo !$key ? 'disabled' : ''; ?>>Copy</button>
-                <button type="button" id="blnotifier-clear-key" class="blnotifier-button" <?php echo !$key ? 'disabled' : ''; ?>>Clear</button>
+                <button type="button" id="blnotifier-generate-key" class="blnotifier-button"><?php echo esc_html__( 'Generate New API Key', 'broken-link-notifier' ); ?></button>
+                <button type="button" id="blnotifier-copy-key" class="blnotifier-button" <?php echo !$key ? 'disabled' : ''; ?>><?php echo esc_html__( 'Copy', 'broken-link-notifier' ); ?></button>
+                <button type="button" id="blnotifier-clear-key" class="blnotifier-button" <?php echo !$key ? 'disabled' : ''; ?>><?php echo esc_html__( 'Clear', 'broken-link-notifier' ); ?></button>
             </div>
         </div>
         <?php
@@ -1020,8 +1028,8 @@ class BLNOTIFIER_SETTINGS {
             return;
         }
         ?>
-        <button type="button" id="blnotifier-save-settings" class="blnotifier-button">Save</button>
-        <span id="blnotifier-save-reminder">Remember to click "Save" after making changes to your settings.</span>
+        <button type="button" id="blnotifier-save-settings" class="blnotifier-button"><?php echo esc_html__( 'Save', 'broken-link-notifier' ); ?></button>
+        <span id="blnotifier-save-reminder"><?php echo esc_html__( 'Remember to click "Save" after making changes to your settings.', 'broken-link-notifier' ); ?></span>
         <?php
     } // End render_settings_subheader_left()
 
@@ -1037,9 +1045,9 @@ class BLNOTIFIER_SETTINGS {
             return;
         }
         ?>
-        <a href="<?php echo esc_url( BLNOTIFIER_GUIDE_URL ); ?>" target="_blank" class="blnotifier-button bln-external-link">How-To Guide <span class="dashicons dashicons-external"></span></a>
-        <a href="<?php echo esc_url( BLNOTIFIER_DOCS_URL ); ?>" target="_blank" class="blnotifier-button bln-external-link">Developer Docs <span class="dashicons dashicons-external"></span></a>
-        <a href="<?php echo esc_url( BLNOTIFIER_SUPPORT_URL ); ?>" target="_blank" class="blnotifier-button bln-external-link">Support Forum <span class="dashicons dashicons-external"></span></a>
+        <a href="<?php echo esc_url( BLNOTIFIER_GUIDE_URL ); ?>" target="_blank" class="blnotifier-button bln-external-link"><?php echo esc_html__( 'How-To Guide', 'broken-link-notifier' ); ?> <span class="dashicons dashicons-external"></span></a>
+        <a href="<?php echo esc_url( BLNOTIFIER_DOCS_URL ); ?>" target="_blank" class="blnotifier-button bln-external-link"><?php echo esc_html__( 'Developer Docs', 'broken-link-notifier' ); ?> <span class="dashicons dashicons-external"></span></a>
+        <a href="<?php echo esc_url( BLNOTIFIER_SUPPORT_URL ); ?>" target="_blank" class="blnotifier-button bln-external-link"><?php echo esc_html__( 'Support Forum', 'broken-link-notifier' ); ?> <span class="dashicons dashicons-external"></span></a>
         <?php
     } // End render_settings_subheader_right()
 
@@ -1055,7 +1063,7 @@ class BLNOTIFIER_SETTINGS {
             return;
         }
         ?>
-        <span id="blnotifier-version"><?php esc_html_e( 'Version', 'broken-link-notifier' ); ?> <?php echo esc_html( BLNOTIFIER_VERSION ); ?></span>
+        <span id="blnotifier-version"><?php echo esc_html__( 'Version', 'broken-link-notifier' ); ?> <?php echo esc_html( BLNOTIFIER_VERSION ); ?></span>
         <?php
     } // End render_version()
 
@@ -1069,15 +1077,15 @@ class BLNOTIFIER_SETTINGS {
     public function field_backup_tools( $args ) {
         ?>
         <div class="blnotifier-backup-tools">
-            <button type="button" id="blnotifier-download-settings-btn" class="blnotifier-button">Download Settings</button>
+            <button type="button" id="blnotifier-download-settings-btn" class="blnotifier-button"><?php echo esc_html__( 'Download Settings', 'broken-link-notifier' ); ?></button>
 
             <div id="blnotifier-upload-settings-button">
-                <label for="blnotifier-upload-settings"><span class="blnotifier-button">Upload Settings</span></label>
+                <label for="blnotifier-upload-settings"><span class="blnotifier-button"><?php echo esc_html__( 'Upload Settings', 'broken-link-notifier' ); ?></span></label>
                 <input type="file" id="blnotifier-upload-settings" accept=".json">
             </div>
             <div id="blnotifier-upload-settings-filename"></div>
 
-            <button type="button" id="blnotifier-reset-settings" class="blnotifier-button">Reset All Settings</button>
+            <button type="button" id="blnotifier-reset-settings" class="blnotifier-button"><?php echo esc_html__( 'Reset All Settings', 'broken-link-notifier' ); ?></button>
         </div>
         <?php
     } // End field_backup_tools()
@@ -1095,8 +1103,8 @@ class BLNOTIFIER_SETTINGS {
         $count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" ); // phpcs:ignore
         ?>
         <div class="blnotifier-backup-tools">
-            <button type="button" id="blnotifier-clear-cache" class="blnotifier-button">Clear Cache</button>
-            <span id="blnotifier-cache-count">Currently caching <?php echo absint( $count ); ?> link<?php echo $count == 1 ? '' : 's'; ?>.</span>
+            <button type="button" id="blnotifier-clear-cache" class="blnotifier-button"><?php echo esc_html__( 'Clear Cache', 'broken-link-notifier' ); ?></button>
+            <span id="blnotifier-cache-count"><?php echo esc_html__( 'Currently caching', 'broken-link-notifier' ); ?> <?php echo absint( $count ); ?> <?php echo esc_html__( 'link', 'broken-link-notifier' ); ?><?php echo $count == 1 ? '' : esc_html__( 's', 'broken-link-notifier' ); ?>.</span>
         </div>
         <?php
     } // End field_clear_cache()
@@ -1177,6 +1185,20 @@ class BLNOTIFIER_SETTINGS {
                 'save_nonce'        => wp_create_nonce( 'blnotifier_save_settings' ),
                 'fields'            => $this->get_field_definitions_for_js(),
                 'ajaxurl'           => admin_url( 'admin-ajax.php' ),
+                'text'              => [
+                    'confirm_clear_api'  => __( 'Are you sure you want to clear the API key? This may break existing integrations using it.', 'broken-link-notifier' ),
+                    'no_api_generated'   => __( 'No API Key Generated', 'broken-link-notifier' ),
+                    'sending'            => __( 'Sending...', 'broken-link-notifier' ),
+                    'send_test'          => __( 'Send Test', 'broken-link-notifier' ),
+                    'saving'             => __( 'Saving...', 'broken-link-notifier' ),
+                    'settings_saved'     => __( 'Settings saved successfully.', 'broken-link-notifier' ),
+                    'error_saving'       => __( 'Error saving settings.', 'broken-link-notifier' ),
+                    'clearing'           => __( 'Clearing...', 'broken-link-notifier' ),
+                    'caching_no_links'   => __( 'Currently caching 0 links.', 'broken-link-notifier' ),
+                    'cannot_clear_cache' => __( 'Could not clear cache.', 'broken-link-notifier' ),
+                    'invalid_json'       => __( 'Invalid JSON file. Please check the file and try again.', 'broken-link-notifier' ),
+                    'confirm_reset_all'  => __( 'Are you sure you want to reset ALL settings to their defaults? You will still need to click Save to apply this.', 'broken-link-notifier' )
+                ],
             ] );
             wp_enqueue_script( $handle );
             wp_enqueue_script( 'jquery' );
@@ -1191,11 +1213,11 @@ class BLNOTIFIER_SETTINGS {
      */
     public function ajax_clear_cache() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), 'blnotifier_clear_cache' ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         global $wpdb;
@@ -1238,11 +1260,11 @@ class BLNOTIFIER_SETTINGS {
                 'From: ' . BLNOTIFIER_NAME . ' <' . get_bloginfo( 'admin_email' ) . '>',
                 'Content-Type: text/html; charset=UTF-8',
             ];
-            $subject = 'Test: Broken Links Found';
-            $message = 'This is a test notification from ' . BLNOTIFIER_NAME . '.<br><br>';
-            $message .= 'CONTENT<br><br>';
-            $message .= 'URL: ' . $fake_link . '<br>Status Code: ' . $fake_code . ' - ' . $fake_text;
-            $message .= '<br><br><hr><br>' . get_bloginfo( 'name' ) . '<br><em>' . BLNOTIFIER_NAME . ' Plugin</em>';
+            $subject = __( 'Test: Broken Links Found', 'broken-link-notifier' );
+            $message = __( 'This is a test notification from', 'broken-link-notifier' ) . ' ' . BLNOTIFIER_NAME . '.<br><br>';
+            $message .= __( 'CONTENT', 'broken-link-notifier' ) . '<br><br>';
+            $message .= __( 'URL', 'broken-link-notifier' ) . ': ' . $fake_link . '<br>' . __( 'Status Code', 'broken-link-notifier' ) . ': ' . $fake_code . ' - ' . $fake_text;
+            $message .= '<br><br><hr><br>' . get_bloginfo( 'name' ) . '<br><em>' . BLNOTIFIER_NAME . ' ' . __( 'Plugin', 'broken-link-notifier' ) . '</em>';
 
             if ( wp_mail( $emails, $subject, $message, $headers ) ) {
                 wp_send_json_success();

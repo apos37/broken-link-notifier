@@ -13,10 +13,10 @@ jQuery( $ => {
 
     $postTypeSelect.on( 'change', function() {
         const postType = $( this ).val();
-        $postSelect.prop( 'disabled', true ).html( '<option value="">Loading...</option>' );
+        $postSelect.prop( 'disabled', true ).html( '<option value="">' + blnotifier_omits_quick_add.text.loading + '</option>' );
 
         if ( !postType ) {
-            $postSelect.html( '<option value="">Choose a Post Type First...</option>' );
+            $postSelect.html( '<option value="">' + blnotifier_omits_quick_add.text.choose_post_type + '</option>' );
             return;
         }
 
@@ -26,13 +26,13 @@ jQuery( $ => {
             post_type: postType
         }, function( response ) {
             if ( response.success && response.data.items.length ) {
-                let options = '<option value="">Choose a page...</option>';
+                let options = '<option value="">' + blnotifier_omits_quick_add.text.choose_page + '</option>';
                 response.data.items.forEach( function( item ) {
                     options += '<option value="' + item.url + '">' + item.title + '</option>';
                 } );
                 $postSelect.html( options ).prop( 'disabled', false );
             } else {
-                $postSelect.html( '<option value="">No items found</option>' );
+                $postSelect.html( '<option value="">' + blnotifier_omits_quick_add.text.no_items_found + '</option>' );
             }
         } );
     } );

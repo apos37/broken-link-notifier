@@ -14,7 +14,7 @@ jQuery( $ => {
 
     // Only continue if a broken link is being searched
     if ( urlParams.has( 'blink' ) ) {
-        console.log( 'Looking for highlights; checking for broken links paused.' );
+        console.log( blnotifier_front_end.text.checking_paused );
         const blink = urlParams.get( 'blink' );
         $.each( elements, function( tag, attr ) {
             $( tag ).not( '#wpadminbar ' + tag ).each( function( index ) {
@@ -22,11 +22,11 @@ jQuery( $ => {
                 if ( link !== undefined && link.includes( blink ) ) {
                     $( this ).addClass( 'glowText' );
                     if ( $( this ).is( ':hidden' ) ) {
-                        var msg = 'It looks like one or more of the links are hidden. To find them, try searching for it in your browser\'s Developer console.';
+                        var msg = blnotifier_front_end.text.links_hidden;
                         console.log( msg );
                         alert( msg );
                     } else {
-                        console.log( 'The element should glow yellow if it is visible on the page. If you do not see it on the page, then it is hidden somewhere. Check any JavaScript elements, too. You can try searching for it in your browser\'s Developer console.' );
+                        console.log( blnotifier_front_end.text.glow_yellow );
                     }
                 }
             } )
@@ -40,7 +40,7 @@ jQuery( $ => {
 
         // Notice
         if ( blnotifier_front_end.show_in_console ) {
-            console.log( '%c🔗 Broken Link Notifier %c Fetching and scanning links... please wait. This may take a minute if there are a lot of links.',
+            console.log( '%c🔗 ' + blnotifier_front_end.text.plugin_name + ' %c ' + blnotifier_front_end.text.fetching_links,
                 'background: #1D2327; color: #ffffff; font-weight: bold; padding: 4px 10px; border-radius: 4px 0 0 4px;',
                 'background: #f0f0f1; color: #1D2327; padding: 4px 10px; border-radius: 0 4px 4px 0;'
             );
@@ -49,7 +49,7 @@ jQuery( $ => {
         // Show a progress message every 10 seconds while scanning. 
         var scanTicker = setInterval( function() { 
             if ( blnotifier_front_end.show_in_console ) { 
-                console.log( '%c🔗 Broken Link Notifier %c Still scanning. Please wait...', 'background: #1D2327; color: #ffffff; font-weight: bold; padding: 4px 10px; border-radius: 4px 0 0 4px;', 'background: #f0f0f1; color: #1D2327; padding: 4px 10px; border-radius: 0 4px 4px 0;' ); 
+                console.log( '%c🔗 ' + blnotifier_front_end.text.plugin_name + ' %c ' + blnotifier_front_end.text.still_scanning, 'background: #1D2327; color: #ffffff; font-weight: bold; padding: 4px 10px; border-radius: 4px 0 0 4px;', 'background: #f0f0f1; color: #1D2327; padding: 4px 10px; border-radius: 0 4px 4px 0;' ); 
             } }, 10000 
         );
 
@@ -102,7 +102,7 @@ jQuery( $ => {
                         const warningCount = response.results && response.results.warning ? Object.values( response.results.warning ).reduce( ( sum, arr ) => sum + arr.length, 0 ) : 0;
                         const goodCount = response.results && response.results.good ? Object.values( response.results.good ).reduce( ( sum, arr ) => sum + arr.length, 0 ) : 0;
 
-                        let statusLabel = '%c🔗 Broken Link Notifier — Scan Complete';
+                        let statusLabel = '%c🔗 ' + blnotifier_front_end.text.plugin_name + ' — ' + blnotifier_front_end.text.scan_complete;
                         const statusStyles = [
                             'background: #1D2327; color: #ffffff; font-weight: bold; padding: 4px 10px; border-radius: 4px 0 0 4px;'
                         ];
@@ -124,11 +124,11 @@ jQuery( $ => {
 
                         console.log( statusLabel, ...statusStyles );
 
-                        console.group( '%cDetails', 'color: #667085; font-style: italic;' );
+                        console.group( '%c' + blnotifier_front_end.text.details, 'color: #667085; font-style: italic;' );
                         console.log( {
                             scanned: response.scanned,
                             results: response.results,
-                            warnings_enabled: 'Warnings are currently ' + ( response.warnings_enabled ? 'ENABLED' : 'DISABLED' ) + ' in Settings.',
+                            warnings_enabled: response.warnings_enabled ? blnotifier_front_end.text.warnings_enabled : blnotifier_front_end.text.warnings_disabled,
                             status_codes: response.status_codes || {},
                             message: response.msg || null,
                             timing: response.timing
@@ -154,8 +154,8 @@ jQuery( $ => {
 
                 // Failure
                 } else if ( response.type == 'error' ) {
-                    var errorMsg = response.msg ? response.msg : 'Unknown error occurred.';
-                    console.error( 'Scan failed: ' + errorMsg );
+                    var errorMsg = response.msg ? response.msg : blnotifier_front_end.text.unknown_error;
+                    console.error( blnotifier_front_end.text.scan_failed + ': ' + errorMsg );
                 }
             },
             complete: function() { 

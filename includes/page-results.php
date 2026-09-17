@@ -37,6 +37,7 @@ $initial_rows = $wpdb->get_results( $wpdb->prepare(
                     <th class="link"><?php echo esc_html__( 'Link', 'broken-link-notifier' ); ?></th>
                     <th class="source"><?php echo esc_html__( 'Source', 'broken-link-notifier' ); ?></th>
                     <th class="source_pt"><?php echo esc_html__( 'Source Post Type', 'broken-link-notifier' ); ?></th>
+                    <th class="method"><?php echo esc_html__( 'Method', 'broken-link-notifier' ); ?></th>
                     <th class="date"><?php echo esc_html__( 'Date', 'broken-link-notifier' ); ?></th>
                     <th class="verify"><?php echo esc_html__( 'Verify', 'broken-link-notifier' ); ?></th>
                 </tr>

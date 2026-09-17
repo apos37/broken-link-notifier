@@ -75,14 +75,24 @@ class BLNOTIFIER_INTEGRATIONS {
                         $status = [
                             'type' => 'good',
                             'code' => 200,
-                            'text' => 'File #'.$file_id.' exists at '.$file_url,
+                            'text' => sprintf(
+                                /* translators: %1$s: the file's post ID, %2$s: the resolved file URL */
+                                __( 'File #%1$s exists at %2$s', 'broken-link-notifier' ),
+                                $file_id,
+                                $file_url
+                            ),
                             'link' => $link
                         ];
                     } else {
                         $status = [
                             'type' => 'broken',
                             'code' => 666, // We use 666 as an alternative to 0 in case warnings are disabled
-                            'text' => 'File #'.$file_id.' not found at '.$file_url,
+                            'text' => sprintf(
+                                /* translators: %1$s: the file's post ID, %2$s: the resolved file URL */
+                                __( 'File #%1$s not found at %2$s', 'broken-link-notifier' ),
+                                $file_id,
+                                $file_url
+                            ),
                             'link' => $link
                         ];
                     }

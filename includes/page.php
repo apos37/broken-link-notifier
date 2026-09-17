@@ -23,7 +23,7 @@ $menu_items = $BLNOTIFIER_MENU->menu_items;
             <div class="blnotifier-box">
                 <div class="blnotifier-box-body">
                     <p><?php esc_html_e( "That page couldn't be found.", 'broken-link-notifier' ); ?></p>
-                    <a href="<?php echo esc_url( $BLNOTIFIER_MENU->get_plugin_page( 'results' ) ); ?>" class="blnotifier-button">Go to Results</a>
+                    <a href="<?php echo esc_url( $BLNOTIFIER_MENU->get_plugin_page( 'results' ) ); ?>" class="blnotifier-button"><?php esc_html_e( 'Go to Results', 'broken-link-notifier' ); ?></a>
                 </div>
             </div>
             <?php

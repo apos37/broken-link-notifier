@@ -57,11 +57,17 @@ $discovery_counts = $LINK_BROWSER->get_counts();
 $has_discovery_run = !empty( $last_discovery[ 'time' ] );
 ?>
 
-<p class="blnotifier-desc">Site Scan works in two steps. First it discovers every link on your site (reusing the same data as Link Browser, so if you've already run that, you don't need to start over). Then it checks each one for broken links and warnings, adding any it finds to your <a href="<?php echo esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'results' ) ); ?>">Results</a> page.</p>
+<p class="blnotifier-desc"><?php
+printf(
+    /* translators: %s is a link to the Results page. */
+    __( 'Site Scan works in two steps. First it discovers every link on your site (reusing the same data as Link Browser, so if you\'ve already run that, you don\'t need to start over). Then it checks each one for broken links and warnings, adding any it finds to your %s page.', 'broken-link-notifier' ),
+    '<a href="' . esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'results' ) ) . '">' . esc_html__( 'Results', 'broken-link-notifier' ) . '</a>'
+);
+?></p>
 
 <div class="blnotifier-box">
     <div class="blnotifier-box-header">
-        <h2>Step 1: Discover Links</h2>
+        <h2><?php esc_html_e( 'Step 1: Discover Links', 'broken-link-notifier' ); ?></h2>
     </div>
     <div class="blnotifier-box-body">
         <p id="bln-discovery-status"><?php echo esc_html( $discovery_text ); ?></p>
@@ -69,41 +75,41 @@ $has_discovery_run = !empty( $last_discovery[ 'time' ] );
             <button type="button" id="bln-discover-links" class="blnotifier-button"><?php echo esc_html( $discovery_button_label ); ?></button>
             <span class="bln-spinner" id="bln-discover-spinner" style="display:none;"></span>
             <span id="bln-discover-progress" style="display:none;">
-                <em>Scanning <span id="bln-discover-done">0</span>/<span id="bln-discover-total">0</span> pages...</em>
+                <em><?php esc_html_e( 'Scanning', 'broken-link-notifier' ); ?> <span id="bln-discover-done">0</span>/<span id="bln-discover-total">0</span> <?php esc_html_e( 'pages...', 'broken-link-notifier' ); ?></em>
             </span>
         </div>
 
         <div id="bln-discover-summary" style="<?php echo $has_discovery_run ? '' : 'display:none;'; ?>">
             <div class="bln-site-scan-summary">
                 <div class="bln-summary-item">
-                    <span class="label">Links Found</span>
+                    <span class="label"><?php esc_html_e( 'Links Found', 'broken-link-notifier' ); ?></span>
                     <span class="value" id="bln-discover-summary-total"><?php echo absint( $discovery_counts[ 'total' ] ); ?></span>
                 </div>
                 <div class="bln-summary-item">
-                    <span class="label">Internal Links</span>
+                    <span class="label"><?php esc_html_e( 'Internal Links', 'broken-link-notifier' ); ?></span>
                     <span class="value" id="bln-discover-summary-internal"><?php echo absint( $discovery_counts[ 'internal' ] ); ?></span>
                 </div>
                 <div class="bln-summary-item">
-                    <span class="label">External Links</span>
+                    <span class="label"><?php esc_html_e( 'External Links', 'broken-link-notifier' ); ?></span>
                     <span class="value" id="bln-discover-summary-external"><?php echo absint( $discovery_counts[ 'external' ] ); ?></span>
                 </div>
             </div>
-            <a href="<?php echo esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'link-browser' ) ); ?>" class="blnotifier-button">View Links</a>
+            <a href="<?php echo esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'link-browser' ) ); ?>" class="blnotifier-button"><?php esc_html_e( 'View Links', 'broken-link-notifier' ); ?></a>
         </div>
     </div>
 </div>
 
 <div class="blnotifier-box">
     <div class="blnotifier-box-header">
-        <h2>Step 2: Check for Broken Links</h2>
+        <h2><?php esc_html_e( 'Step 2: Check for Broken Links', 'broken-link-notifier' ); ?></h2>
     </div>
     <div class="blnotifier-box-body">
         <p id="bln-check-status"><?php echo esc_html( $last_check_text ); ?></p>
         <div class="bln-scan-action-row">
-            <button type="button" id="bln-check-links" class="blnotifier-button" <?php echo !$has_links ? 'disabled' : ''; ?>>Check for Broken Links</button>
+            <button type="button" id="bln-check-links" class="blnotifier-button" <?php echo !$has_links ? 'disabled' : ''; ?>><?php esc_html_e( 'Check for Broken Links', 'broken-link-notifier' ); ?></button>
             <span class="bln-spinner" id="bln-check-spinner" style="display:none;"></span>
             <span id="bln-check-progress-inline" style="display:none;">
-                <em><span id="bln-check-done">0</span>/<span id="bln-check-total">0</span> links checked</em>
+                <em><span id="bln-check-done">0</span>/<span id="bln-check-total">0</span> <?php esc_html_e( 'links checked', 'broken-link-notifier' ); ?></em>
             </span>
         </div>
 
@@ -116,29 +122,29 @@ $has_discovery_run = !empty( $last_discovery[ 'time' ] );
         <div id="bln-check-summary" style="<?php echo $has_check_run ? '' : 'display:none;'; ?>">
             <div class="bln-site-scan-summary">
                 <div class="bln-summary-item">
-                    <span class="label">Links Checked</span>
+                    <span class="label"><?php esc_html_e( 'Links Checked', 'broken-link-notifier' ); ?></span>
                     <span class="value" id="bln-summary-checked"><?php echo absint( $check_counts[ 'checked' ] ); ?></span>
                 </div>
                 <div class="bln-summary-item broken">
-                    <span class="label">Broken Found</span>
+                    <span class="label"><?php esc_html_e( 'Broken Found', 'broken-link-notifier' ); ?></span>
                     <span class="value" id="bln-summary-broken"><?php echo absint( $check_counts[ 'broken' ] ); ?></span>
                 </div>
                 <div class="bln-summary-item warning">
-                    <span class="label">Warnings Found</span>
+                    <span class="label"><?php esc_html_e( 'Warnings Found', 'broken-link-notifier' ); ?></span>
                     <span class="value" id="bln-summary-warning"><?php echo absint( $check_counts[ 'warning' ] ); ?></span>
                 </div>
             </div>
-            <a href="<?php echo esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'results' ) ); ?>" class="blnotifier-button">View Results</a>
+            <a href="<?php echo esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( 'results' ) ); ?>" class="blnotifier-button"><?php esc_html_e( 'View Results', 'broken-link-notifier' ); ?></a>
         </div>
     </div>
 </div>
 
 <div class="blnotifier-box">
     <div class="blnotifier-box-header">
-        <h2>Prefer an External Crawl?</h2>
+        <h2><?php esc_html_e( 'Prefer an External Crawl?', 'broken-link-notifier' ); ?></h2>
     </div>
     <div class="blnotifier-box-body">
-        <p>Site Scan covers everything linked from your own pages and menus. If you want a more exhaustive crawl (including pages not linked from anywhere on your site), here are a few off-site tools worth considering:</p>
+        <p><?php esc_html_e( 'Site Scan covers everything linked from your own pages and menus. If you want a more exhaustive crawl (including pages not linked from anywhere on your site), here are a few off-site tools worth considering:', 'broken-link-notifier' ); ?></p>
         <ul>
             <?php
             foreach ( $HELPERS->get_suggested_offsite_checkers() as $name => $url ) {

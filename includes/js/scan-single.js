@@ -6,11 +6,11 @@ jQuery( $ => {
 
     // Scan an individual link
     const scanLink = async ( link, row ) => {
-        console.log( `Scanning link (${link})...` );
+        console.log( `${blnotifier_scan_single.text.scanning_link} (${link})...` );
 
         // Say it started
         var progress = row.find( '.type' );
-        progress.html( `<em>Scanning</em>` );
+        progress.html( `<em>${blnotifier_scan_single.text.scanning}</em>` );
 
         // Run the scan
         return await $.ajax( {
@@ -61,14 +61,14 @@ jQuery( $ => {
                     statusCode = data.status.code;
                 } else {
                     statusType = 'error';
-                    statusText = 'Please try again.';
+                    statusText = blnotifier_scan_single.text.please_try_again;
                     statusCode = 'ERR_FAILED';
                 }
 
             // If no link, skip it
             } else {
                 statusType = 'good';
-                statusText = 'Skipping missing links';
+                statusText = blnotifier_scan_single.text.skipping_missing_links;
                 statusCode = '200';
             }
             
@@ -77,11 +77,11 @@ jQuery( $ => {
             linkRow.removeClass( 'pending' );
 
             if ( statusType == 'broken' ) {
-                linkRow.attr( 'title', "If the link works fine and it's still being flagged as broken, then there is an issue with the page's response headers and there's nothing we can do about it. You may use the Omit option on the right to omit it from future scans." );
+                linkRow.attr( 'title', blnotifier_scan_single.text.title_broken );
             } else if ( statusType == 'warning' ) {
-                linkRow.attr( 'title', "Warnings mean the link was found, but they may be unsecure or slow to respond. If you are getting too many warnings due to timeouts, try increasing your timeout in Settings. This will just result in longer wait times, but with more accuracy." );
+                linkRow.attr( 'title', blnotifier_scan_single.text.title_warning );
             } else if ( statusCode == 405 ) {
-                linkRow.attr( 'title', "405 Method Not Allowed indicates that the target resource doesn't support checking for header responses using our method, but is still telling us that the page exists which is what we actually want to know. So it's fine; nothing to worry about." );
+                linkRow.attr( 'title', blnotifier_scan_single.text.title_405 );
             }
             
             linkRow.find( '.type' ).removeClass( 'dotdotdot' );
@@ -96,7 +96,7 @@ jQuery( $ => {
             linkRow.find( '.speed' ).text( seconds.toFixed(2) + ' sec' );
             linkRow.find( '.actions' ).show();
         }
-        return console.log( `Scanning links complete.` );
+        return console.log( blnotifier_scan_single.text.scanning_complete );
     }
 
     // Do it

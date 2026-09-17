@@ -134,7 +134,11 @@ class BLNOTIFIER_OMITS {
                 'new_item_name'             => __( 'New Omitted Link Name', 'broken-link-notifier' ),
                 'menu_name'                 => __( 'Omitted Links', 'broken-link-notifier' ),
                 'not_found'                 => __( 'No omitted links found.', 'broken-link-notifier' ),
-                'name_field_description'    => __( 'The link URL.<br>Accepts wildcards <strong>*</strong> (ie. <strong>'.esc_url( home_url() ).'/account/*</strong> will include all links that start with this url).', 'broken-link-notifier' ),
+                'name_field_description'    => sprintf(
+                    /* translators: %s: site home URL */
+                    __( 'The link URL.<br>Accepts wildcards <strong>*</strong> (ie. <strong>%s/account/*</strong> will include all links that start with this url).', 'broken-link-notifier' ),
+                    esc_url( home_url() )
+                ),
                 'desc_field_description'    => __( 'Just a place to keep notes if you need them.', 'broken-link-notifier' ),
             ]; 	
         } elseif ( $taxonomy == 'omit-pages' ) {
@@ -149,7 +153,11 @@ class BLNOTIFIER_OMITS {
                 'new_item_name'             => __( 'New Omitted Page Name', 'broken-link-notifier' ),
                 'menu_name'                 => __( 'Omitted Pages', 'broken-link-notifier' ),
                 'not_found'                 => __( 'No omitted pages found.', 'broken-link-notifier' ),
-                'name_field_description'    => __( 'The link URL.<br>Accepts wildcards <strong>*</strong> (ie. <strong>'.esc_url( home_url() ).'/account/*</strong> will include all links that start with this url).', 'broken-link-notifier' ),
+                'name_field_description'    => sprintf(
+                    /* translators: %s: site home URL */
+                    __( 'The link URL.<br>Accepts wildcards <strong>*</strong> (ie. <strong>%s/account/*</strong> will include all links that start with this url).', 'broken-link-notifier' ),
+                    esc_url( home_url() )
+                ),
                 'desc_field_description'    => __( 'Just a place to keep notes if you need them.', 'broken-link-notifier' ),
             ]; 	
         } else {
@@ -203,6 +211,7 @@ class BLNOTIFIER_OMITS {
         }
 
         $search_value = isset( $_GET[ 's' ] ) ? sanitize_text_field( wp_unslash( $_GET[ 's' ] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        $placeholder = $active_tab === 'omit-links' ? __( 'Search Omitted Links', 'broken-link-notifier' ) : __( 'Search Omitted Pages', 'broken-link-notifier' );
         ?>
         <form method="get" class="blnotifier-tax-search">
             <?php foreach ( $_GET as $key => $value ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -214,12 +223,12 @@ class BLNOTIFIER_OMITS {
             <input type="search"
                 name="s"
                 value="<?php echo esc_attr( $search_value ); ?>"
-                placeholder="<?php echo esc_attr( $active_tab === 'omit-links' ? 'Search Omitted Links' : 'Search Omitted Pages' ); ?>"
+                placeholder="<?php echo esc_attr( $placeholder ); ?>"
                 class="blnotifier-search-input" />
 
             <input type="submit"
                 class="blnotifier-button"
-                value="Search" />
+                value="<?php echo esc_attr__( 'Search', 'broken-link-notifier' ); ?>" />
         </form>
         <?php
     } // End render_search_box()
@@ -306,9 +315,9 @@ class BLNOTIFIER_OMITS {
 
         switch ( $text ) {
             case 'Name':
-                return 'URL';
+                return __( 'URL', 'broken-link-notifier' );
             case 'Description':
-                return 'Notes';
+                return __( 'Notes', 'broken-link-notifier' );
             default:
                 return null;
         }
@@ -410,7 +419,11 @@ class BLNOTIFIER_OMITS {
      */
     public function modify_term_actions( $actions, $term ) {
         if ( isset( $actions[ 'delete' ] ) ) {
-            $actions[ 'delete' ] = str_replace( 'Delete', 'Remove Omission', $actions[ 'delete' ] );
+            $actions[ 'delete' ] = preg_replace(
+                '/>([^<]*)</',
+                '>' . esc_html__( 'Remove Omission', 'broken-link-notifier' ) . '<',
+                $actions[ 'delete' ]
+            );
         }
 
         return $actions;
@@ -438,7 +451,12 @@ class BLNOTIFIER_OMITS {
             // User
             $user_id = get_current_user_id();
             $user = get_user_by( 'ID', $user_id );
-            $description = 'Added by '.$user->display_name.' on '.(new BLNOTIFIER_HELPERS())->convert_timezone();
+            $description = sprintf(
+                /* translators: %1$s: display name of the user who added the omission, %2$s: date and time it was added */
+                __( 'Added by %1$s on %2$s', 'broken-link-notifier' ),
+                $user->display_name,
+                (new BLNOTIFIER_HELPERS())->convert_timezone()
+            );
         }
 
         // Add the taxonomy
@@ -533,10 +551,10 @@ class BLNOTIFIER_OMITS {
         // Verify nonce
         $nonce = isset( $_REQUEST[ 'nonce' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ) : '';
         if ( !wp_verify_nonce( $nonce, $this->nonce ) ) {
-            exit( 'No naughty business please.' );
+            exit( esc_html__( 'No naughty business please.', 'broken-link-notifier' ) );
         }
         if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
-            exit( 'Unauthorized access.' );
+            exit( esc_html__( 'Unauthorized access.', 'broken-link-notifier' ) );
         }
     
         // Get parameters safely
@@ -553,12 +571,16 @@ class BLNOTIFIER_OMITS {
                 $result[ 'type' ] = 'success';
             } else {
                 $result[ 'type' ] = 'error';
-                $result[ 'msg' ] = 'Could not add taxonomy. ' . $omit;
+                $result[ 'msg' ] = sprintf(
+                    /* translators: %s: error message returned by wp_insert_term() */
+                    __( 'Could not add taxonomy. %s', 'broken-link-notifier' ),
+                    $omit
+                );
             }
     
         } else {
             $result[ 'type' ] = 'error';
-            $result[ 'msg' ] = 'Missing data';
+            $result[ 'msg' ] = __( 'Missing data', 'broken-link-notifier' );
         }
     
         // Echo the result or redirect
@@ -595,18 +617,18 @@ class BLNOTIFIER_OMITS {
      */
     public function ajax_get_posts_for_type() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         $post_type = isset( $_REQUEST[ 'post_type' ] ) ? sanitize_key( wp_unslash( $_REQUEST[ 'post_type' ] ) ) : '';
         $allowed_types = (new BLNOTIFIER_HELPERS)->get_allowed_multiscan_post_types();
 
         if ( !$post_type || !in_array( $post_type, $allowed_types, true ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid post type.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid post type.', 'broken-link-notifier' ) ] );
         }
 
         $posts = get_posts( [
@@ -622,7 +644,7 @@ class BLNOTIFIER_OMITS {
         foreach ( $posts as $post_id ) {
             $items[] = [
                 'id'    => $post_id,
-                'title' => get_the_title( $post_id ) ?: '(no title)',
+                'title' => get_the_title( $post_id ) ?: __( '(no title)', 'broken-link-notifier' ),
                 'url'   => get_the_permalink( $post_id ),
             ];
         }
@@ -638,11 +660,11 @@ class BLNOTIFIER_OMITS {
      */
     public function ajax_search_discovered_links() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         $search = isset( $_REQUEST[ 'search' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'search' ] ) ) : '';
@@ -701,6 +723,12 @@ class BLNOTIFIER_OMITS {
                 'post_types' => $this->get_scannable_post_type_choices(),
                 'nonce'      => wp_create_nonce( $this->nonce ),
                 'ajaxurl'    => admin_url( 'admin-ajax.php' ),
+                'text'       => [
+                    'loading'          => __( 'Loading...', 'broken-link-notifier' ),
+                    'choose_post_type' => __( 'Choose a Post Type First...', 'broken-link-notifier' ),
+                    'choose_page'      => __( 'Choose a page...', 'broken-link-notifier' ),
+                    'no_items_found'   => __( 'No items found', 'broken-link-notifier' )
+                ],
             ] );
             wp_enqueue_script( $quick_add_handle );
 
@@ -760,7 +788,10 @@ class BLNOTIFIER_OMITS {
             wp_localize_script( $handle, 'blnotifier_omit', [
                 'scan_type' => $tab,
                 'nonce'     => $nonce,
-                'ajaxurl'   => admin_url( 'admin-ajax.php' ) 
+                'ajaxurl'   => admin_url( 'admin-ajax.php' ),
+                'text'      => [
+                    'omitted' => __( 'Omitted', 'broken-link-notifier' )
+                ]
             ] );
             wp_enqueue_script( $handle );
             wp_enqueue_script( 'jquery' );

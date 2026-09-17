@@ -41,7 +41,7 @@ jQuery( $ => {
     const fetchTable = ( page = 1 ) => {
         const perPage = getPerPage();
 
-        $( '#bln-results-table tbody' ).html( '<tr><td colspan="7"><em>Loading...</em></td></tr>' );
+        $( '#bln-results-table tbody' ).html( '<tr><td colspan="7"><em>' + blnotifier_results_table.text.loading + '</em></td></tr>' );
 
         $.post( ajaxUrl, {
             action: 'blnotifier_results_table',
@@ -83,7 +83,7 @@ jQuery( $ => {
             if ( atFirst ) {
                 wrapper.append( $( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&laquo;</span>' ) );
             } else {
-                const firstBtn = $( '<button type="button" class="first-page button bln-results-first"><span class="screen-reader-text">First page</span><span aria-hidden="true">&laquo;</span></button>' );
+                const firstBtn = $( '<button type="button" class="first-page button bln-results-first"><span class="screen-reader-text">' + blnotifier_results_table.text.first_page + '</span><span aria-hidden="true">&laquo;</span></button>' );
                 wrapper.append( firstBtn );
             }
 
@@ -91,7 +91,7 @@ jQuery( $ => {
             if ( atFirst ) {
                 wrapper.append( $( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&lsaquo;</span>' ) );
             } else {
-                const prevBtn = $( '<button type="button" class="prev-page button bln-results-prev"><span class="screen-reader-text">Previous page</span><span aria-hidden="true">&lsaquo;</span></button>' );
+                const prevBtn = $( '<button type="button" class="prev-page button bln-results-prev"><span class="screen-reader-text">' + blnotifier_results_table.text.previous_page + '</span><span aria-hidden="true">&lsaquo;</span></button>' );
                 wrapper.append( prevBtn );
             }
 
@@ -107,7 +107,7 @@ jQuery( $ => {
             if ( atLast ) {
                 wrapper.append( $( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&rsaquo;</span>' ) );
             } else {
-                const nextBtn = $( '<button type="button" class="next-page button bln-results-next"><span class="screen-reader-text">Next page</span><span aria-hidden="true">&rsaquo;</span></button>' );
+                const nextBtn = $( '<button type="button" class="next-page button bln-results-next"><span class="screen-reader-text">' + blnotifier_results_table.text.next_page + '</span><span aria-hidden="true">&rsaquo;</span></button>' );
                 wrapper.append( nextBtn );
             }
 
@@ -115,7 +115,7 @@ jQuery( $ => {
             if ( atLast ) {
                 wrapper.append( $( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&raquo;</span>' ) );
             } else {
-                const lastBtn = $( '<button type="button" class="last-page button bln-results-last"><span class="screen-reader-text">Last page</span><span aria-hidden="true">&raquo;</span></button>' );
+                const lastBtn = $( '<button type="button" class="last-page button bln-results-last"><span class="screen-reader-text">' + blnotifier_results_table.text.last_page + '</span><span aria-hidden="true">&raquo;</span></button>' );
                 wrapper.append( lastBtn );
             }
 
@@ -205,15 +205,15 @@ jQuery( $ => {
         }
 
         const confirmMsg = bulkAction === 'clear'
-            ? 'Clear the selected results? This does not fix the links on your site.'
-            : 'Are you sure? This will add the selected items to your omit list.';
+            ? blnotifier_results_table.text.clear_results
+            : blnotifier_results_table.text.omit_items;
 
         if ( !confirm( confirmMsg ) ) {
             return;
         }
 
         const buttons = $( '.bln-apply-bulk' );
-        buttons.prop( 'disabled', true ).val( 'Applying...' );
+        buttons.prop( 'disabled', true ).val( blnotifier_results_table.text.applying );
 
         $.post( ajaxUrl, {
             action: 'blnotifier_results_bulk',
@@ -225,7 +225,7 @@ jQuery( $ => {
             if ( response.success ) {
                 fetchTable( currentPage );
             } else {
-                alert( response.data && response.data.msg ? response.data.msg : 'Bulk action failed.' );
+                alert( response.data && response.data.msg ? response.data.msg : blnotifier_results_table.text.bulk_action_failed );
                 buttons.prop( 'disabled', false );
             }
         } );
@@ -251,7 +251,7 @@ jQuery( $ => {
             const sourceID = linkSpan.dataset.sourceId;
             const method = linkSpan.dataset.method;
 
-            $( linkSpan ).addClass( 'scanning' ).html( '<em class="dotdotdot">Verifying</em>' );
+            $( linkSpan ).addClass( 'scanning' ).html( '<em class="dotdotdot">' + blnotifier_results_table.text.verifying + '</em>' );
 
             const data = await window.scanLink( link, linkID, code, type, sourceID, method );
 
@@ -269,8 +269,9 @@ jQuery( $ => {
             var text;
             if ( statusType == 'good' || statusType == 'omitted' || statusType == 'n/a' ) {
                 text = ( statusType == 'n/a' )
-                    ? '<em>Source no longer exists, removing from list...</em>'
-                    : '<em>Link is ' + statusType + ', removing from list...</em>';
+                    ? '<em>' + blnotifier_results_table.text.no_source + '</em>'
+                    : statusType == 'good' ? '<em>' + blnotifier_results_table.text.link_good + '</em>'
+                    : '<em>' + blnotifier_results_table.text.link_omitted + '</em>';
 
                 $( `#link-${linkID}` ).addClass( 'omitted' );
                 $( `#link-${linkID} .bln-type` ).addClass( statusType ).text( statusType );
@@ -283,16 +284,16 @@ jQuery( $ => {
 
             } else if ( code != statusCode || type != statusType ) {
                 if ( statusCode == 'ERR_FAILED' ) {
-                    text = `Failed to remove link. ${statusText}`;
+                    text = `${blnotifier_results_table.text.failed_to_remove} ${statusText}`;
                 } else if ( code != statusCode ) {
-                    text = `Link is still bad, but showing a different code. Old code was ${code}; new code is ${statusCode}.`;
+                    text = `${blnotifier_results_table.text.diff_code}  ${blnotifier_results_table.text.old_code} ${code}; ${blnotifier_results_table.text.new_code} ${statusCode}.`;
                 } else {
-                    text = `Link is still bad, but showing a different type. Old type was ${type}; new type is ${statusType}.`;
+                    text = `${blnotifier_results_table.text.diff_type} ${blnotifier_results_table.text.old_type} ${type}; ${blnotifier_results_table.text.new_type} ${statusType}.`;
                 }
                 $( `#link-${linkID} .bln-type` ).attr( 'class', `bln-type ${statusType}` ).text( statusType );
-                var codeLink = 'Code: ' + statusCode;
+                var codeLink = blnotifier_results_table.text.code + ': ' + statusCode;
                 if ( statusCode != 0 && statusCode != 666 ) {
-                    codeLink = `<a href="https://http.dev/${statusCode}" target="_blank">Code: ${statusCode}</a>`;
+                    codeLink = `<a href="https://http.dev/${statusCode}" target="_blank">${blnotifier_results_table.text.code}: ${statusCode}</a>`;
                 }
                 $( `#link-${linkID} .bln_type code` ).html( codeLink );
                 $( `#link-${linkID} .bln_type .message` ).text( statusText );
@@ -326,15 +327,15 @@ jQuery( $ => {
         const button = $( this );
         const label = button.text().trim();
 
-        if ( label === 'Verify Link Statuses' ) {
+        if ( label === blnotifier_results_table.text.verify_link_statuses ) {
             verifyingActive = true;
             verifyPaused = false;
-            button.text( 'Pause Verification' );
+            button.text( blnotifier_results_table.text.pause_verification );
             verifyVisibleRows();
         } else {
             verifyingActive = false;
             verifyPaused = true;
-            button.text( 'Verify Link Statuses' );
+            button.text( blnotifier_results_table.text.verify_link_statuses );
         }
     } );
 

@@ -17,7 +17,7 @@ jQuery( $ => {
     const setScanning = ( isScanning ) => {
         if ( isScanning ) {
             $( '#bln-site-scan-stay-note' ).show();
-            window.onbeforeunload = () => 'A scan is still running. Are you sure you want to leave?';
+            window.onbeforeunload = () => blnotifier_site_scan.text.stay_note;
         } else {
             $( '#bln-site-scan-stay-note' ).hide();
             window.onbeforeunload = null;
@@ -41,7 +41,7 @@ jQuery( $ => {
                 const counts = ( response.success && response.data.counts ) ? response.data.counts : null;
                 const total = counts ? counts.total : discoverIndex;
 
-                let message = '<span class="dashicons dashicons-yes-alt"></span> <strong>Scan complete!</strong> Found ' + total + ' link' + ( total == 1 ? '' : 's' ) + '.';
+                let message = '<span class="dashicons dashicons-yes-alt"></span> <strong>' + blnotifier_site_scan.text.scan_completed + '</strong> Found ' + total + ' link' + ( total == 1 ? '' : 's' ) + '.';
                 if ( redirectsOmitted > 0 ) {
                     message += ' Automatically omitted ' + redirectsOmitted + ' redirecting page' + ( redirectsOmitted == 1 ? '' : 's' ) + '.';
                 }
@@ -55,7 +55,7 @@ jQuery( $ => {
                     $( '#bln-discover-summary' ).show();
                 }
 
-                $( '#bln-discover-links' ).prop( 'disabled', false ).text( 'Rescan for New Links' );
+                $( '#bln-discover-links' ).prop( 'disabled', false ).text( blnotifier_site_scan.text.rescan );
                 $( '#bln-check-links' ).prop( 'disabled', false );
             } );
             return;
@@ -84,7 +84,7 @@ jQuery( $ => {
 
     $( '#bln-discover-links' ).on( 'click', function() {
         const button = $( this );
-        button.prop( 'disabled', true ).text( 'Discovering...' );
+        button.prop( 'disabled', true ).text( blnotifier_site_scan.text.discovering );
         setScanning( true );
 
         $( '#bln-discover-spinner' ).show();
@@ -97,8 +97,8 @@ jQuery( $ => {
         }, function( response ) {
             if ( !response.success ) {
                 setScanning( false );
-                button.prop( 'disabled', false ).text( 'Discover Links' );
-                alert( 'Could not start discovery.' );
+                button.prop( 'disabled', false ).text( blnotifier_site_scan.text.discover_links );
+                alert( blnotifier_site_scan.text.could_not_start_discovery );
                 return;
             }
 
@@ -133,8 +133,8 @@ jQuery( $ => {
                 $( '#bln-check-spinner' ).hide();
                 $( '#bln-check-progress-inline' ).hide();
                 $( '#bln-check-progress-wrap' ).hide();
-                $( '#bln-check-status' ).addClass( 'bln-scan-complete' ).html( '<span class="dashicons dashicons-yes-alt"></span> <strong>Scan complete!</strong> Checked ' + checkStats.checked + ' link' + ( checkStats.checked == 1 ? '' : 's' ) + '.' );
-                $( '#bln-check-links' ).prop( 'disabled', false ).text( 'Check for Broken Links' );
+                $( '#bln-check-status' ).addClass( 'bln-scan-complete' ).html( '<span class="dashicons dashicons-yes-alt"></span> <strong>' + blnotifier_site_scan.text.scan_completed + '</strong> Checked ' + checkStats.checked + ' link' + ( checkStats.checked == 1 ? '' : 's' ) + '.' );
+                $( '#bln-check-links' ).prop( 'disabled', false ).text( blnotifier_site_scan.text.check_for_broken_links );
                 $( '#bln-summary-checked' ).text( checkStats.checked );
                 $( '#bln-summary-broken' ).text( checkStats.broken );
                 $( '#bln-summary-warning' ).text( checkStats.warning );
@@ -173,7 +173,7 @@ jQuery( $ => {
 
     $( '#bln-check-links' ).on( 'click', function() {
         const button = $( this );
-        button.prop( 'disabled', true ).text( 'Checking...' );
+        button.prop( 'disabled', true ).text( blnotifier_site_scan.text.checking );
         setScanning( true );
 
         $( '#bln-check-spinner' ).show();
@@ -190,8 +190,8 @@ jQuery( $ => {
         }, function( response ) {
             if ( !response.success ) {
                 setScanning( false );
-                button.prop( 'disabled', false ).text( 'Check for Broken Links' );
-                alert( 'Could not start the check.' );
+                button.prop( 'disabled', false ).text( blnotifier_site_scan.text.check_for_broken_links );
+                alert( blnotifier_site_scan.text.could_not_start_check );
                 return;
             }
 
@@ -201,8 +201,8 @@ jQuery( $ => {
 
             if ( !checkQueue.length ) {
                 setScanning( false );
-                button.prop( 'disabled', false ).text( 'Check for Broken Links' );
-                alert( 'No links found. Run Step 1 first.' );
+                button.prop( 'disabled', false ).text( blnotifier_site_scan.text.check_for_broken_links );
+                alert( blnotifier_site_scan.text.no_links_found );
                 return;
             }
 

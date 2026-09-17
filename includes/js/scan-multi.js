@@ -1,5 +1,3 @@
-console.log( 'Scan Full JS Loaded  before jquery...' );
-
 jQuery( $ => {
     console.log( 'Scan Full JS Loaded...' );
 
@@ -12,11 +10,11 @@ jQuery( $ => {
    
     // Scan an individual link
     const scanLink = async ( link, postID, countDone, countLinks ) => {
-        console.log( `Scanning link (${link})...` );
+        console.log( `${blnotifier_scan_multi.text.scanning_link} (${link})...` );
 
         // Say it started
         var progress = $( `#bln-results-${postID} .progress` );
-        progress.html( `<em>Scanning <span class="done">${countDone}</span>/<span class="total">${countLinks}</span></em>` );
+        progress.html( `<em>${blnotifier_scan_multi.text.scanning} <span class="done">${countDone}</span>/<span class="total">${countLinks}</span></em>` );
 
         // Run the scan
         return await $.ajax( {
@@ -78,14 +76,14 @@ jQuery( $ => {
                     statusCode = data.status.code;
                 } else {
                     statusType = 'error';
-                    statusText = 'Please try again.';
+                    statusText = blnotifier_scan_multi.text.please_try_again;
                     statusCode = 'ERR_FAILED';
                 }
 
             // If no link, skip it
             } else {
                 statusType = 'good';
-                statusText = 'Skipping missing links';
+                statusText = blnotifier_scan_multi.text.skipping_missing_links;
                 statusCode = '200';
             }
             
@@ -111,7 +109,7 @@ jQuery( $ => {
             const percent = ( countPostsDone / countPostsWithLinks ) * 100;
             $( '#bln-run-scan .done' ).html( ' ' + percent.toFixed(0) + '%' );
             if ( percent == 100 ) {
-                $( '#bln-run-scan .text' ).html( 'Scan Complete' );
+                $( '#bln-run-scan .text' ).html( blnotifier_scan_multi.text.scanning_complete );
             }
 
             // Increase scanned count
@@ -121,7 +119,7 @@ jQuery( $ => {
         }
 
         // Show the results
-        $( `#bln-results-${postID} .progress` ).html( `<em>Scan Complete</em>` ).removeClass( 'dotdotdot' );
+        $( `#bln-results-${postID} .progress` ).html( `<em>${blnotifier_scan_multi.text.scanning_complete}</em>` ).removeClass( 'dotdotdot' );
         $( `#bln-links-${postID} .warning .actions, #bln-links-${postID} .broken .actions` ).show();
 
         // Stop timing

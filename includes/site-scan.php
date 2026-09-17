@@ -58,7 +58,7 @@ class BLNOTIFIER_SITE_SCAN {
             return;
         }
         ?>
-        <span id="bln-site-scan-stay-note" class="blnotifier-scan-reminder" style="display:none;">Please stay on this page while the scan runs.</span>
+        <span id="bln-site-scan-stay-note" class="blnotifier-scan-reminder" style="display:none;"><?php echo esc_html__( 'Please stay on this page while the scan runs.', 'broken-link-notifier' ); ?></span>
         <?php
     } // End render_subheader_left()
 
@@ -88,6 +88,18 @@ class BLNOTIFIER_SITE_SCAN {
             'results_url'          => (new BLNOTIFIER_MENU)->get_plugin_page( 'results' ),
             'ajaxurl'              => admin_url( 'admin-ajax.php' ),
             'scan_delay_ms'        => absint( get_option( 'blnotifier_scan_delay_ms', 0 ) ),
+            'text'                 => [
+                'stay_note'                 => __( 'A scan is still running. Are you sure you want to leave?', 'broken-link-notifier' ),
+                'scan_completed'            => __( 'Scan complete!', 'broken-link-notifier' ),
+                'rescan'                    => __( 'Rescan for New Links', 'broken-link-notifier' ),
+                'discovering'               => __( 'Discovering...', 'broken-link-notifier' ),
+                'discover_links'            => __( 'Discover Links', 'broken-link-notifier' ),
+                'could_not_start_discovery' => __( 'Could not start discovery.', 'broken-link-notifier' ),
+                'could_not_start_check'     => __( 'Could not start the check.', 'broken-link-notifier' ),
+                'check_for_broken_links'    => __( 'Check for Broken Links', 'broken-link-notifier' ),
+                'checking'                  => __( 'Checking...', 'broken-link-notifier' ),
+                'no_links_found'            => __( 'No links found. Run Step 1 first.', 'broken-link-notifier' )
+            ]
         ] );
         wp_enqueue_script( $handle );
     } // End enqueue_scripts()
@@ -100,11 +112,11 @@ class BLNOTIFIER_SITE_SCAN {
      */
     public function ajax_store_menus() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !$this->has_access() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         $HELPERS = new BLNOTIFIER_HELPERS;
@@ -131,11 +143,11 @@ class BLNOTIFIER_SITE_SCAN {
      */
     public function ajax_get_link_ids() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !$this->has_access() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         global $wpdb;
@@ -159,16 +171,16 @@ class BLNOTIFIER_SITE_SCAN {
      */
     public function ajax_check_link() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !$this->has_access() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         $link_id = isset( $_REQUEST[ 'linkID' ] ) ? absint( wp_unslash( $_REQUEST[ 'linkID' ] ) ) : 0;
         if ( !$link_id ) {
-            wp_send_json_error( [ 'msg' => 'No link ID provided.' ] );
+            wp_send_json_error( [ 'msg' => __( 'No link ID provided.', 'broken-link-notifier' ) ] );
         }
 
         global $wpdb;
@@ -176,7 +188,7 @@ class BLNOTIFIER_SITE_SCAN {
         $row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $table_name WHERE id = %d", $link_id ) ); // phpcs:ignore
 
         if ( !$row ) {
-            wp_send_json_error( [ 'msg' => 'Link not found.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Link not found.', 'broken-link-notifier' ) ] );
         }
 
         $HELPERS = new BLNOTIFIER_HELPERS;
@@ -222,11 +234,11 @@ class BLNOTIFIER_SITE_SCAN {
      */
     public function ajax_finish() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !$this->has_access() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         $checked = isset( $_REQUEST[ 'checked' ] ) ? absint( wp_unslash( $_REQUEST[ 'checked' ] ) ) : 0;

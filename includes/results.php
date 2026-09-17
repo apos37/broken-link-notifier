@@ -249,7 +249,7 @@ class BLNOTIFIER_RESULTS {
         $link_hash = md5( $link_normalized );
 
         if ( $this->already_added( $link ) ) {
-            return 'Link already added';
+            return __( 'Link already added', 'broken-link-notifier' );
         }
 
         $source_url = remove_query_arg(
@@ -258,7 +258,7 @@ class BLNOTIFIER_RESULTS {
         );
 
         if ( ! $source_url ) {
-            return __( 'Invalid source:', 'broken-link-notifier' ) . ' ' . $source_url;
+            return __( 'Invalid source:', 'broken-link-notifier' ) . ' ' . esc_url( $source_url );
         }
 
         $inserted = $wpdb->insert(
@@ -283,7 +283,7 @@ class BLNOTIFIER_RESULTS {
             return $wpdb->insert_id;
         }
 
-        return 'Insert failed';
+        return __( 'Insert failed', 'broken-link-notifier' );
     } // End add()
 
 
@@ -371,14 +371,17 @@ class BLNOTIFIER_RESULTS {
 
             // Subject & Message
             if ( $broken_count > 0 && $warning_count > 0 ) {
-                $subject = 'Broken Links and Warnings Found';
-                $message = 'The following broken links and warnings were found on '.$source_url.':';
+                $subject = __( 'Broken Links and Warnings Found', 'broken-link-notifier' );
+                /* translators: %s: source URL */
+                $message = sprintf( __( 'The following broken links and warnings were found on %s:', 'broken-link-notifier' ), esc_url( $source_url ) );
             } elseif ( $broken_count > 0 ) {
-                $subject = 'Broken Links Found';
-                $message = 'The following broken links were found on '.$source_url.':';
+                $subject = __( 'Broken Links Found', 'broken-link-notifier' );
+                /* translators: %s: source URL */
+                $message = sprintf( __( 'The following broken links were found on %s:', 'broken-link-notifier' ), esc_url( $source_url ) );
             } else {
-                $subject = 'Link Warnings Found';
-                $message = 'The following link warnings were found on '.$source_url.':';
+                $subject = __( 'Link Warnings Found', 'broken-link-notifier' );
+                /* translators: %s: source URL */
+                $message = sprintf( __( 'The following link warnings were found on %s:', 'broken-link-notifier' ), esc_url( $source_url ) );
             }
     
             // Check if we are emailing
@@ -403,8 +406,8 @@ class BLNOTIFIER_RESULTS {
                         $message .= strtoupper( $key ).':<br><br>';
                         foreach ( $section as $f ) {
                             if ( ( $f[ 'type' ] == 'broken' || $f[ 'type' ] == 'warning' ) && !$this->already_added( $f[ 'link' ] ) ) {
-                                $label = $f[ 'type' ] == 'warning' ? 'Warning' : 'Broken Link';
-                                $notification_links[] = $label.': '.$f[ 'link' ].'<br>Status Code: '.$f[ 'code' ].' - '.$f[ 'text' ];
+                                $label = $f[ 'type' ] == 'warning' ? __( 'Warning', 'broken-link-notifier' ) : __( 'Broken Link', 'broken-link-notifier' );
+                                $notification_links[] = $label.': '.$f[ 'link' ].'<br>'.__( 'Status Code', 'broken-link-notifier' ).': '.$f[ 'code' ].' - '.$f[ 'text' ];
                             }
                         }
                     }
@@ -413,10 +416,10 @@ class BLNOTIFIER_RESULTS {
                     if ( !empty( $notification_links ) ) {
 
                         // Results page link
-                        $results_page_link = '<br><br>You can see all issues here:<br>'.(new BLNOTIFIER_MENU)->get_plugin_page( 'results' ).'<br><br>';
+                        $results_page_link = '<br><br>'.__( 'You can see all issues here:', 'broken-link-notifier' ).'<br>'.(new BLNOTIFIER_MENU)->get_plugin_page( 'results' ).'<br><br>';
 
                         // Add links and footer
-                        $message .= implode( '<br><br>', $notification_links ).$results_page_link.'<br><br><hr><br>'.get_bloginfo( 'name' ).'<br><em>'.BLNOTIFIER_NAME.' Plugin<br></em>';
+                        $message .= implode( '<br><br>', $notification_links ).$results_page_link.'<br><br><hr><br>'.get_bloginfo( 'name' ).'<br><em>'.BLNOTIFIER_NAME.' '.__('Plugin', 'broken-link-notifier').'<br></em>';
                         
                         // Filters
                         $emails = apply_filters( 'blnotifier_email_emails', $emails, $flagged, $source_url );
@@ -609,16 +612,16 @@ class BLNOTIFIER_RESULTS {
      */
     public function render_status_counts( $counts, $current_filter, $warnings_enabled ) {
         $links = [
-            'all'               => [ 'label' => 'All', 'count' => $counts[ 'total_all' ] ],
-            'broken'            => [ 'label' => 'Broken', 'count' => $counts[ 'total_broken' ] ],
-            'internal-broken'   => [ 'label' => 'Broken - Internal', 'count' => $counts[ 'internal_broken' ] ],
-            'external-broken'   => [ 'label' => 'Broken - External', 'count' => $counts[ 'external_broken' ] ],
+            'all'               => [ 'label' => __( 'All', 'broken-link-notifier' ), 'count' => $counts[ 'total_all' ] ],
+            'broken'            => [ 'label' => __( 'Broken', 'broken-link-notifier' ), 'count' => $counts[ 'total_broken' ] ],
+            'internal-broken'   => [ 'label' => __( 'Broken - Internal', 'broken-link-notifier' ), 'count' => $counts[ 'internal_broken' ] ],
+            'external-broken'   => [ 'label' => __( 'Broken - External', 'broken-link-notifier' ), 'count' => $counts[ 'external_broken' ] ],
         ];
 
         if ( $warnings_enabled ) {
-            $links[ 'warning' ]          = [ 'label' => 'Warnings', 'count' => $counts[ 'total_warning' ] ];
-            $links[ 'internal-warning' ] = [ 'label' => 'Warnings - Internal', 'count' => $counts[ 'internal_warning' ] ];
-            $links[ 'external-warning' ] = [ 'label' => 'Warnings - External', 'count' => $counts[ 'external_warning' ] ];
+            $links[ 'warning' ]          = [ 'label' => __( 'Warnings', 'broken-link-notifier' ), 'count' => $counts[ 'total_warning' ] ];
+            $links[ 'internal-warning' ] = [ 'label' => __( 'Warnings - Internal', 'broken-link-notifier' ), 'count' => $counts[ 'internal_warning' ] ];
+            $links[ 'external-warning' ] = [ 'label' => __( 'Warnings - External', 'broken-link-notifier' ), 'count' => $counts[ 'external_warning' ] ];
         }
 
         $keys = array_keys( $links );
@@ -670,25 +673,25 @@ class BLNOTIFIER_RESULTS {
         ?>
         <div class="tablenav <?php echo esc_attr( $position ); ?>">
             <div class="alignleft actions bulkactions">
-                <label for="bln-bulk-action-<?php echo esc_attr( $position ); ?>" class="screen-reader-text">Select bulk action</label>
+                <label for="bln-bulk-action-<?php echo esc_attr( $position ); ?>" class="screen-reader-text"><?php echo esc_html__( 'Select bulk action', 'broken-link-notifier' ); ?></label>
                 <select class="bln-bulk-action" id="bln-bulk-action-<?php echo esc_attr( $position ); ?>">
-                    <option value="">Bulk actions</option>
-                    <option value="clear">Clear Results</option>
-                    <option value="omit-links">Omit Links</option>
-                    <option value="omit-sources">Omit Sources</option>
+                    <option value=""><?php echo esc_html__( 'Bulk actions', 'broken-link-notifier' ); ?></option>
+                    <option value="clear"><?php echo esc_html__( 'Clear Results', 'broken-link-notifier' ); ?></option>
+                    <option value="omit-links"><?php echo esc_html__( 'Omit Links', 'broken-link-notifier' ); ?></option>
+                    <option value="omit-sources"><?php echo esc_html__( 'Omit Sources', 'broken-link-notifier' ); ?></option>
                 </select>
-                <input type="button" class="button action button-compact bln-apply-bulk" value="Apply" disabled>
+                <input type="button" class="button action button-compact bln-apply-bulk" value="<?php echo esc_attr__( 'Apply', 'broken-link-notifier' ); ?>" disabled>
             </div>
             <div class="alignleft actions">
-                <label for="bln-results-per-page-<?php echo esc_attr( $position ); ?>" class="screen-reader-text">Results per page</label>
+                <label for="bln-results-per-page-<?php echo esc_attr( $position ); ?>" class="screen-reader-text"><?php echo esc_html__( 'Results per page', 'broken-link-notifier' ); ?></label>
                 <select class="bln-results-per-page" id="bln-results-per-page-<?php echo esc_attr( $position ); ?>" autocomplete="off">
                     <?php if ( $is_test_mode ) : ?>
-                        <option value="2"<?php selected( $per_page, 2 ); ?>>2 per page</option>
+                        <option value="2"<?php selected( $per_page, 2 ); ?>><?php echo esc_html__( '2 per page', 'broken-link-notifier' ); ?></option>
                     <?php endif; ?>
-                    <option value="10"<?php selected( $per_page, 10 ); ?>>10 per page</option>
-                    <option value="25"<?php selected( $per_page, 25 ); ?>>25 per page</option>
-                    <option value="50"<?php selected( $per_page, 50 ); ?>>50 per page</option>
-                    <option value="100"<?php selected( $per_page, 100 ); ?>>100 per page</option>
+                    <option value="10"<?php selected( $per_page, 10 ); ?>><?php echo esc_html__( '10 per page', 'broken-link-notifier' ); ?></option>
+                    <option value="25"<?php selected( $per_page, 25 ); ?>><?php echo esc_html__( '25 per page', 'broken-link-notifier' ); ?></option>
+                    <option value="50"<?php selected( $per_page, 50 ); ?>><?php echo esc_html__( '50 per page', 'broken-link-notifier' ); ?></option>
+                    <option value="100"<?php selected( $per_page, 100 ); ?>><?php echo esc_html__( '100 per page', 'broken-link-notifier' ); ?></option>
                 </select>
             </div>
             <div class="tablenav-pages bln-results-pagination"></div>
@@ -706,7 +709,7 @@ class BLNOTIFIER_RESULTS {
      */
     public function render_rows( $links ) {
         if ( empty( $links ) ) {
-            echo '<tr><td colspan="7"><em>No results found.</em></td></tr>'; // phpcs:ignore
+            echo '<tr><td colspan="7"><em>' . esc_html__( 'No results found.', 'broken-link-notifier' ) . '</em></td></tr>'; // phpcs:ignore
             return;
         }
 
@@ -720,9 +723,9 @@ class BLNOTIFIER_RESULTS {
             // Type + code
             $type_label = '';
             switch ( $link->type ) {
-                case 'broken': $type_label = '<div class="bln-type broken">' . __( 'Broken', 'broken-link-notifier' ) . '</div>'; break;
-                case 'warning': $type_label = '<div class="bln-type warning">' . __( 'Warning', 'broken-link-notifier' ) . '</div>'; break;
-                case 'good': $type_label = '<div class="bln-type good">' . __( 'Good', 'broken-link-notifier' ) . '</div>'; break;
+                case 'broken': $type_label = '<div class="bln-type broken">' . esc_html__( 'Broken', 'broken-link-notifier' ) . '</div>'; break;
+                case 'warning': $type_label = '<div class="bln-type warning">' . esc_html__( 'Warning', 'broken-link-notifier' ) . '</div>'; break;
+                case 'good': $type_label = '<div class="bln-type good">' . esc_html__( 'Good', 'broken-link-notifier' ) . '</div>'; break;
             }
 
             $code = absint( $link->code );
@@ -735,16 +738,6 @@ class BLNOTIFIER_RESULTS {
                 $incl_title = ' title="' . __( 'A status code of 666 is a code we use to force invalid URL code 0 to be a broken link. It is not an official status code.', 'broken-link-notifier' ) . '"';
             } elseif ( $code == 0 ) {
                 $incl_title = ' title="' . __( 'A status code of 0 means there was no response and it can occur for various reasons, like request time outs. It almost always means something is randomly interfering with the user\'s connection, like a proxy server / firewall / load balancer / laggy connection / network congestion, etc.', 'broken-link-notifier' ) . '"';
-            }
-
-            // Author
-            if ( isset( $link->guest ) && $link->guest ) {
-                $display_name = __( 'Guest', 'broken-link-notifier' );
-            } elseif ( isset( $link->author ) && $link->author ) {
-                $user = get_user_by( 'ID', $link->author );
-                $display_name = $user ? $user->display_name : __( 'Guest', 'broken-link-notifier' );
-            } else {
-                $display_name = __( 'Guest', 'broken-link-notifier' );
             }
 
             // Method
@@ -798,6 +791,7 @@ class BLNOTIFIER_RESULTS {
                     <?php endif; ?>
                 </td>
                 <td class="source_pt"><?php echo esc_html( $post_type_name ); ?></td>
+                <td class="method"><?php echo esc_html( $method_label ); ?></td>
                 <td class="date">
                     <?php
                     if ( isset( $link->created_at ) ) {
@@ -844,14 +838,14 @@ class BLNOTIFIER_RESULTS {
         <?php if ( !$dismissed ) : ?>
             <span id="bln-verify-notice-wrap">
                 <span id="bln-verify-notice" class="blnotifier-scan-reminder">
-                    Links are no longer auto-verified on page load — click "Verify Link Statuses"
+                    <?php echo esc_html__( 'Links are no longer auto-verified on page load — click "Verify Link Statuses"', 'broken-link-notifier' ); ?>
                     <button type="button" id="bln-verify-notice-dismiss" aria-label="Dismiss">&times;</button>
                 </span>
                 <span class="bln-verify-notice-arrow" aria-hidden="true">&rarr;</span>
             </span>
         <?php endif; ?>
-        <button type="button" id="bln-toggle-verification" class="blnotifier-button">Verify Link Statuses</button>
-        <a href="#" id="bln-export-results" class="blnotifier-button">Export to CSV</a>
+        <button type="button" id="bln-toggle-verification" class="blnotifier-button"><?php echo esc_html__( 'Verify Link Statuses', 'broken-link-notifier' ); ?></button>
+        <a href="#" id="bln-export-results" class="blnotifier-button"><?php echo esc_html__( 'Export to CSV', 'broken-link-notifier' ); ?></a>
         <?php
     } // End render_subheader_right()
 
@@ -863,11 +857,11 @@ class BLNOTIFIER_RESULTS {
      */
     public function ajax_dismiss_verify_notice() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), 'blnotifier_dismiss_verify_notice' ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => esc_html__( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => esc_html__( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         update_user_meta( get_current_user_id(), 'blnotifier_verify_notice_dismissed', 1 );
@@ -895,14 +889,14 @@ class BLNOTIFIER_RESULTS {
     public function ajax_blinks() {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce_blinks ) ) {
-            exit( 'No naughty business please.' );
+            exit( esc_html__( 'No naughty business please.', 'broken-link-notifier' ) );
         }
 
         // Public endpoint: allow guests, but validate capability for logged-in users.
         if ( is_user_logged_in() && ! current_user_can( 'read' ) ) {
             $result = [
                 'type' => 'error',
-                'msg'  => 'Permission denied'
+                'msg'  => __( 'Permission denied', 'broken-link-notifier' )
             ];
             self::send_ajax_or_redirect( $result );
         }
@@ -942,7 +936,7 @@ class BLNOTIFIER_RESULTS {
             if ( get_transient( $transient_key ) ) {
                 $result = [
                     'type' => 'error',
-                    'msg'  => 'Scan rate limit exceeded'
+                    'msg'  => __( 'Scan rate limit exceeded', 'broken-link-notifier' )
                 ];
                 self::send_ajax_or_redirect( $result );
             }
@@ -956,7 +950,7 @@ class BLNOTIFIER_RESULTS {
             if ( !str_starts_with( $source_url, 'http' ) ) {
                 $result = [
                     'type' => 'error',
-                    'msg'  => 'Invalid source: ' . $source_url
+                    'msg'  => __( 'Invalid source: ', 'broken-link-notifier' ) . esc_html( $source_url )
                 ];
                 self::send_ajax_or_redirect( $result );
             }
@@ -966,7 +960,7 @@ class BLNOTIFIER_RESULTS {
             if ( ! str_starts_with( $source_url, $site_url ) ) {
                 $result = [
                     'type' => 'error',
-                    'msg'  => 'External source URLs are not permitted.'
+                    'msg'  => __( 'External source URLs are not permitted.', 'broken-link-notifier' )
                 ];
                 self::send_ajax_or_redirect( $result );
             }
@@ -984,7 +978,7 @@ class BLNOTIFIER_RESULTS {
             if ( ! $post_id && $source_url !== trailingslashit( $site_url ) && $source_url !== $site_url ) {
                 $result = [
                     'type' => 'success',
-                    'msg'  => 'Skipping because source URL is not a valid post or page.'
+                    'msg'  => __( 'Skipping because source URL is not a valid post or page.', 'broken-link-notifier' )
                 ];
                 self::send_ajax_or_redirect( $result );
             }
@@ -1170,12 +1164,13 @@ class BLNOTIFIER_RESULTS {
                 'broken'  => $HELPERS->get_bad_status_codes() ?: [],
                 'warning' => $HELPERS->get_warning_status_codes() ?: [],
             ] ?: [];
-            $result[ 'timing' ] = 'Results were generated in '.$total_time.' seconds ('.$sec_per_link.'/link)';
+            // translators: 1: total scan time in seconds, 2: average seconds per link.
+            $result[ 'timing' ] = sprintf( __( 'Results were generated in %1$s seconds (%2$s/link)', 'broken-link-notifier' ), $total_time, $sec_per_link );
 
         // Nope
         } else {
             $result[ 'type' ] = 'error';
-            $result[ 'msg' ] = 'No source url';
+            $result[ 'msg' ] = __( 'No source url', 'broken-link-notifier' );
         }
     
         // Echo the result or redirect
@@ -1191,13 +1186,13 @@ class BLNOTIFIER_RESULTS {
     public function ajax_rescan() {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_rescan ) ) {
-            exit( 'No naughty business please.' );
+            exit( esc_html__( 'No naughty business please.', 'broken-link-notifier' ) );
         }
 
         // Check permissions
         $HELPERS = new BLNOTIFIER_HELPERS;
         if ( !$HELPERS->user_can_manage_broken_links() ) {
-            exit( 'Unauthorized access.' );
+            exit( esc_html__( 'Unauthorized access.', 'broken-link-notifier' ) );
         }
     
         // Get the data
@@ -1304,12 +1299,12 @@ class BLNOTIFIER_RESULTS {
     public function ajax_replace_link() {
         // Verify nonce
         if ( ! isset( $_REQUEST[ 'nonce' ] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce_replace ) ) {
-            wp_send_json_error( [ 'msg' => 'No naughty business please.' ] );
+            wp_send_json_error( [ 'msg' => __( 'No naughty business please.', 'broken-link-notifier' ) ] );
         }
 
         $HELPERS = new BLNOTIFIER_HELPERS();
         if ( ! $HELPERS->user_can_manage_broken_links() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized access.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized access.', 'broken-link-notifier' ) ] );
         }
 
         $link_id   = isset( $_REQUEST[ 'linkID' ] ) ? absint( wp_unslash( $_REQUEST[ 'linkID' ] ) ) : false;
@@ -1318,12 +1313,12 @@ class BLNOTIFIER_RESULTS {
         $source_id = isset( $_REQUEST[ 'sourceID' ] ) ? absint( wp_unslash( $_REQUEST[ 'sourceID' ] ) ) : false;
 
         if ( ! $old_link || ! $new_link || ! $source_id ) {
-            wp_send_json_error( [ 'msg' => 'Missing required parameters.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Missing required parameters.', 'broken-link-notifier' ) ] );
         }
 
         $post = get_post( $source_id );
         if ( ! $post ) {
-            wp_send_json_error( [ 'msg' => 'Source post not found.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Source post not found.', 'broken-link-notifier' ) ] );
         }
 
         $updated = false;
@@ -1332,7 +1327,7 @@ class BLNOTIFIER_RESULTS {
         // 1. Standard WordPress Content
         $post_content = $post->post_content;
         if ( strpos( $post_content, $old_link ) !== false ) {
-            $details[] = 'Found in standard WordPress post content.';
+            $details[] = __( 'Found in standard WordPress post content.', 'broken-link-notifier' );
             $new_content = str_replace( $old_link, $new_link, $post_content );
             $result      = wp_update_post( [
                 'ID'           => $source_id,
@@ -1340,26 +1335,26 @@ class BLNOTIFIER_RESULTS {
             ] );
 
             if ( is_wp_error( $result ) ) {
-                $details[] = 'Failed to update standard post content. WP_Error: ' . $result->get_error_message();
+                $details[] = __( 'Failed to update standard post content. WP_Error: ', 'broken-link-notifier' ) . $result->get_error_message();
             } else {
 
                 // VERIFICATION: Pull fresh from DB
                 $verified_content = get_post_field( 'post_content', $source_id );
                 if ( strpos( $verified_content, $old_link ) === false ) {
                     $updated   = true;
-                    $details[] = "Verified: Old link replaced in standard content.";
+                    $details[] = __( "Verified: Old link replaced in standard content.", 'broken-link-notifier' );
                 } else {
-                    $details[] = "Old link still exists in standard content after attempt to update.";
+                    $details[] = __( "Old link still exists in standard content after attempt to update.", 'broken-link-notifier' );
                 }
             }
         } else {
-            $details[] = 'Old link not found in standard WordPress post content.';
+            $details[] = __( 'Old link not found in standard WordPress post content.', 'broken-link-notifier' );
         }
 
         // 2. Cornerstone / X-Theme Data
         $cornerstone_data = get_post_meta( $source_id, '_cornerstone_data', true );
         if ( ! empty( $cornerstone_data ) ) {
-            $details[] = 'Checking Cornerstone data...';
+            $details[] = __( 'Checking Cornerstone data...', 'broken-link-notifier' );
 
             $escaped_old = str_replace( '/', '\/', $old_link );
             $escaped_new = str_replace( '/', '\/', $new_link );
@@ -1373,7 +1368,7 @@ class BLNOTIFIER_RESULTS {
 
                 if ( $cs_result ) {
                     $updated = true;
-                    $details[] = "Verified: Link replaced in Cornerstone metadata.";
+                    $details[] = __( "Verified: Link replaced in Cornerstone metadata.", 'broken-link-notifier' );
                     
                     // Cornerstone/X-Theme usually requires a cache clear or a 're-save' 
                     // to update the generated post_content.
@@ -1381,18 +1376,18 @@ class BLNOTIFIER_RESULTS {
                         delete_post_meta( $source_id, '_cornerstone_override' );
                     }
                 } else {
-                    $details[] = 'Found link in Cornerstone, but failed to update meta.';
+                    $details[] = __( 'Found link in Cornerstone, but failed to update meta.', 'broken-link-notifier' );
                 }
             }
         }
 
         // 3. Elementor Data (JSON Meta)
         if ( is_plugin_active( 'elementor/elementor.php' ) ) {
-            $details[] = 'Checking Elementor data meta...';
+            $details[] = __( 'Checking Elementor data meta...', 'broken-link-notifier' );
 
             $elementor_data = get_post_meta( $source_id, '_elementor_data', true );
             if ( ! empty( $elementor_data ) ) {
-                $details[] = 'Found in Elementor data meta.';
+                $details[] = __( 'Found in Elementor data meta.', 'broken-link-notifier' );
 
                 $escaped_old = str_replace( '/', '\/', $old_link );
                 $escaped_new = str_replace( '/', '\/', $new_link );
@@ -1401,11 +1396,11 @@ class BLNOTIFIER_RESULTS {
                 $found_escaped = ( strpos( $elementor_data, $escaped_old ) !== false );
 
                 if ( $found_raw ) {
-                    $details[] = 'Old link found in raw form in Elementor data.';
+                    $details[] = __( 'Old link found in raw form in Elementor data.', 'broken-link-notifier' );
                 } elseif ( $found_escaped ) {
-                    $details[] = 'Old link found in escaped form in Elementor data.';
+                    $details[] = __( 'Old link found in escaped form in Elementor data.', 'broken-link-notifier' );
                 } else {
-                    $details[] = 'Old link not found in raw or escaped form in Elementor data.';
+                    $details[] = __( 'Old link not found in raw or escaped form in Elementor data.', 'broken-link-notifier' );
                 }
 
                 if ( $found_raw || $found_escaped ) {
@@ -1423,18 +1418,18 @@ class BLNOTIFIER_RESULTS {
                                 \Elementor\Plugin::$instance->posts_css_manager->clear_cache();
                             }
                             $updated   = true;
-                            $details[] = "Verified: Link removed from Elementor metadata.";
+                            $details[] = __( "Verified: Link removed from Elementor metadata.", 'broken-link-notifier' );
                         } else {
-                            $details[] = "Critical: Link still exists in Elementor meta after update.";
+                            $details[] = __( "Critical: Link still exists in Elementor meta after update.", 'broken-link-notifier' );
                         }
                     } else {
-                        $details[] = 'Failed to update Elementor meta data.';
+                        $details[] = __( 'Failed to update Elementor meta data.', 'broken-link-notifier' );
                     }
                 } else {
-                    $details[] = 'Old link not found in Elementor meta data.';
+                    $details[] = __( 'Old link not found in Elementor meta data.', 'broken-link-notifier' );
                 }
             } else {
-                $details[] = 'Old link not found in Elementor data meta.';
+                $details[] = __( 'Old link not found in Elementor data meta.', 'broken-link-notifier' );
             }
         }
 
@@ -1443,7 +1438,7 @@ class BLNOTIFIER_RESULTS {
 
             wp_send_json_success( [
                 'linkID'   => $link_id,
-                'msg'      => 'Link replaced successfully.',
+                'msg'      => __( 'Link replaced successfully.', 'broken-link-notifier' ),
                 'details'  => $details
             ] );
         }
@@ -1461,12 +1456,12 @@ class BLNOTIFIER_RESULTS {
     public function ajax_delete_result() {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_delete ) ) {
-            exit( 'No naughty business please.' );
+            exit( __( 'No naughty business please.', 'broken-link-notifier' ) );
         }
 
         $HELPERS = new BLNOTIFIER_HELPERS;
         if ( !$HELPERS->user_can_manage_broken_links() ) {
-            exit( 'Unauthorized access.' );
+            exit( __( 'Unauthorized access.', 'broken-link-notifier' ) );
         }
     
         // Remove the link
@@ -1479,7 +1474,7 @@ class BLNOTIFIER_RESULTS {
         }
 
         // Failure
-        wp_send_json_error( 'Failed to delete.' );
+        wp_send_json_error( __( 'Failed to delete.', 'broken-link-notifier' ) );
     } // End ajax_delete_result()
 
 
@@ -1491,17 +1486,17 @@ class BLNOTIFIER_RESULTS {
     public function ajax_delete_source() {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash ( $_REQUEST[ 'nonce' ] ) ), $this->nonce_delete ) ) {
-            exit( 'No naughty business please.' );
+            exit( __( 'No naughty business please.', 'broken-link-notifier' ) );
         }
 
         // Check permissions
         if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
-            exit( 'Unauthorized access.' );
+            exit( __( 'Unauthorized access.', 'broken-link-notifier' ) );
         }
 
         // Make sure we are allowed to delete the source
         if ( !get_option( 'blnotifier_enable_delete_source' ) ) {
-            wp_send_json_error( 'Deleting source is not enabled.' );
+            wp_send_json_error( __( 'Deleting source is not enabled.', 'broken-link-notifier' ) );
         }
     
         // Get the ID
@@ -1529,7 +1524,7 @@ class BLNOTIFIER_RESULTS {
         }
 
         // Failure
-        wp_send_json_error( 'Failed to delete.' );
+        wp_send_json_error( __( 'Failed to delete.', 'broken-link-notifier' ) );
     } // End ajax_delete_source()
 
 
@@ -1559,11 +1554,11 @@ class BLNOTIFIER_RESULTS {
      */
     public function ajax_table() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce_table ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         global $wpdb;
@@ -1644,19 +1639,19 @@ class BLNOTIFIER_RESULTS {
      */
     public function ajax_bulk_action() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce_bulk ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         $HELPERS = new BLNOTIFIER_HELPERS;
         if ( !$HELPERS->user_can_manage_broken_links() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         $bulk_action = isset( $_REQUEST[ 'bulk_action' ] ) ? sanitize_key( wp_unslash( $_REQUEST[ 'bulk_action' ] ) ) : '';
         $ids = isset( $_REQUEST[ 'ids' ] ) && is_array( $_REQUEST[ 'ids' ] ) ? array_map( 'absint', wp_unslash( $_REQUEST[ 'ids' ] ) ) : [];
 
         if ( empty( $ids ) || !$bulk_action ) {
-            wp_send_json_error( [ 'msg' => 'Nothing selected.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Nothing selected.', 'broken-link-notifier' ) ] );
         }
 
         global $wpdb;
@@ -1694,7 +1689,7 @@ class BLNOTIFIER_RESULTS {
                 break;
 
             default:
-                wp_send_json_error( [ 'msg' => 'Unknown bulk action.' ] );
+                wp_send_json_error( [ 'msg' => __( 'Unknown bulk action.', 'broken-link-notifier' ) ] );
         }
 
         wp_send_json_success();
@@ -1760,7 +1755,21 @@ class BLNOTIFIER_RESULTS {
             'scan_footer'     => filter_var( get_option( 'blnotifier_scan_footer' ), FILTER_VALIDATE_BOOLEAN ),
             'elements'        => (new BLNOTIFIER_HELPERS)->get_html_link_sources(),
             'nonce'           => $nonce,
-            'ajaxurl'         => admin_url( 'admin-ajax.php' )
+            'ajaxurl'         => admin_url( 'admin-ajax.php' ),
+            'text'            => [
+                'checking_paused'   => __( 'Looking for highlights; checking for broken links paused.', 'broken-link-notifier' ),
+                'links_hidden'      => __( 'It looks like one or more of the links are hidden. To find them, try searching for it in your browser\'s Developer console.', 'broken-link-notifier' ),
+                'glow_yellow'       => __( 'The element should glow yellow if it is visible on the page. If you do not see it on the page, then it is hidden somewhere. Check any JavaScript elements, too. You can try searching for it in your browser\'s Developer console.', 'broken-link-notifier' ),
+                'plugin_name'       => BLNOTIFIER_NAME,
+                'fetching_links'    => __( 'Fetching and scanning links... please wait. This may take a minute if there are a lot of links.', 'broken-link-notifier' ),
+                'still_scanning'    => __( 'Still scanning. Please wait...', 'broken-link-notifier' ),
+                'scan_complete'     => __( 'Scan Complete', 'broken-link-notifier' ),
+                'details'           => __( 'Details', 'broken-link-notifier' ),
+                'warnings_enabled'  => __( 'Warnings are currently ENABLED in Settings.', 'broken-link-notifier' ),
+                'warnings_disabled' => __( 'Warnings are currently DISABLED in Settings.', 'broken-link-notifier' ),
+                'unknown_error'     => __( 'Unknown error occurred.', 'broken-link-notifier' ),
+                'scan_failed'       => __( 'Scan failed.', 'broken-link-notifier' ),
+            ]
         ] );
         wp_enqueue_script( 'jquery' );
         wp_enqueue_script( $handle );
@@ -1785,7 +1794,18 @@ class BLNOTIFIER_RESULTS {
                 'nonce_rescan'  => wp_create_nonce( $this->nonce_rescan ),
                 'nonce_replace' => wp_create_nonce( $this->nonce_replace ),
                 'nonce_delete'  => wp_create_nonce( $this->nonce_delete ),
-                'ajaxurl'       => admin_url( 'admin-ajax.php' )
+                'ajaxurl'       => admin_url( 'admin-ajax.php' ),
+                'text'          => [
+                    'scanning_link'         => __( 'Scanning link', 'broken-link-notifier' ),
+                    'saving_link'           => __( 'Saving new link', 'broken-link-notifier' ),
+                    'details'               => __( 'Details', 'broken-link-notifier' ),
+                    'link_replace'          => __( 'The old link has been replaced. Result will be removed after refresh.', 'broken-link-notifier' ),
+                    'old_link'              => __( 'Old link', 'broken-link-notifier' ),
+                    'unknown_error'         => __( 'Unknown error occurred.', 'broken-link-notifier' ),
+                    'server_request_failed' => __( 'Something went wrong with the server request. Please try again.', 'broken-link-notifier' ),
+                    'something_went_wrong'  => __( 'Something went wrong. Please try again.', 'broken-link-notifier' ),
+                    'confirm_delete_page'   => __( 'Are you sure you want to delete the page?', 'broken-link-notifier' )
+                ]
             ] );
             wp_enqueue_script( $handle );
 
@@ -1802,7 +1822,32 @@ class BLNOTIFIER_RESULTS {
                 'warnings_enabled'       => filter_var( get_option( 'blnotifier_enable_warnings' ), FILTER_VALIDATE_BOOLEAN ),
                 'initial_total'          => $counts[ 'total_all' ],
                 'initial_total_pages'    => max( 1, (int) ceil( $counts[ 'total_all' ] / $per_page ) ),
-                'ajaxurl'                => admin_url( 'admin-ajax.php' )
+                'ajaxurl'                => admin_url( 'admin-ajax.php' ),
+                'text'                   => [
+                    'loading'              => __( 'Loading...', 'broken-link-notifier' ),
+                    'first_page'           => __( 'First page', 'broken-link-notifier' ),
+                    'previous_page'        => __( 'Previous page', 'broken-link-notifier' ),
+                    'next_page'            => __( 'Next page', 'broken-link-notifier' ),
+                    'last_page'            => __( 'Last page', 'broken-link-notifier' ),
+                    'clear_results'        => __( 'Clear the selected results? This does not fix the links on your site.', 'broken-link-notifier' ),
+                    'omit_items'           => __( 'Are you sure? This will add the selected items to your omit list.', 'broken-link-notifier' ),
+                    'applying'             => __( 'Applying...', 'broken-link-notifier' ),
+                    'bulk_action_failed'   => __( 'Bulk action failed.', 'broken-link-notifier' ),
+                    'verifying'            => __( 'Verifying...', 'broken-link-notifier' ),
+                    'no_source'            => __( 'Source no longer exists, removed from list...', 'broken-link-notifier' ),
+                    'link_good'            => __( 'Link is good, removed from list...', 'broken-link-notifier' ),
+                    'link_omitted'         => __( 'Link is omitted, removed from list...', 'broken-link-notifier' ),
+                    'failed_to_remove'     => __( 'Failed to remove link.', 'broken-link-notifier' ),
+                    'diff_code'            => __( 'Link is still bad, but showing a different code.', 'broken-link-notifier' ),
+                    'diff_type'            => __( 'Link is still bad, but showing a different type.', 'broken-link-notifier' ),
+                    'old_code'             => __( 'Old code: ', 'broken-link-notifier' ),
+                    'old_type'             => __( 'Old type: ', 'broken-link-notifier' ),
+                    'new_code'             => __( 'New code: ', 'broken-link-notifier' ),
+                    'new_type'             => __( 'New type: ', 'broken-link-notifier' ),
+                    'code'                 => __( 'Code', 'broken-link-notifier' ),
+                    'verify_link_statuses' => __( 'Verify Link Statuses', 'broken-link-notifier' ),
+                    'pause_verification'   => __( 'Pause Verification', 'broken-link-notifier' ),
+                ]
             ] );
             wp_enqueue_script( $table_handle );
 

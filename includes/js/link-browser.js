@@ -18,7 +18,7 @@ jQuery( $ => {
         const search = $( '#bln-link-browser-search' ).val();
         const perPage = $( '#bln-link-browser-per-page' ).val();
 
-        $( '#bln-link-browser-table tbody' ).html( '<tr><td colspan="5"><em>Loading...</em></td></tr>' );
+        $( '#bln-link-browser-table tbody' ).html( '<tr><td colspan="5"><em>' + blnotifier_link_browser.text.loading + '</em></td></tr>' );
 
         $.post( ajaxUrl, {
             action: 'blnotifier_link_browser_table',
@@ -60,13 +60,13 @@ jQuery( $ => {
             if ( atFirst ) {
                 wrapper.append( $( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&laquo;</span>' ) );
             } else {
-                wrapper.append( $( '<button type="button" class="first-page button bln-lb-first"><span class="screen-reader-text">First page</span><span aria-hidden="true">&laquo;</span></button>' ) );
+                wrapper.append( $( '<button type="button" class="first-page button bln-lb-first"><span class="screen-reader-text">' + blnotifier_link_browser.text.first_page + '</span><span aria-hidden="true">&laquo;</span></button>' ) );
             }
 
             if ( atFirst ) {
                 wrapper.append( $( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&lsaquo;</span>' ) );
             } else {
-                wrapper.append( $( '<button type="button" class="prev-page button bln-lb-prev"><span class="screen-reader-text">Previous page</span><span aria-hidden="true">&lsaquo;</span></button>' ) );
+                wrapper.append( $( '<button type="button" class="prev-page button bln-lb-prev"><span class="screen-reader-text">' + blnotifier_link_browser.text.previous_page + '</span><span aria-hidden="true">&lsaquo;</span></button>' ) );
             }
 
             const pagingInput = $( '<span class="paging-input"></span>' );
@@ -79,13 +79,13 @@ jQuery( $ => {
             if ( atLast ) {
                 wrapper.append( $( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&rsaquo;</span>' ) );
             } else {
-                wrapper.append( $( '<button type="button" class="next-page button bln-lb-next"><span class="screen-reader-text">Next page</span><span aria-hidden="true">&rsaquo;</span></button>' ) );
+                wrapper.append( $( '<button type="button" class="next-page button bln-lb-next"><span class="screen-reader-text">' + blnotifier_link_browser.text.next_page + '</span><span aria-hidden="true">&rsaquo;</span></button>' ) );
             }
 
             if ( atLast ) {
                 wrapper.append( $( '<span class="tablenav-pages-navspan button disabled" aria-hidden="true">&raquo;</span>' ) );
             } else {
-                wrapper.append( $( '<button type="button" class="last-page button bln-lb-last"><span class="screen-reader-text">Last page</span><span aria-hidden="true">&raquo;</span></button>' ) );
+                wrapper.append( $( '<button type="button" class="last-page button bln-lb-last"><span class="screen-reader-text">' + blnotifier_link_browser.text.last_page + '</span><span aria-hidden="true">&raquo;</span></button>' ) );
             }
 
             container.append( countLabel, wrapper );
@@ -103,7 +103,7 @@ jQuery( $ => {
 
                 if ( response.success ) {
                     const total = response.data.counts.total;
-                    let message = '<span class="dashicons dashicons-yes-alt"></span> <strong>Scan complete!</strong> Found ' + total + ' link' + ( total == 1 ? '' : 's' ) + '.';
+                    let message = '<span class="dashicons dashicons-yes-alt"></span> <strong>' + blnotifier_link_browser.text.scan_complete + '</strong> Found ' + total + ' link' + ( total == 1 ? '' : 's' ) + '.';
                     if ( redirectsOmitted > 0 ) {
                         message += ' Automatically omitted ' + redirectsOmitted + ' redirecting page' + ( redirectsOmitted == 1 ? '' : 's' ) + '.';
                     }
@@ -116,7 +116,7 @@ jQuery( $ => {
                 }
 
                 fetchTable( 1 );
-                $( '#bln-run-link-browser-scan' ).prop( 'disabled', false ).text( 'Discover Links' );
+                $( '#bln-run-link-browser-scan' ).prop( 'disabled', false ).text( blnotifier_link_browser.text.discover_links );
             } );
             return;
         }
@@ -268,13 +268,13 @@ jQuery( $ => {
             } else {
                 resultBox
                     .attr( 'class', 'bln-status-result error' )
-                    .html( '<span class="bln-status-badge">Error</span><span class="bln-status-text">' + ( response.msg || 'Error checking link.' ) + '</span>' )
+                    .html( '<span class="bln-status-badge">' + blnotifier_link_browser.text.error + '</span><span class="bln-status-text">' + ( response.msg || blnotifier_link_browser.text.error_link ) + '</span>' )
                     .show();
             }
         } ).fail( function() {
             resultBox
                 .attr( 'class', 'bln-status-result error' )
-                .html( '<span class="bln-status-badge">Error</span><span class="bln-status-text">Server error.</span>' )
+                .html( '<span class="bln-status-badge">' + blnotifier_link_browser.text.error + '</span><span class="bln-status-text">' + blnotifier_link_browser.text.server_error + '</span>' )
                 .show();
         } ).always( function() {
             spinner.hide();
@@ -284,7 +284,7 @@ jQuery( $ => {
     // Scan site
     $( '#bln-run-link-browser-scan' ).on( 'click', function() {
         const button = $( this );
-        button.prop( 'disabled', true ).text( 'Discovering...' );
+        button.prop( 'disabled', true ).text( blnotifier_link_browser.text.discovering );
 
         $( '#bln-scan-spinner' ).show();
         $( '#bln-link-browser-progress' ).show();
@@ -303,8 +303,8 @@ jQuery( $ => {
                 scanNext();
             } else {
                 $( '#bln-scan-spinner' ).hide();
-                button.prop( 'disabled', false ).text( 'Discover Links' );
-                alert( 'Could not start scan.' );
+                button.prop( 'disabled', false ).text( blnotifier_link_browser.text.discover_links );
+                alert( blnotifier_link_browser.text.no_scan );
             }
         } );
     } );
@@ -313,7 +313,7 @@ jQuery( $ => {
     $( document ).on( 'click', '.omit-link', function( e ) {
         e.preventDefault();
 
-        if ( !confirm( 'Omit this link from all future scans?' ) ) {
+        if ( !confirm( blnotifier_link_browser.text.omit_link ) ) {
             return;
         }
 
@@ -334,7 +334,7 @@ jQuery( $ => {
             if ( response.success ) {
                 fetchTable( currentPage );
             } else {
-                alert( response.data && response.data.msg ? response.data.msg : 'Could not omit link.' );
+                alert( response.data && response.data.msg ? response.data.msg : blnotifier_link_browser.text.no_omit );
             }
         } );
     } );

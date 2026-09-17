@@ -13,7 +13,7 @@ jQuery( $ => {
    
     // Scan an individual link
     const scanLink = async ( link, linkID, code, type, sourceID, method ) => {
-        console.log( `Scanning link (${link})...` );
+        console.log( `${blnotifier_back_end.text.scanning_link} (${link})...` );
 
         // Run the scan
         return await $.ajax( {
@@ -92,7 +92,7 @@ jQuery( $ => {
     // Function to save the link and replace the input field with a new link
     function saveLink( inputField, oldLink, sourceID, linkID ) {
         let newLink = inputField.val().trim();
-        console.log( `Saving new link (${newLink})...`, { oldLink, sourceID, linkID } );
+        console.log( `${blnotifier_back_end.text.saving_link} (${newLink})...`, { oldLink, sourceID, linkID } );
     
         // If the new link is empty, revert to the original
         if ( newLink === '' || newLink === oldLink || !sourceID ) {
@@ -123,7 +123,7 @@ jQuery( $ => {
                 if ( response.success ) {
                     console.log( 'Link updated successfully.' );
                     if ( response.data.details ) {
-                        console.log( 'Details:', response.data.details );
+                        console.log( blnotifier_back_end.text.details + ':', response.data.details );
                     }
 
                     // Replace the old data-link in the Replace Link attribute
@@ -141,7 +141,7 @@ jQuery( $ => {
                     // Update the type
                     $( `#link-${linkID} .bln-type` ).addClass( 'fixed' ).text( 'Replaced' );
                     $( `#link-${linkID} .type .code` ).remove();
-                    $( `#link-${linkID} .type .message` ).html( `The old link has been replaced. Result will be removed after refresh.<br>Old link: ${oldLink}` );
+                    $( `#link-${linkID} .type .message` ).html( `${blnotifier_back_end.text.link_replace}<br>${blnotifier_back_end.text.old_link}: ${oldLink}` );
 
                     // Remove omit link action
                     $( `#link-${linkID} .link .row-actions .clear-result` ).remove();
@@ -160,7 +160,7 @@ jQuery( $ => {
                     
                 } else {
                     // Alert the specific msg from the PHP side
-                    let errorMsg = ( response.data && response.data.msg ) ? response.data.msg : 'Unknown error occurred.';
+                    let errorMsg = ( response.data && response.data.msg ) ? response.data.msg : blnotifier_back_end.text.unknown_error;
                     alert( 'Update Failed: ' + errorMsg );
                     
                     // Revert the link text in the UI since the DB didn't update
@@ -168,7 +168,7 @@ jQuery( $ => {
                 }
             },
             error: function() {
-                alert( 'Something went wrong with the server request. Please try again.' );
+                alert( blnotifier_back_end.text.server_request_failed );
                 // Revert the link text in the UI
                 newLinkElement.replaceWith( `<a href="${oldLink}" class="link-url" target="_blank" rel="noopener">${oldLink}</a>` );
             }
@@ -209,7 +209,7 @@ jQuery( $ => {
                 }
             },
             error: function () {
-                alert( 'Something went wrong. Please try again.' );
+                alert( blnotifier_back_end.text.something_went_wrong );
             }
         } );
     } );
@@ -227,7 +227,7 @@ jQuery( $ => {
         let postTitle = button.data( 'source-title' );
 
         // Show confirmation dialog
-        if ( !confirm( `Are you sure you want to delete the page entitled ${postTitle}?` ) ) {
+        if ( !confirm( `${blnotifier_back_end.text.confirm_delete_page} ${postTitle}?` ) ) {
             return;
         }
 
@@ -258,7 +258,7 @@ jQuery( $ => {
                 }
             },
             error: function () {
-                alert( 'Something went wrong. Please try again.' );
+                alert( blnotifier_back_end.text.something_went_wrong );
             }
         } );
     } );

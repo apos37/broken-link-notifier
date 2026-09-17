@@ -69,12 +69,12 @@ class BLNOTIFIER_SCAN {
     public function ajax() {
         // Verify nonce
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->nonce ) ) {
-            exit( 'No naughty business please.' );
+            exit( __( 'No naughty business please.', 'broken-link-notifier' ) );
         }        
 
         // Check permissions
         if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
-            exit( 'Unauthorized access.' );
+            exit( __( 'Unauthorized access.', 'broken-link-notifier' ) );
         }
 
         // Initiate helpers
@@ -120,7 +120,7 @@ class BLNOTIFIER_SCAN {
         // Nope
         } else {
             $result[ 'type' ] = 'error';
-            $result[ 'msg' ] = 'No link found';
+            $result[ 'msg' ] = __( 'No link found', 'broken-link-notifier' );
         }
 
         // Echo the result or redirect
@@ -143,11 +143,11 @@ class BLNOTIFIER_SCAN {
      */
     public function ajax_suggest() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), $this->suggest_nonce ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         $search = isset( $_REQUEST[ 'search' ] ) ? sanitize_text_field( wp_unslash( $_REQUEST[ 'search' ] ) ) : '';
@@ -210,6 +210,13 @@ class BLNOTIFIER_SCAN {
                 'omits_nonce' => wp_create_nonce( 'blnotifier_omit_something' ),
                 'post_types'  => (new BLNOTIFIER_OMITS)->get_scannable_post_type_choices(),
                 'ajaxurl'     => admin_url( 'admin-ajax.php' ),
+                'text'        => [
+                    'loading'          => __( 'Loading...', 'broken-link-notifier' ),
+                    'choose_post_type' => __( 'Choose a Post Type First...', 'broken-link-notifier' ),
+                    'no_items_found'   => __( 'No items found', 'broken-link-notifier' ),
+                    'choose_a'         => __( 'Choose a ', 'broken-link-notifier' ),
+                    'scanning'         => __( 'Scanning...', 'broken-link-notifier' ),
+                ],
             ] );
             wp_enqueue_script( $suggest_handle );
         }
@@ -257,12 +264,35 @@ class BLNOTIFIER_SCAN {
             $handle = 'blnotifier_'.str_replace( '-', '_', $tab ).'_script';
             wp_enqueue_script( 'jquery' );
             wp_register_script( $handle, site_url().BLNOTIFIER_PLUGIN_JS_PATH.$tab.'.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );
-            wp_localize_script( $handle, 'blnotifier_'.str_replace( '-', '_', $tab ), [
+
+            $localize_data = [
                 'post_id' => $post_id, 
                 'nonce'   => $nonce,
-                'ajaxurl' => admin_url( 'admin-ajax.php' ) 
-            ] );
+                'ajaxurl' => admin_url( 'admin-ajax.php' ),
+                'text'    => [
+                    'scanning_link'          => __( 'Scanning Link', 'broken-link-notifier' ),
+                    'scanning'               => __( 'Scanning', 'broken-link-notifier' ),
+                    'please_try_again'       => __( 'Please try again.', 'broken-link-notifier' ),
+                    'skipping_missing_links' => __( 'Skipping missing links', 'broken-link-notifier' ),
+                ],
+            ];
+
+            if ( $tab === 'scan-multi' ) {
+                $localize_data[ 'text' ] = [
+                    'scanning_complete' => __( 'Scanning Complete', 'broken-link-notifier' )
+                ];
+            } elseif ( $tab === 'scan-single' ) {
+                $localize_data[ 'text' ] = [
+                    'title_broken'      => __( "If the link works fine and it's still being flagged as broken, then there is an issue with the page's response headers and there's nothing we can do about it. You may use the Omit option on the right to omit it from future scans.", 'broken-link-notifier' ),
+                    'title_warning'     => __( "Warnings mean the link was found, but they may be unsecure or slow to respond. If you are getting too many warnings due to timeouts, try increasing your timeout in Settings. This will just result in longer wait times, but with more accuracy.", 'broken-link-notifier' ),
+                    'title_405'         => __( "405 Method Not Allowed indicates that the target resource doesn't support checking for header responses using our method, but is still telling us that the page exists which is what we actually want to know. So it's fine; nothing to worry about.", 'broken-link-notifier' ),
+                    'scanning_complete' => __( 'Scanning links complete.', 'broken-link-notifier' )
+                ];
+            }
+
+            wp_localize_script( $handle, 'blnotifier_'.str_replace( '-', '_', $tab ), $localize_data );
             wp_enqueue_script( $handle );
         }
     } // End enqueue_scripts()
+    
 }

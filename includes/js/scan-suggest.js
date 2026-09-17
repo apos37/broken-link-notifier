@@ -14,10 +14,10 @@ jQuery( $ => {
 
     $postTypeSelect.on( 'change', function() {
         const postType = $( this ).val();
-        $postSelect.prop( 'disabled', true ).html( '<option value="">Loading...</option>' );
+        $postSelect.prop( 'disabled', true ).html( '<option value="">' + blnotifier_scan_suggest.text.loading + '</option>' );
 
         if ( !postType ) {
-            $postSelect.html( '<option value="">Choose a Post Type First...</option>' );
+            $postSelect.html( '<option value="">' + blnotifier_scan_suggest.text.choose_post_type + '</option>' );
             return;
         }
 
@@ -27,13 +27,13 @@ jQuery( $ => {
             post_type: postType
         }, function( response ) {
             if ( response.success && response.data.items.length ) {
-                let options = '<option value="">Choose a ' + postTypes[ postType ] + '...</option>';
+                let options = '<option value="">' + blnotifier_scan_suggest.text.choose_a + postTypes[ postType ] + '...</option>';
                 response.data.items.forEach( function( item ) {
                     options += '<option value="' + item.id + '" data-title="' + item.title + '">' + item.title + '</option>';
                 } );
                 $postSelect.html( options ).prop( 'disabled', false );
             } else {
-                $postSelect.html( '<option value="">No items found</option>' );
+                $postSelect.html( '<option value="">' + blnotifier_scan_suggest.text.no_items_found + '</option>' );
             }
         } );
     } );
@@ -158,7 +158,7 @@ jQuery( $ => {
 
     $( 'form' ).on( 'submit', function() {
         if ( clickedSubmitButton ) {
-            $( clickedSubmitButton ).prop( 'disabled', true ).html( '<span class="bln-spinner-inline"></span>Scanning...' );
+            $( clickedSubmitButton ).prop( 'disabled', true ).html( '<span class="bln-spinner-inline"></span>' + blnotifier_scan_suggest.text.scanning );
         }
     } );
 

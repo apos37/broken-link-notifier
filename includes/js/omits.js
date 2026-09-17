@@ -16,12 +16,12 @@ jQuery( $ => {
         if ( scanType == 'scan-results' ) {
             const linkID = $( this ).closest( 'tr' ).data( 'link-id' );
             $( `#link-${linkID}` ).addClass( 'omitted' );
-            $( this ).replaceWith( 'Omitted' );
+            $( this ).replaceWith( blnotifier_omit.text.omitted );
             link = $( this ).data( 'link' );
         } else if ( scanType == 'scan-single' ) {
             row = $( this ).parent().parent();
             row.addClass( 'pending omitted' );
-            row.find( '.type' ).text( 'Omitted' );
+            row.find( '.type' ).text( blnotifier_omit.text.omitted );
             row.find( '.code' ).text( '' );
             row.find( '.text' ).text( '' );
             row.find( '.speed' ).text( '' );
@@ -42,13 +42,13 @@ jQuery( $ => {
             e.preventDefault();
             const link = $( this ).data( 'link' );
             if ( scanType == 'scan-results' ) {
-                $( this ).parent().html( 'Omitted' );
+                $( this ).parent().html( blnotifier_omit.text.omitted );
             } else {
                 $( this ).parent().hide();
             }
             if ( scanType == 'scan-multi' ) {
                 const postID = $( this ).data( 'post-id' );
-                $( `#bln-${postID}` ).html( '<em>Omitted</em>' );
+                $( `#bln-${postID}` ).html( '<em>' + blnotifier_omit.text.omitted + '</em>' );
             }
             omit( nonce, link, 'pages', scanType );
         } );

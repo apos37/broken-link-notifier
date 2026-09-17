@@ -72,10 +72,10 @@ jQuery( $ => {
     } );
 
     $( document ).on( 'click', '#blnotifier-clear-key', function() {
-        if ( !confirm( 'Are you sure you want to clear the API key? This may break existing integrations using it.' ) ) {
+        if ( !confirm( blnotifier_settings.text.confirm_clear_api ) ) {
             return;
         }
-        $( '#blnotifier-api-key-display' ).removeClass( 'has-key' ).addClass( 'no-key' ).html( '<em>No API Key Generated</em>' );
+        $( '#blnotifier-api-key-display' ).removeClass( 'has-key' ).addClass( 'no-key' ).html( '<em>' + blnotifier_settings.text.no_api_generated + '</em>' );
         $( '#blnotifier_api_key' ).val( '' );
         $( this ).prop( 'disabled', true );
         $( '#blnotifier-copy-key' ).prop( 'disabled', true );
@@ -98,7 +98,7 @@ jQuery( $ => {
 
         if ( !value ) return;
 
-        btn.prop( 'disabled', true ).html( '<span class="spinner is-active" style="float:none;margin:-10px 4px -6px 0;"></span>Sending...' );
+        btn.prop( 'disabled', true ).html( '<span class="spinner is-active" style="float:none;margin:-10px 4px -6px 0;"></span>' + blnotifier_settings.text.sending );
 
         $.ajax( {
             type: 'post',
@@ -118,13 +118,13 @@ jQuery( $ => {
                     btn.html( '✗ ' + msg );
                 }
                 setTimeout( () => {
-                    btn.prop( 'disabled', false ).text( 'Send Test' );
+                    btn.prop( 'disabled', false ).text( blnotifier_settings.text.send_test );
                 }, 5000 );
             },
             error: function() {
                 btn.html( '✗ Error' );
                 setTimeout( () => {
-                    btn.prop( 'disabled', false ).text( 'Send Test' );
+                    btn.prop( 'disabled', false ).text( blnotifier_settings.text.send_test );
                 }, 5000 );
             }
         } );
@@ -168,7 +168,7 @@ jQuery( $ => {
     const originalSaveText = $saveButton.text();
 
     function showSaving() {
-        $saveButton.prop( 'disabled', true ).html( '<span class="dashicons dashicons-update spin"></span> Saving...' );
+        $saveButton.prop( 'disabled', true ).html( '<span class="dashicons dashicons-update spin"></span> ' + blnotifier_settings.text.saving );
         $( '#blnotifier-save-status' ).remove();
     }
 
@@ -197,15 +197,15 @@ jQuery( $ => {
             data: gatherSettingsData() + '&action=blnotifier_save_settings&nonce=' + encodeURIComponent( saveNonce ),
             success: function( response ) {
                 if ( response.success ) {
-                    showResult( response.data && response.data.msg ? response.data.msg : 'Settings saved successfully.' );
+                    showResult( response.data && response.data.msg ? response.data.msg : blnotifier_settings.text.settings_saved );
                     isDirty = false;
                     saveReminder.hide();
                 } else {
-                    showResult( response.data && response.data.msg ? response.data.msg : 'Error saving settings.', false );
+                    showResult( response.data && response.data.msg ? response.data.msg : blnotifier_settings.text.error_saving, false );
                 }
             },
             error: function() {
-                showResult( 'Error saving settings.', false );
+                showResult( blnotifier_settings.text.error_saving, false );
             }
         } );
     }
@@ -259,7 +259,7 @@ jQuery( $ => {
     $( document ).on( 'click', '#blnotifier-clear-cache', function() {
         const button = $( this );
         const originalText = button.text();
-        button.prop( 'disabled', true ).html( '<span class="blnotifier-spinner-inline"></span>Clearing...' );
+        button.prop( 'disabled', true ).html( '<span class="blnotifier-spinner-inline"></span>' + blnotifier_settings.text.clearing );
 
         $.post( blnotifier_settings.ajaxurl, {
             action: 'blnotifier_clear_cache',
@@ -267,9 +267,9 @@ jQuery( $ => {
         }, function( response ) {
             button.prop( 'disabled', false ).text( originalText );
             if ( response.success ) {
-                $( '#blnotifier-cache-count' ).text( 'Currently caching 0 links.' );
+                $( '#blnotifier-cache-count' ).text( blnotifier_settings.text.caching_no_links );
             } else {
-                alert( 'Could not clear cache.' );
+                alert( blnotifier_settings.text.cannot_clear_cache );
             }
         } );
     } );
@@ -375,7 +375,7 @@ jQuery( $ => {
                 $( '#blnotifier-upload-settings-filename' ).text( file.name ).show();
 
             } catch ( err ) {
-                alert( 'Invalid JSON file. Please check the file and try again.' );
+                alert( blnotifier_settings.text.invalid_json );
                 $( '#blnotifier-upload-settings' ).val( '' );
             }
         };
@@ -387,7 +387,7 @@ jQuery( $ => {
     $( '#blnotifier-reset-settings' ).on( 'click', function( e ) {
         e.preventDefault();
 
-        if ( !confirm( 'Are you sure you want to reset ALL settings to their defaults? You will still need to click Save to apply this.' ) ) {
+        if ( !confirm( blnotifier_settings.text.confirm_reset_all ) ) {
             return;
         }
 

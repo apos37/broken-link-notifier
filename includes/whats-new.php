@@ -93,33 +93,45 @@ class BLNOTIFIER_WHATS_NEW {
 
                 <div class="blnotifier-whats-new-header">
                     <img src="<?php echo esc_url( BLNOTIFIER_PLUGIN_IMG_PATH.'logo-transparent.png' ); ?>" alt="<?php echo esc_attr( BLNOTIFIER_NAME ); ?>" class="logo">
-                    <h1>What's New in <?php echo esc_html( BLNOTIFIER_NAME ); ?> 2.0</h1>
+                    <?php
+                    /* translators: %1$s is the plugin name and %2$s is the plugin version. */
+                    printf(
+                        '<h1>%1$s</h1>',
+                        esc_html(
+                            sprintf(
+                                __( 'What\'s New in %1$s %2$s', 'broken-link-notifier' ),
+                                BLNOTIFIER_NAME,
+                                '2.0'
+                            )
+                        )
+                    );
+                    ?>
                 </div>
 
                 <div class="blnotifier-whats-new-body">
                     <ul class="blnotifier-whats-new-list">
                         <li>
-                            <strong>Site Scan</strong>
-                            <p>A brand new two-step scanner: discover every link on your site, then check them all for broken links and warnings — no more scanning through WP List Tables.</p>
+                            <strong><?php echo esc_html__( 'Site Scan', 'broken-link-notifier' ); ?></strong>
+                            <p><?php echo esc_html__( 'A brand new two-step scanner: discover every link on your site, then check them all for broken links and warnings — no more scanning through WP List Tables.', 'broken-link-notifier' ); ?></p>
                         </li>
                         <li>
-                            <strong>Link Browser</strong>
-                            <p>Browse every link found on your site in one searchable, filterable table — see where each one is used before you even check its status.</p>
+                            <strong><?php echo esc_html__( 'Link Browser', 'broken-link-notifier' ); ?></strong>
+                            <p><?php echo esc_html__( 'Browse every link found on your site in one searchable, filterable table — see where each one is used before you even check its status.', 'broken-link-notifier' ); ?></p>
                         </li>
                         <li>
-                            <strong>A completely redesigned interface</strong>
-                            <p>New header, navigation, and layout across every page, built to match the rest of the PluginRx family.</p>
+                            <strong><?php echo esc_html__( 'A completely redesigned interface', 'broken-link-notifier' ); ?></strong>
+                            <p><?php echo esc_html__( 'New header, navigation, and layout across every page, built to match the rest of the PluginRx family.', 'broken-link-notifier' ); ?></p>
                         </li>
                         <li>
-                            <strong>And much more</strong>
-                            <p>Smarter Settings tools, quick-add helpers on Omitted Links/Pages, autocomplete on Page Scan and Link Search, automatic redirect detection, flexible CSV exports, and a batch of new developer filters.</p>
+                            <strong><?php echo esc_html__( 'And much more', 'broken-link-notifier' ); ?></strong>
+                            <p><?php echo esc_html__( 'Smarter Settings tools, quick-add helpers on Omitted Links/Pages, autocomplete on Page Scan and Link Search, automatic redirect detection, flexible CSV exports, and a batch of new developer filters.', 'broken-link-notifier' ); ?></p>
                         </li>
                     </ul>
                 </div>
 
                 <div class="blnotifier-whats-new-footer">
-                    <a href="<?php echo esc_url( BLNOTIFIER_GUIDE_URL ); ?>" target="_blank" class="blnotifier-button bln-external-link">Read the Full Guide <span class="dashicons dashicons-external"></span></a>
-                    <button type="button" id="blnotifier-whats-new-got-it" class="blnotifier-button">Got It, Thanks!</button>
+                    <a href="<?php echo esc_url( BLNOTIFIER_GUIDE_URL ); ?>" target="_blank" class="blnotifier-button bln-external-link"><?php echo esc_html__( 'Read the Full Guide', 'broken-link-notifier' ); ?> <span class="dashicons dashicons-external"></span></a>
+                    <button type="button" id="blnotifier-whats-new-got-it" class="blnotifier-button"><?php echo esc_html__( 'Got It, Thanks!', 'broken-link-notifier' ); ?></button>
                 </div>
             </div>
         </div>
@@ -134,11 +146,11 @@ class BLNOTIFIER_WHATS_NEW {
      */
     public function ajax_dismiss() {
         if ( !isset( $_REQUEST[ 'nonce' ] ) || !wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ 'nonce' ] ) ), 'blnotifier_dismiss_whats_new' ) ) {
-            wp_send_json_error( [ 'msg' => 'Invalid nonce.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Invalid nonce.', 'broken-link-notifier' ) ] );
         }
 
         if ( !(new BLNOTIFIER_HELPERS)->user_can_manage_broken_links() ) {
-            wp_send_json_error( [ 'msg' => 'Unauthorized.' ] );
+            wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
         update_option( 'blnotifier_whats_new_seen', $this->notice_version );
