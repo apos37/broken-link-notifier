@@ -122,7 +122,12 @@ $blnotifier_tab = (new BLNOTIFIER_HELPERS)->get_tab();
             <?php if ( $blnotifier_remote_fetch_enabled ) : ?>
                 <p><em><?php echo esc_html__( 'Links were also fetched from the live published page, in addition to its stored content.', 'broken-link-notifier' ); ?></em></p>
             <?php else : ?>
-                <p><em><?php echo esc_html__( 'Does not include links in the <code>&#x3c;header&#x3e;</code> or <code>&#x3c;footer&#x3e;</code>. Also, remember that links will not include content if it is hidden behind conditional logic.', 'broken-link-notifier' ); ?></em></p>
+                <p><em><?php echo wp_kses_post( sprintf(
+                    /* translators: 1: literal text "<header>", 2: literal text "<footer>" */
+                    __( 'Does not include links in the <code>%1$s</code> or <code>%2$s</code>. Also, remember that links will not include content if it is hidden behind conditional logic.', 'broken-link-notifier' ),
+                    '&lt;header&gt;',
+                    '&lt;footer&gt;'
+                ) ); ?></em></p>
             <?php endif; ?>
             <br><br>
             <?php

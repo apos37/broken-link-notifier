@@ -165,7 +165,7 @@ class BLNOTIFIER_API {
         $page     = $request->get_param( 'page' );
         $offset   = ( $page - 1 ) * $per_page;
 
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table is a hardcoded prefix + fixed name, not user input; all bound values pass through prepare().
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $table is a hardcoded prefix + fixed name, not user input; all bound values pass through prepare().
         if ( $type !== 'all' ) {
             $rows = $wpdb->get_results(
                 $wpdb->prepare( "SELECT id, link, text, type, code, source, location, method, created_at FROM {$table} WHERE type = %s ORDER BY created_at DESC LIMIT %d OFFSET %d", $type, $per_page, $offset ),
@@ -225,7 +225,7 @@ class BLNOTIFIER_API {
         $table = $wpdb->prefix . 'blnotifier_results';
         $id    = $request->get_param( 'id' );
 
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table is a hardcoded prefix + fixed name, not user input.
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $table is a hardcoded prefix + fixed name, not user input.
         $row = $wpdb->get_row(
             $wpdb->prepare( "SELECT id, link, text, type, code, source, location, method, created_at FROM {$table} WHERE id = %d", $id ),
             ARRAY_A

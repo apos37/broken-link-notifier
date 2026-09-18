@@ -195,8 +195,8 @@ class BLNOTIFIER_SCAN {
         $options_page = 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN;
         $tab = (new BLNOTIFIER_HELPERS)->get_tab();
 
-        // Stylesheet shared by Page Scan and Link Search
-        if ( $screen === $options_page && ( $tab === 'scan-single' || $tab === 'link-search' ) ) {
+        // Stylesheet for Page Scan
+        if ( $screen === $options_page && $tab === 'scan-single' ) {
             wp_enqueue_style( 'blnotifier-scan', BLNOTIFIER_PLUGIN_CSS_PATH.'scan.css', [ 'blnotifier-theme' ], BLNOTIFIER_SCRIPT_VERSION );
         }
 
@@ -219,18 +219,6 @@ class BLNOTIFIER_SCAN {
                 ],
             ] );
             wp_enqueue_script( $suggest_handle );
-        }
-
-        // Link autocomplete on Link Search
-        if ( $screen === $options_page && $tab === 'link-search' ) {
-            $link_search_handle = 'blnotifier_link_search_autocomplete_script';
-            wp_enqueue_script( 'jquery' );
-            wp_register_script( $link_search_handle, site_url().BLNOTIFIER_PLUGIN_JS_PATH.'link-search-autocomplete.js', [ 'jquery' ], BLNOTIFIER_SCRIPT_VERSION, true );
-            wp_localize_script( $link_search_handle, 'blnotifier_link_search_autocomplete', [
-                'nonce'   => wp_create_nonce( 'blnotifier_omit_something' ),
-                'ajaxurl' => admin_url( 'admin-ajax.php' ),
-            ] );
-            wp_enqueue_script( $link_search_handle );
         }
 
         $is_scan_single_page = (

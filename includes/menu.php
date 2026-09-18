@@ -52,7 +52,6 @@ class BLNOTIFIER_MENU {
             'omit-pages'   => [ __( 'Omitted Pages', 'broken-link-notifier' ), 'edit-tags.php?taxonomy=omit-pages' ],
             'scan-single'  => [ __( 'Page Scan', 'broken-link-notifier' ) ],
             'site-scan'    => [ __( 'Site Scan', 'broken-link-notifier' ) ],
-            'link-search'  => [ __( 'Link Search', 'broken-link-notifier' ) ],
             'link-browser' => [ __( 'Link Browser', 'broken-link-notifier' ) ],
             'settings'     => [ __( 'Settings', 'broken-link-notifier' ) ],
         ];

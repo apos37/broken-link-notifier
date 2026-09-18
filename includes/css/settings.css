@@ -31,11 +31,11 @@
 
 .blnotifier-settings-grid input[type="text"],
 .blnotifier-settings-grid input[type="url"] {
-    width: 700px;
+    width: 100%;
 }
 
 .blnotifier-settings-grid textarea {
-    width: 700px;
+    width: 100%;
     height: 200px;
 }
 

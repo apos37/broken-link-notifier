@@ -132,7 +132,9 @@ class BLNOTIFIER_RESULTS {
 
         $table_name = $wpdb->prefix . $this->table_name;
         
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; this is a one-time schema-check query run only when the table may not yet exist.
         if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table_name}'" ) !== $table_name ) {
+        // phpcs:enable
             require_once ABSPATH . 'wp-admin/includes/upgrade.php';
             $charset_collate = $wpdb->get_charset_collate();
 
@@ -305,7 +307,7 @@ class BLNOTIFIER_RESULTS {
 
         // 1. Try deleting by ID first if provided
         if ( $id ) {
-            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- $table_name is a hardcoded prefix + fixed name, not user input; all values are bound via the $wpdb->delete() format array.
+            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $table_name is a hardcoded prefix + fixed name, not user input; all values are bound via the $wpdb->delete() format array.
             $deleted = $wpdb->delete(
                 $table_name,
                 [ 'id' => absint( $id ) ],
@@ -1342,9 +1344,11 @@ class BLNOTIFIER_RESULTS {
 
         // 1. Standard WordPress Content
         $post_content = $post->post_content;
-        if ( strpos( $post_content, $old_link ) !== false ) {
+        $old_count = $this->count_link_occurrences( $post_content, $old_link );
+
+        if ( $old_count > 0 ) {
             $details[] = __( 'Found in standard WordPress post content.', 'broken-link-notifier' );
-            $new_content = str_replace( $old_link, $new_link, $post_content );
+            $new_content = $this->replace_link_occurrences( $post_content, $old_link, $new_link );
             $result      = wp_update_post( [
                 'ID'           => $source_id,
                 'post_content' => $new_content,
@@ -1354,9 +1358,9 @@ class BLNOTIFIER_RESULTS {
                 $details[] = __( 'Failed to update standard post content. WP_Error: ', 'broken-link-notifier' ) . $result->get_error_message();
             } else {
 
-                // VERIFICATION: Pull fresh from DB
+                // VERIFICATION: Pull fresh from DB, count exact occurrences of the old link
                 $verified_content = get_post_field( 'post_content', $source_id );
-                if ( strpos( $verified_content, $old_link ) === false ) {
+                if ( $this->count_link_occurrences( $verified_content, $old_link ) === 0 ) {
                     $updated   = true;
                     $details[] = __( "Verified: Old link replaced in standard content.", 'broken-link-notifier' );
                 } else {
@@ -1375,18 +1379,21 @@ class BLNOTIFIER_RESULTS {
             $escaped_old = str_replace( '/', '\/', $old_link );
             $escaped_new = str_replace( '/', '\/', $new_link );
 
-            if ( strpos( $cornerstone_data, $old_link ) !== false || strpos( $cornerstone_data, $escaped_old ) !== false ) {
-                
-                $updated_cornerstone = str_replace( $old_link, $new_link, $cornerstone_data );
-                $updated_cornerstone = str_replace( $escaped_old, $escaped_new, $updated_cornerstone );
+            $found_raw     = $this->count_link_occurrences( $cornerstone_data, $old_link ) > 0;
+            $found_escaped = $this->count_link_occurrences( $cornerstone_data, $escaped_old ) > 0;
 
-                $cs_result = update_post_meta( $source_id, '_cornerstone_data', wp_slash($updated_cornerstone) );
+            if ( $found_raw || $found_escaped ) {
+
+                $updated_cornerstone = $this->replace_link_occurrences( $cornerstone_data, $old_link, $new_link );
+                $updated_cornerstone = $this->replace_link_occurrences( $updated_cornerstone, $escaped_old, $escaped_new );
+
+                $cs_result = update_post_meta( $source_id, '_cornerstone_data', wp_slash( $updated_cornerstone ) );
 
                 if ( $cs_result ) {
                     $updated = true;
                     $details[] = __( "Verified: Link replaced in Cornerstone metadata.", 'broken-link-notifier' );
-                    
-                    // Cornerstone/X-Theme usually requires a cache clear or a 're-save' 
+
+                    // Cornerstone/X-Theme usually requires a cache clear or a 're-save'
                     // to update the generated post_content.
                     if ( class_exists( 'Cornerstone_Common' ) ) {
                         delete_post_meta( $source_id, '_cornerstone_override' );
@@ -1408,8 +1415,8 @@ class BLNOTIFIER_RESULTS {
                 $escaped_old = str_replace( '/', '\/', $old_link );
                 $escaped_new = str_replace( '/', '\/', $new_link );
 
-                $found_raw     = ( strpos( $elementor_data, $old_link ) !== false );
-                $found_escaped = ( strpos( $elementor_data, $escaped_old ) !== false );
+                $found_raw     = $this->count_link_occurrences( $elementor_data, $old_link ) > 0;
+                $found_escaped = $this->count_link_occurrences( $elementor_data, $escaped_old ) > 0;
 
                 if ( $found_raw ) {
                     $details[] = __( 'Old link found in raw form in Elementor data.', 'broken-link-notifier' );
@@ -1420,16 +1427,16 @@ class BLNOTIFIER_RESULTS {
                 }
 
                 if ( $found_raw || $found_escaped ) {
-                    $data = str_replace( $old_link, $new_link, $elementor_data );
-                    $data = str_replace( $escaped_old, $escaped_new, $data );
+                    $data = $this->replace_link_occurrences( $elementor_data, $old_link, $new_link );
+                    $data = $this->replace_link_occurrences( $data, $escaped_old, $escaped_new );
 
                     $meta_result = update_post_meta( $source_id, '_elementor_data', wp_slash( $data ) );
 
                     if ( $meta_result ) {
 
-                        // VERIFICATION: Pull fresh meta
+                        // VERIFICATION: Pull fresh meta, count exact occurrences of the old link
                         $verified_meta = get_post_meta( $source_id, '_elementor_data', true );
-                        if ( strpos( $verified_meta, $old_link ) === false && strpos( $verified_meta, $escaped_old ) === false ) {
+                        if ( $this->count_link_occurrences( $verified_meta, $old_link ) === 0 && $this->count_link_occurrences( $verified_meta, $escaped_old ) === 0 ) {
                             if ( class_exists( '\Elementor\Plugin' ) ) {
                                 \Elementor\Plugin::$instance->posts_css_manager->clear_cache();
                             }
@@ -1462,6 +1469,51 @@ class BLNOTIFIER_RESULTS {
         // If we reach here, something went wrong
         wp_send_json_error( [ 'msg' => implode( "\n", $details ) ] );
     } // End ajax_replace_link()
+
+
+    /**
+     * Count exact occurrences of a link inside a content string, without
+     * false-matching a link that merely starts with the same characters
+     * (e.g. "http://account" inside "http://accounts").
+     *
+     * A match only counts when the character immediately following the
+     * link is not part of a URL/path (i.e. not a letter, digit, or the
+     * common URL-continuation characters). This correctly matches the
+     * link whether it's inside an href="...", a JSON string, quoted, or
+     * followed by punctuation/whitespace/end-of-string.
+     *
+     * @param string $content The content to search.
+     * @param string $link    The exact link to count.
+     * @return int Number of exact occurrences.
+     */
+    protected function count_link_occurrences( $content, $link ) {
+        if ( $link === '' ) {
+            return 0;
+        }
+
+        $pattern = '/' . preg_quote( $link, '/' ) . '(?![a-zA-Z0-9\-._~%\/])/';
+        return preg_match_all( $pattern, $content );
+    } // End count_link_occurrences()
+
+
+    /**
+     * Replace exact occurrences of a link inside a content string, using
+     * the same boundary rule as count_link_occurrences() so a link that
+     * is a prefix of another link is never partially replaced.
+     *
+     * @param string $content  The content to search.
+     * @param string $old_link The exact link to replace.
+     * @param string $new_link The replacement link.
+     * @return string The content with exact matches replaced.
+     */
+    protected function replace_link_occurrences( $content, $old_link, $new_link ) {
+        if ( $old_link === '' ) {
+            return $content;
+        }
+
+        $pattern = '/' . preg_quote( $old_link, '/' ) . '(?![a-zA-Z0-9\-._~%\/])/';
+        return preg_replace( $pattern, str_replace( '$', '\$', $new_link ), $content );
+    } // End replace_link_occurrences()
 
 
     /**
@@ -1526,11 +1578,13 @@ class BLNOTIFIER_RESULTS {
             if ( $source_url ) {
                 $table_name = $wpdb->prefix . $this->table_name;
 
+                // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $table_name is a hardcoded prefix + fixed name, not user input; $source_url is bound via the $wpdb->delete() format array.
                 $wpdb->delete(
                     $table_name,
                     [ 'source' => $source_url ],
                     [ '%s' ]
                 );
+                // phpcs:enable
             }
 
             // Trash the source itself
@@ -1704,7 +1758,9 @@ class BLNOTIFIER_RESULTS {
                 }
                 foreach ( $source_urls as $source_url ) {
                     $OMITS->add( $source_url, 'pages', 'scan-results' );
+                    // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $table_name is a hardcoded prefix + fixed name, not user input; $source_url is bound via the $wpdb->delete() format array.
                     $wpdb->delete( $table_name, [ 'source' => $source_url ], [ '%s' ] );
+                    // phpcs:enable
                 }
                 break;
 

@@ -382,6 +382,8 @@ class BLNOTIFIER_LINK_BROWSER {
 
             if ( !in_array( $source, $sources, true ) ) {
                 $sources[] = $source;
+
+                // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $table_name is a hardcoded prefix + fixed name, not user input; all values are bound via the $wpdb->update() format arrays.
                 $wpdb->update(
                     $table_name,
                     [ 'sources' => wp_json_encode( $sources ), 'updated_at' => current_time( 'mysql' ) ],
@@ -389,6 +391,7 @@ class BLNOTIFIER_LINK_BROWSER {
                     [ '%s', '%s' ],
                     [ '%d' ]
                 );
+                // phpcs:enable
             }
         } else {
             // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- $table_name is a hardcoded prefix + fixed name, not user input; all values are bound via the $wpdb->insert() format array.
@@ -480,7 +483,7 @@ class BLNOTIFIER_LINK_BROWSER {
 
                 ob_start();
                 try {
-                    $content = apply_filters( 'the_content', $get_the_content );
+                    $content = apply_filters( 'the_content', $get_the_content ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- 'the_content' is WordPress core's own filter being invoked here, not a hook this plugin defines.
                 } catch ( Exception $e ) {
                     error_log( 'Error processing shortcodes: ' . $e->getMessage() ); // phpcs:ignore
                     $content = '';
@@ -615,8 +618,15 @@ class BLNOTIFIER_LINK_BROWSER {
         $where_values = [];
 
         if ( $search !== '' ) {
-            $where_sql .= ' AND link LIKE %s';
-            $where_values[] = '%' . $wpdb->esc_like( $search ) . '%';
+            $search_decoded  = rawurldecode( $search );
+            $search_trimmed  = untrailingslashit( $search_decoded );
+            $search_trailing = trailingslashit( $search_trimmed );
+            $search_encoded  = rawurlencode( $search_trimmed );
+
+            $where_sql .= ' AND ( link LIKE %s OR link LIKE %s OR link LIKE %s )';
+            $where_values[] = '%' . $wpdb->esc_like( $search_trimmed ) . '%';
+            $where_values[] = '%' . $wpdb->esc_like( $search_trailing ) . '%';
+            $where_values[] = '%' . $wpdb->esc_like( $search_encoded ) . '%';
         }
 
         if ( $filter === 'internal' || $filter === 'external' ) {
@@ -629,14 +639,17 @@ class BLNOTIFIER_LINK_BROWSER {
             $where_values[] = $kind;
         }
 
-        $count_query = "SELECT COUNT(*) FROM $table_name $where_sql";
-        $total = !empty( $where_values ) ? (int) $wpdb->get_var( $wpdb->prepare( $count_query, $where_values ) ) : (int) $wpdb->get_var( $count_query ); // phpcs:ignore
-
         $offset = ( $page - 1 ) * $per_page;
         $order_by = "ORDER BY CASE WHEN link LIKE 'http://%' THEN 1 WHEN link LIKE 'https://%' THEN 2 ELSE 0 END ASC, link ASC";
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; bound values pass through prepare().
+        $total = !empty( $where_values )
+            ? (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name $where_sql", $where_values ) )
+            : (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name $where_sql" );
+
         $query_values = array_merge( $where_values, [ $per_page, $offset ] );
-        $rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql $order_by LIMIT %d OFFSET %d", $query_values ) ); // phpcs:ignore
+        $rows = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql $order_by LIMIT %d OFFSET %d", $query_values ) );
+        // phpcs:enable
 
         ob_start();
         $this->render_rows( $rows );
@@ -734,12 +747,6 @@ class BLNOTIFIER_LINK_BROWSER {
                 <td class="actions">
                     <?php echo wp_kses_post( $show_me_link ); ?> |
                     <a href="#" class="check-status" data-link="<?php echo esc_attr( $row->link ); ?>" data-post-id="<?php echo absint( $first_source_id ); ?>" data-nonce="<?php echo esc_attr( $scan_nonce ); ?>"><?php echo esc_html__( 'Check Status', 'broken-link-notifier' ); ?></a> |
-                    <a href="<?php echo esc_url( add_query_arg( [
-                        'page'     => BLNOTIFIER_TEXTDOMAIN,
-                        'tab'      => 'link-search',
-                        'search'   => $row->link,
-                        '_wpnonce' => wp_create_nonce( 'blnotifier_link_search' ),
-                    ], admin_url( 'admin.php' ) ) ); ?>"><?php echo esc_html__( 'Search All Pages', 'broken-link-notifier' ); ?></a> |
                     <a href="#" class="omit-link" data-link="<?php echo esc_attr( $row->link ); ?>" data-link-id="<?php echo absint( $row->id ); ?>"><?php echo esc_html__( 'Omit Link', 'broken-link-notifier' ); ?></a>
                     <span class="bln-spinner" style="display:none;"></span>
                 </td>
@@ -779,7 +786,10 @@ class BLNOTIFIER_LINK_BROWSER {
 
         global $wpdb;
         $table_name = $wpdb->prefix . $this->table_name;
+
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $table_name is a hardcoded prefix + fixed name, not user input; $link_id is bound via the $wpdb->delete() format array.
         $wpdb->delete( $table_name, [ 'id' => $link_id ], [ '%d' ] );
+        // phpcs:enable
 
         wp_send_json_success();
     } // End ajax_omit_link()

@@ -564,9 +564,9 @@ class BLNOTIFIER_SETTINGS {
     public function field_url_with_test( $args ) {
         $value = esc_url( get_option( $args[ 'name' ], '' ) );
         $has_value = !empty( $value );
-        $toggle = isset( $args[ 'toggle' ] ) ? ' data-toggle="'.esc_attr( $args[ 'toggle' ] ).'"' : '';
+        $toggle = isset( $args[ 'toggle' ] ) ? $args[ 'toggle' ] : '';
         ?>
-        <div class="blnotifier-notification-field"<?php echo esc_attr( $toggle ); ?>>
+        <div class="blnotifier-notification-field"<?php echo ( $toggle !== '' ) ? ' data-toggle="' . esc_attr( $toggle ) . '"' : ''; ?>>
             <input type="url" id="<?php echo esc_attr( $args[ 'name' ] ); ?>" name="<?php echo esc_attr( $args[ 'name' ] ); ?>" value="<?php echo esc_attr( $value ); ?>"/>
             <button type="button" class="blnotifier-button blnotifier-test-btn" data-type="<?php echo esc_attr( $args[ 'test_type' ] ); ?>" data-field="<?php echo esc_attr( $args[ 'name' ] ); ?>" <?php echo !$has_value ? 'disabled' : ''; ?>>
                 <?php esc_html_e( 'Send Test', 'broken-link-notifier' ); ?>
@@ -590,9 +590,9 @@ class BLNOTIFIER_SETTINGS {
     public function field_emails_with_test( $args ) {
         $value = esc_attr( get_option( $args[ 'name' ], isset( $args[ 'default' ] ) ? $args[ 'default' ] : '' ) );
         $has_value = !empty( $value );
-        $toggle = isset( $args[ 'toggle' ] ) ? ' data-toggle="'.esc_attr( $args[ 'toggle' ] ).'"' : '';
+        $toggle = isset( $args[ 'toggle' ] ) ? $args[ 'toggle' ] : '';
         ?>
-        <div class="blnotifier-notification-field"<?php echo esc_attr( $toggle ); ?>>
+        <div class="blnotifier-notification-field"<?php echo ( $toggle !== '' ) ? ' data-toggle="' . esc_attr( $toggle ) . '"' : ''; ?>>
             <input type="text" id="<?php echo esc_attr( $args[ 'name' ] ); ?>" name="<?php echo esc_attr( $args[ 'name' ] ); ?>" value="<?php echo esc_attr( $value ); ?>" pattern="([a-zA-Z0-9+_.\-]+@[a-zA-Z0-9.\-]+.[a-zA-Z0-9]+)(\s*,\s*([a-zA-Z0-9+_.\-]+@[a-zA-Z0-9.\-]+.[a-zA-Z0-9]+))*"/>
             <button type="button" class="blnotifier-button blnotifier-test-btn" data-type="email" data-field="<?php echo esc_attr( $args[ 'name' ] ); ?>" <?php echo !$has_value ? 'disabled' : ''; ?>>
                 <?php esc_html_e( 'Send Test', 'broken-link-notifier' ); ?>
@@ -988,7 +988,7 @@ class BLNOTIFIER_SETTINGS {
         $args[ 'label' ] = $field[ 'title' ];
         $name = isset( $args[ 'name' ] ) ? $args[ 'name' ] : '';
         $comments = isset( $args[ 'comments' ] ) ? $args[ 'comments' ] : '';
-        $toggle_attr = isset( $args[ 'toggle' ] ) ? ' data-toggle="'.esc_attr( $args[ 'toggle' ] ).'"' : '';
+        $toggle = isset( $args[ 'toggle' ] ) ? $args[ 'toggle' ] : '';
 
         if ( $callback_name === 'field_checkbox' ) {
             echo '<div class="blnotifier-field blnotifier-field-checkbox">';
@@ -996,7 +996,7 @@ class BLNOTIFIER_SETTINGS {
             echo '</div>';
         } else {
             echo '<div class="blnotifier-field">';
-            echo '<label for="'.esc_attr( $name ).'"'.esc_attr( $toggle_attr ).'>'.wp_kses_post( $field[ 'title' ] ).wp_kses_post( $this->render_tooltip( $comments ) ).'</label>';
+            echo '<label for="'.esc_attr( $name ).'"'.( $toggle !== '' ? ' data-toggle="'.esc_attr( $toggle ).'"' : '' ).'>'.wp_kses_post( $field[ 'title' ] ).wp_kses_post( $this->render_tooltip( $comments ) ).'</label>';
             call_user_func( $field[ 'callback' ], $args );
             echo '</div>';
         }

@@ -39,13 +39,21 @@ This plugin is a must-have for website owners, developers, and SEO enthusiasts w
 **IF THIS PLUGIN FLAGS SOME LINKS AS BROKEN WHEN THEY ARE NOT, PLEASE READ THE FAQ BELOW**
 
 == Installation ==
-1. Install the plugin from your website's plugin directory, or upload the plugin to your plugins folder. 
+1. Install the plugin from your website's plugin directory, or upload the plugin to your plugins folder.
 2. Activate it.
-3. Go to `Broken Link Notifier > Settings` in your admin menu.
-4. Update your notification method(s) and post types.
-5. Go to `Broken Link Notifier > Omitted Pages`, and add any pages that you don't want to scan, such as pages you know won't have any links on them. This will speed up the multi-scan option.
-5. Page load scans are enabled automatically, so it's recommended that you test it out by deliberately making some broken links on a test page and then visiting the page. The results should show up on the `Broken Link Notifier > Results` page, and notify you if you have enabled email, Discord, Slack or Microsoft Teams notifications. Reloading the page will not submit them twice. For testing, you should delete them from the results so they get reported again.
-6. It is suggested to run a Site Scan to discover and check every link on your site before others encounter broken ones. Also omit some links that will be reported as false positives. You can omit individual links quickly from the results or Link Browser, or you can go to `Broken Link Notifier > Omitted Links` to add a domain with a wildcard (*), which will omit all links starting with that domain. See screenshots for examples.
+3. The plugin works right away just by visiting pages with broken links on them — but you'll likely see some links flagged as broken that aren't actually broken, so it's worth spending a few minutes on setup first.
+4. Go to `Broken Link Notifier > Settings`:
+   * Disable notifications for now. By default you're emailed every time a visitor finds a newly-broken link; once flagged, a link won't notify you again unless it's removed from Results before you fix it. It's easiest to leave notifications off until you've finished the initial setup below, then turn them back on.
+   * Enable "Also Fetch Pages Remotely During Page Scan, Site Scan & Link Browser" to prepare for a one-time Site Scan.
+   * Under Post Types, keep Posts and Pages checked, and add any other post types that behave like posts or pages on your front end. Skip post types used only for internal data storage.
+   * Save with Ctrl+S or the Save button at the top of the page.
+5. Go to `Broken Link Notifier > Omitted Pages` and add any pages that don't need scanning — custom login pages, 404 pages, auto-generated archive pages, and similar. You can add a note to each explaining why it's omitted. To omit an entire section of your site at once, use a wildcard, e.g. `/category/*` or `/tag/*`.
+6. Go to `Broken Link Notifier > Site Scan` and run the two-step scan — this checks your whole site up front so you catch issues before your visitors do, and may take a while depending on site size:
+   * Click "Discover Links" and wait for it to finish.
+   * Click "Check for Broken Links" and wait for it to finish.
+   * If it finds broken links or warnings, click "View Results" (or go to `Broken Link Notifier > Results` directly).
+7. Review your results and omit anything that's a false positive — individually from Results or Link Browser, or by domain with a wildcard from `Broken Link Notifier > Omitted Links`.
+8. Once you've worked through your initial results, go back to Settings and re-enable notifications so you're alerted to anything new going forward.
 
 == Frequently Asked Questions == 
 = Will this plugin slow down my site? =
@@ -104,14 +112,14 @@ https://youtu.be/gM9Qy0HLplU
 
 == Screenshots ==
 1. Page load scan results on back-end
-2. Page load scan results on front-end in dev console
-3. Omitted links
-4. Omitted pages
-5. Detailed single page scan
-6. Site scan
-7. Find broken links easily on front-end with a glowing animation and red border
-8. Settings
-9. Developer hooks on Help tab
+2. Page load scan results on front-end in dev console - enable in settings
+3. Find broken links easily on front-end with a glowing animation and red border
+4. Omitted Links
+5. Omitted Pages
+6. Page Scan
+7. Site Scan
+8. Link Browser
+9. Settings
 
 == Changelog ==
 = 2.0.0 =
@@ -122,8 +130,8 @@ https://youtu.be/gM9Qy0HLplU
 * Update: Pages that appear to redirect are now automatically detected and omitted from future scans during Link Browser and Site Scan, with a note explaining why
 * Update: Results page rebuilt with AJAX — filter by status with clickable counts, bulk actions (Clear Results, Omit Links, Omit Sources), manual on-demand link verification, and no more page reloads
 * Update: Added quick-add tools to Omitted Links (autocomplete from discovered links) and Omitted Pages (browse by post type) so you no longer need to type or paste a URL from memory
-* Update: Added post-type/page browsing to Page Scan, and link autocomplete to Link Search, as alternatives to typing a URL directly
-* Update: Added a "Search All Pages" action to Link Browser that hands off directly to Link Search
+* Update: Added post-type/page browsing to Page Scan as an alternative to typing a URL directly
+* Update: Removed the Link Search tab — Link Browser's own search field covers the same need with more accurate results, including menu items
 * Update: Settings page reorganized into categorized sections, saves via AJAX with a dirty-state reminder and Ctrl+S support, and includes step-by-step setup accordions for Discord, Slack, and Microsoft Teams
 * Update: Added Download Settings, Upload Settings, and Reset All Settings tools to the Settings page
 * Update: Added an option to clear cached good links

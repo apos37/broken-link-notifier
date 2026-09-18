@@ -126,7 +126,7 @@ class BLNOTIFIER_CACHE {
 
         $expiration_time = gmdate( 'Y-m-d H:i:s', time() - $this->cache_time_in_seconds );
 
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $this->table is a fixed table name, not user input; the actual value is bound via prepare().
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $this->table is a fixed table name, not user input; the actual value is bound via prepare().
         $wpdb->query( $wpdb->prepare(
             "DELETE FROM {$this->table} WHERE last_checked < %s",
             $expiration_time
@@ -148,7 +148,7 @@ class BLNOTIFIER_CACHE {
 
         global $wpdb;
 
-        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $this->table is a fixed table name, not user input; the actual values are bound via prepare().
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $this->table is a fixed table name, not user input; the actual values are bound via prepare().
         $row = $wpdb->get_row( $wpdb->prepare(
             "SELECT * FROM {$this->table} WHERE link = %s AND last_checked >= %s LIMIT 1",
             $link,

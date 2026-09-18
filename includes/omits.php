@@ -680,10 +680,12 @@ class BLNOTIFIER_OMITS {
         global $wpdb;
         $table_name = $wpdb->prefix . 'blnotifier_links';
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $table_name is a hardcoded prefix + fixed name, not user input; $search is escaped via esc_like() and bound via prepare().
         $rows = $wpdb->get_results( $wpdb->prepare(
             "SELECT link, type FROM $table_name WHERE link LIKE %s ORDER BY link ASC LIMIT 15",
             '%' . $wpdb->esc_like( $search ) . '%'
-        ) ); // phpcs:ignore
+        ) );
+        // phpcs:enable
 
         $items = [];
         foreach ( $rows as $row ) {

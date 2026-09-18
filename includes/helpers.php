@@ -1638,13 +1638,17 @@ class BLNOTIFIER_HELPERS {
      */
     public function get_all_links() {
         $links = [];
-    
-        // Add header/footer links
+
+        // Add header/footer links (classic menus)
         $links = array_merge( $links, $this->get_header_footer_links() );
-    
+
+        // Add block-theme Navigation block links (wp_navigation is a non-public
+        // post type, so it's invisible to the main 'any' post_type query below)
+        $links = array_merge( $links, $this->get_navigation_block_links() );
+
         $paged = 1;
         $per_page = 50;
-    
+
         do {
             $posts = get_posts( [
                 'post_type'      => 'any',
@@ -1653,27 +1657,27 @@ class BLNOTIFIER_HELPERS {
                 'fields'         => 'ids',
                 'paged'          => $paged,
             ] );
-    
+
             if ( empty( $posts ) ) {
                 break;
             }
-    
+
             foreach ( $posts as $post_id ) {
-    
+
                 $post_url = get_the_permalink( $post_id );
                 if ( ( new BLNOTIFIER_OMITS )->is_omitted( $post_url, 'pages' ) ) {
                     continue;
                 }
-    
+
                 $raw_content = get_the_content( null, false, $post_id );
-    
+
                 if ( strpos( $raw_content, '[redirect_this_page' ) !== false ) {
                     continue;
                 }
-    
+
                 $content = apply_filters( 'the_content', $raw_content ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- 'the_content' is WordPress core's own filter being invoked here, not a hook this plugin defines.
                 $extracted_links = $this->extract_links( $content );
-    
+
                 if ( !empty( $extracted_links ) ) {
                     foreach ( $extracted_links as $extracted_link ) {
                         $links[] = [
@@ -1684,12 +1688,57 @@ class BLNOTIFIER_HELPERS {
                     }
                 }
             }
-    
+
             $paged++;
         } while ( true );
-    
+
         return $links;
-    } // End get_all_links()    
+    } // End get_all_links()
+
+
+    /**
+     * Get links from block-theme Navigation block posts (wp_navigation post type).
+     * Classic menus are handled separately by get_header_footer_links() since
+     * they're stored differently (nav_menu_item posts) and read via the
+     * Menus API rather than post content.
+     *
+     * @return array
+     */
+    public function get_navigation_block_links() {
+        $links = [];
+
+        if ( ! post_type_exists( 'wp_navigation' ) ) {
+            return $links;
+        }
+
+        $nav_posts = get_posts( [
+            'post_type'      => 'wp_navigation',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+        ] );
+
+        foreach ( $nav_posts as $nav_post_id ) {
+            $raw_content = get_post_field( 'post_content', $nav_post_id );
+            if ( ! $raw_content ) {
+                continue;
+            }
+
+            $extracted_links = $this->extract_links( $raw_content );
+
+            foreach ( $extracted_links as $extracted_link ) {
+                $links[] = [
+                    'link'      => $extracted_link,
+                    'location'  => 'navigation',
+                    'post_id'   => 0,
+                    'menu_id'   => $nav_post_id,
+                    'menu_name' => get_the_title( $nav_post_id ) ?: __( 'Navigation', 'broken-link-notifier' ),
+                ];
+            }
+        }
+
+        return apply_filters( 'blnotifier_navigation_block_links', $links );
+    } // End get_navigation_block_links()
 
 
     /**

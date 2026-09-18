@@ -25,12 +25,12 @@ jQuery( $ => {
             row.find( '.code' ).text( '' );
             row.find( '.text' ).text( '' );
             row.find( '.speed' ).text( '' );
-            row.find( '.actions' ).hide();
+            row.find( '.actions' ).empty();
             link = row.data( 'link' );
         } else {
             row = $( this ).parent().parent();
             row.addClass( 'omitted' );
-            row.find( '.actions' ).hide();
+            row.find( '.actions' ).empty();
             link = row.data( 'link' );
         }
         omit( nonce, link, 'links', scanType );
@@ -89,5 +89,5 @@ jQuery( $ => {
                 }
             }
         } )
-    } // End checkLink()
+    } // End omit()
 } )
