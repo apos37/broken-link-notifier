@@ -126,10 +126,12 @@ class BLNOTIFIER_CACHE {
 
         $expiration_time = gmdate( 'Y-m-d H:i:s', time() - $this->cache_time_in_seconds );
 
-        $wpdb->query( $wpdb->prepare( // phpcs:ignore 
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $this->table is a fixed table name, not user input; the actual value is bound via prepare().
+        $wpdb->query( $wpdb->prepare(
             "DELETE FROM {$this->table} WHERE last_checked < %s",
             $expiration_time
         ) );
+        // phpcs:enable
     } // End maybe_cleanup_cache()
 
 
@@ -146,11 +148,13 @@ class BLNOTIFIER_CACHE {
 
         global $wpdb;
 
-        $row = $wpdb->get_row( $wpdb->prepare( // phpcs:ignore 
+        // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $this->table is a fixed table name, not user input; the actual values are bound via prepare().
+        $row = $wpdb->get_row( $wpdb->prepare(
             "SELECT * FROM {$this->table} WHERE link = %s AND last_checked >= %s LIMIT 1",
             $link,
             gmdate( 'Y-m-d H:i:s', time() - $this->cache_time_in_seconds )
         ), ARRAY_A );
+        // phpcs:enable
 
         if ( $row ) {
             $mark_cached = $this->mark_cached_in_text ?  ' (cached)' : '';

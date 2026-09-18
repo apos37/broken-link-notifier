@@ -391,6 +391,7 @@ class BLNOTIFIER_LINK_BROWSER {
                 );
             }
         } else {
+            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery -- $table_name is a hardcoded prefix + fixed name, not user input; all values are bound via the $wpdb->insert() format array.
             $wpdb->insert(
                 $table_name,
                 [
@@ -403,6 +404,7 @@ class BLNOTIFIER_LINK_BROWSER {
                 ],
                 [ '%s', '%s', '%s', '%s', '%s', '%s' ]
             );
+            // phpcs:enable
         }
 
         return true;

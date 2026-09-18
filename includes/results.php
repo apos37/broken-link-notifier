@@ -1611,7 +1611,7 @@ class BLNOTIFIER_RESULTS {
         // No internal/external scope: simple SQL pagination
         if ( $scope === 'all' ) {
 
-            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
+            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
             $total = !empty( $where_values )
                 ? (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name $where_sql", $where_values ) )
                 : (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name $where_sql" );
@@ -1624,7 +1624,7 @@ class BLNOTIFIER_RESULTS {
         // Internal/external scope: filter in PHP, then paginate manually
         } else {
 
-            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
+            // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
             $all_rows = !empty( $where_values ) ? $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC", $where_values ) ) : $wpdb->get_results( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC" );
             // phpcs:enable
 

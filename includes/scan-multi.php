@@ -194,7 +194,7 @@ class BLNOTIFIER_FULL_SCAN {
 
                     try {
                         // Process shortcodes and expand them in the content
-                        $content = apply_filters( 'the_content', $get_the_content );
+                        $content = apply_filters( 'the_content', $get_the_content ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- 'the_content' is WordPress core's own filter being invoked here, not a hook this plugin defines.
                     } catch ( Exception $e ) {
                         error_log( 'Error processing shortcodes: ' . $e->getMessage() ); // phpcs:ignore 
                         $redirect_detected = true;

@@ -156,7 +156,7 @@ class BLNOTIFIER_EXPORT {
             $where_values[] = $type;
         }
 
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
         $rows = !empty( $where_values )
             ? $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC", $where_values ), ARRAY_A )
             : $wpdb->get_results( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC", ARRAY_A );
@@ -247,7 +247,7 @@ class BLNOTIFIER_EXPORT {
 
         $order_by = "ORDER BY CASE WHEN link LIKE 'http://%' THEN 1 WHEN link LIKE 'https://%' THEN 2 ELSE 0 END ASC, link ASC";
 
-        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
         $rows = !empty( $where_values )
             ? $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql $order_by", $where_values ) )
             : $wpdb->get_results( "SELECT * FROM $table_name $where_sql $order_by" );

@@ -152,7 +152,7 @@ $blnotifier_tab = (new BLNOTIFIER_HELPERS)->get_tab();
                         setup_postdata( $post );
                     }
 
-                    $blnotifier_content = apply_filters( 'the_content', $blnotifier_get_the_content );
+                    $blnotifier_content = apply_filters( 'the_content', $blnotifier_get_the_content ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- 'the_content' is WordPress core's own filter being invoked here, not a hook this plugin defines.
 
                     if ( $blnotifier_scanned_post ) {
                         $post = $blnotifier_original_post;

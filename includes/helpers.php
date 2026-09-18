@@ -431,12 +431,14 @@ class BLNOTIFIER_HELPERS {
         global $wpdb;
         $table = $wpdb->prefix . 'blnotifier_results';
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $table is a hardcoded prefix + fixed name, not user input; type value is bound via prepare().
         $count = $wpdb->get_var(
             $wpdb->prepare(
                 "SELECT COUNT(*) FROM {$table} WHERE type = %s",
                 'broken'
             )
         );
+        // phpcs:enable
 
         return absint( $count );
     } // End count_broken_links()
@@ -1501,7 +1503,7 @@ class BLNOTIFIER_HELPERS {
             global $wpdb;
             $table = $wpdb->prefix . 'blnotifier_cache';
     
-            $rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY last_checked DESC", ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            $rows = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY last_checked DESC", ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 
             $na = '--';
     
@@ -1566,6 +1568,7 @@ class BLNOTIFIER_HELPERS {
         global $wpdb;
         $table = $wpdb->prefix . 'blnotifier_results';
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $table is a hardcoded prefix + fixed name, not user input; type value is bound via prepare().
         $rows = $wpdb->get_results(
             $wpdb->prepare(
                 "SELECT link, text, type, code, source, location, method, author_id, created_at FROM {$table} WHERE type = %s ORDER BY created_at DESC",
@@ -1573,6 +1576,7 @@ class BLNOTIFIER_HELPERS {
             ),
             ARRAY_A
         );
+        // phpcs:enable
 
         $links = [];
         $source_cache = []; // stores [ 'post_id' => ..., 'title' => ... ] for each source URL
@@ -1667,7 +1671,7 @@ class BLNOTIFIER_HELPERS {
                     continue;
                 }
     
-                $content = apply_filters( 'the_content', $raw_content );
+                $content = apply_filters( 'the_content', $raw_content ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- 'the_content' is WordPress core's own filter being invoked here, not a hook this plugin defines.
                 $extracted_links = $this->extract_links( $content );
     
                 if ( !empty( $extracted_links ) ) {
