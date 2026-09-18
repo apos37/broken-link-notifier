@@ -2,15 +2,15 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
 // Initiate
-$HELPERS = new BLNOTIFIER_HELPERS;
-$LINK_BROWSER = new BLNOTIFIER_LINK_BROWSER;
-$counts = $LINK_BROWSER->get_counts();
+$BLNOTIFIER_HELPERS = new BLNOTIFIER_HELPERS;
+$BLNOTIFIER_LINK_BROWSER = new BLNOTIFIER_LINK_BROWSER;
+$blnotifier_counts = $BLNOTIFIER_LINK_BROWSER->get_counts();
 ?>
 
 <div class="blnotifier-box">
     <div class="blnotifier-box-body">
 
-        <?php $LINK_BROWSER->render_status_counts( $counts, 'all' ); ?>
+        <?php $BLNOTIFIER_LINK_BROWSER->render_status_counts( $blnotifier_counts, 'all' ); ?>
 
         <div class="tablenav top">
             <div class="alignleft actions">

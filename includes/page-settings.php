@@ -1,7 +1,7 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly    
 
-$SETTINGS = new BLNOTIFIER_SETTINGS;
+$BLNOTIFIER_SETTINGS = new BLNOTIFIER_SETTINGS;
 ?>
 
 <?php if ( isset( $_REQUEST[ 'settings-updated' ] ) ) { // phpcs:ignore ?>
@@ -13,7 +13,7 @@ $SETTINGS = new BLNOTIFIER_SETTINGS;
 
 <form method="post" action="options.php" id="blnotifier-settings-form">
     <?php
-        settings_fields( $SETTINGS->page_slug );
-        $SETTINGS->render_settings_boxes();
+        settings_fields( $BLNOTIFIER_SETTINGS->page_slug );
+        $BLNOTIFIER_SETTINGS->render_settings_boxes();
     ?>
 </form>

@@ -2,19 +2,19 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 global $wpdb;
-$table_name = $wpdb->prefix . 'blnotifier_results';
+$blnotifier_table_name = $wpdb->prefix . 'blnotifier_results';
 
-$RESULTS = new BLNOTIFIER_RESULTS;
-$HELPERS = new BLNOTIFIER_HELPERS;
+$BLNOTIFIER_RESULTS = new BLNOTIFIER_RESULTS;
+$BLNOTIFIER_HELPERS = new BLNOTIFIER_HELPERS;
 
-$per_page = $RESULTS->sanitize_per_page( get_option( 'blnotifier_per_page', 25 ) );
-$counts = $RESULTS->get_counts();
-$warnings_enabled = filter_var( get_option( 'blnotifier_enable_warnings' ), FILTER_VALIDATE_BOOLEAN );
+$blnotifier_per_page = $BLNOTIFIER_RESULTS->sanitize_per_page( get_option( 'blnotifier_per_page', 25 ) );
+$blnotifier_counts = $BLNOTIFIER_RESULTS->get_counts();
+$blnotifier_warnings_enabled = filter_var( get_option( 'blnotifier_enable_warnings' ), FILTER_VALIDATE_BOOLEAN );
 
 // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- $table_name is a hardcoded prefix + fixed name, not user input; $per_page is bound via prepare().
-$initial_rows = $wpdb->get_results( $wpdb->prepare(
-    "SELECT * FROM $table_name ORDER BY created_at ASC LIMIT %d OFFSET 0",
-    $per_page
+$blnotifier_initial_rows = $wpdb->get_results( $wpdb->prepare(
+    "SELECT * FROM $blnotifier_table_name ORDER BY created_at ASC LIMIT %d OFFSET 0",
+    $blnotifier_per_page
 ) );
 // phpcs:enable
 ?>
@@ -24,9 +24,9 @@ $initial_rows = $wpdb->get_results( $wpdb->prepare(
 <div class="blnotifier-box">
     <div class="blnotifier-box-body">
 
-        <?php $RESULTS->render_status_counts( $counts, 'all', $warnings_enabled ); ?>
+        <?php $BLNOTIFIER_RESULTS->render_status_counts( $blnotifier_counts, 'all', $blnotifier_warnings_enabled ); ?>
 
-        <?php $RESULTS->render_tablenav( 'top', $per_page ); ?>
+        <?php $BLNOTIFIER_RESULTS->render_tablenav( 'top', $blnotifier_per_page ); ?>
 
         <table class="results wp-list-table widefat fixed striped table-view-list" id="bln-results-table">
             <thead>
@@ -45,11 +45,11 @@ $initial_rows = $wpdb->get_results( $wpdb->prepare(
                 </tr>
             </thead>
             <tbody>
-                <?php $RESULTS->render_rows( $initial_rows ); ?>
+                <?php $BLNOTIFIER_RESULTS->render_rows( $blnotifier_initial_rows ); ?>
             </tbody>
         </table>
 
-        <?php $RESULTS->render_tablenav( 'bottom', $per_page ); ?>
+        <?php $BLNOTIFIER_RESULTS->render_tablenav( 'bottom', $blnotifier_per_page ); ?>
 
     </div>
 </div>

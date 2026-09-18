@@ -165,27 +165,21 @@ class BLNOTIFIER_API {
         $page     = $request->get_param( 'page' );
         $offset   = ( $page - 1 ) * $per_page;
 
-        $where = '';
-        $args  = [];
-
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table is a hardcoded prefix + fixed name, not user input; all bound values pass through prepare().
         if ( $type !== 'all' ) {
-            $where = 'WHERE type = %s';
-            $args[] = $type;
+            $rows = $wpdb->get_results(
+                $wpdb->prepare( "SELECT id, link, text, type, code, source, location, method, created_at FROM {$table} WHERE type = %s ORDER BY created_at DESC LIMIT %d OFFSET %d", $type, $per_page, $offset ),
+                ARRAY_A
+            );
+            $total = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE type = %s", $type ) );
+        } else {
+            $rows = $wpdb->get_results(
+                $wpdb->prepare( "SELECT id, link, text, type, code, source, location, method, created_at FROM {$table} ORDER BY created_at DESC LIMIT %d OFFSET %d", $per_page, $offset ),
+                ARRAY_A
+            );
+            $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
         }
-
-        $args[] = $per_page;
-        $args[] = $offset;
-
-        $rows = $wpdb->get_results(
-            $wpdb->prepare( "SELECT id, link, text, type, code, source, location, method, created_at FROM {$table} {$where} ORDER BY created_at DESC LIMIT %d OFFSET %d", $args ),
-            ARRAY_A
-        );
-
-        $total = (int) $wpdb->get_var(
-            $type !== 'all'
-                ? $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE type = %s", $type )
-                : "SELECT COUNT(*) FROM {$table}"
-        );
+        // phpcs:enable
 
         $source_cache = [];
 
@@ -231,10 +225,12 @@ class BLNOTIFIER_API {
         $table = $wpdb->prefix . 'blnotifier_results';
         $id    = $request->get_param( 'id' );
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table is a hardcoded prefix + fixed name, not user input.
         $row = $wpdb->get_row(
             $wpdb->prepare( "SELECT id, link, text, type, code, source, location, method, created_at FROM {$table} WHERE id = %d", $id ),
             ARRAY_A
         );
+        // phpcs:enable
 
         if ( !$row ) {
             return new WP_REST_Response( [ 'message' => __( 'Result not found.', 'broken-link-notifier' ) ], 404 );
@@ -266,7 +262,10 @@ class BLNOTIFIER_API {
 
         $table   = $wpdb->prefix . 'blnotifier_results';
         $id      = $request->get_param( 'id' );
+
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- $table is a hardcoded prefix + fixed name, not user input.
         $deleted = $wpdb->delete( $table, [ 'id' => $id ], [ '%d' ] );
+        // phpcs:enable
 
         if ( !$deleted ) {
             return new WP_REST_Response( [ 'message' => __( 'Result not found.', 'broken-link-notifier' ) ], 404 );

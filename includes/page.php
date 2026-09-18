@@ -2,22 +2,22 @@
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly    
 
 // Get the active tab
-$tab = (new BLNOTIFIER_HELPERS)->get_tab();
-$final_tab = $tab ?: 'results';
+$blnotifier_tab = (new BLNOTIFIER_HELPERS)->get_tab();
+$blnotifier_final_tab = $blnotifier_tab ?: 'results';
 
 // Get the menu items
 $BLNOTIFIER_MENU = (new BLNOTIFIER_MENU);
-$menu_items = $BLNOTIFIER_MENU->menu_items;
+$blnotifier_menu_items = $BLNOTIFIER_MENU->menu_items;
 ?>
 
 <div class="wrap blnotifier-wrap <?php echo esc_attr( BLNOTIFIER_TEXTDOMAIN ); ?>">
 
     <div class="blnotifier-content-wrap tab-content">
         <?php
-        $page_file = BLNOTIFIER_PLUGIN_INCLUDES_PATH.'page-'.sanitize_key( $final_tab ).'.php';
+        $blnotifier_page_file = BLNOTIFIER_PLUGIN_INCLUDES_PATH.'page-'.sanitize_key( $blnotifier_final_tab ).'.php';
 
-        if ( file_exists( $page_file ) ) {
-            include $page_file;
+        if ( file_exists( $blnotifier_page_file ) ) {
+            include $blnotifier_page_file;
         } else {
             ?>
             <div class="blnotifier-box">

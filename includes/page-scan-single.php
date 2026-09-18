@@ -4,43 +4,43 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 // ID
 if ( isset( $_REQUEST[ '_wpnonce' ] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_REQUEST[ '_wpnonce' ] ) ), 'blnotifier_scan_single' ) &&
      isset( $_GET[ 'scan' ] ) && sanitize_text_field( wp_unslash( $_GET[ 'scan' ] ) ) ) {
-    $s = sanitize_text_field( wp_unslash( $_GET[ 'scan' ] ) );
+    $blnotifier_s = sanitize_text_field( wp_unslash( $_GET[ 'scan' ] ) );
 } else {
-    $s = '';
+    $blnotifier_s = '';
 }
 
 // Which field was actually used to submit
-$scan_source = isset( $_GET[ 'scan_source' ] ) ? sanitize_key( wp_unslash( $_GET[ 'scan_source' ] ) ) : 'text';
+$blnotifier_scan_source = isset( $_GET[ 'scan_source' ] ) ? sanitize_key( wp_unslash( $_GET[ 'scan_source' ] ) ) : 'text';
 
 // Restore the picker's selection server-side, only when the picker was used
-$selected_post_type = '';
-$selected_post_id = 0;
+$blnotifier_selected_post_type = '';
+$blnotifier_selected_post_id = 0;
 
-if ( $scan_source === 'picker' && $s !== '' && is_numeric( $s ) ) {
-    $selected_post_id = absint( $s );
-    $selected_post_type = get_post_type( $selected_post_id ) ?: '';
+if ( $blnotifier_scan_source === 'picker' && $blnotifier_s !== '' && is_numeric( $blnotifier_s ) ) {
+    $blnotifier_selected_post_id = absint( $blnotifier_s );
+    $blnotifier_selected_post_type = get_post_type( $blnotifier_selected_post_id ) ?: '';
 }
 
 // The text field only ever shows a value when the text-search path was actually used
-$s_display = ( $scan_source === 'text' ) ? $s : '';
-if ( $scan_source === 'text' && $s !== '' && is_numeric( $s ) ) {
-    $existing_title = get_the_title( $s );
-    if ( $existing_title ) {
-        $s_display = $existing_title;
+$blnotifier_s_display = ( $blnotifier_scan_source === 'text' ) ? $blnotifier_s : '';
+if ( $blnotifier_scan_source === 'text' && $blnotifier_s !== '' && is_numeric( $blnotifier_s ) ) {
+    $blnotifier_existing_title = get_the_title( $blnotifier_s );
+    if ( $blnotifier_existing_title ) {
+        $blnotifier_s_display = $blnotifier_existing_title;
     }
 }
 
 // Tab
-$tab = (new BLNOTIFIER_HELPERS)->get_tab();
+$blnotifier_tab = (new BLNOTIFIER_HELPERS)->get_tab();
 ?>
 
 <div class="blnotifier-box">
     <div class="blnotifier-box-body">
         <div class="url-search-bar">
-            <form method="get" action="<?php echo esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( $tab ) ); ?>" autocomplete="off">
+            <form method="get" action="<?php echo esc_url( (new BLNOTIFIER_MENU)->get_plugin_page( $blnotifier_tab ) ); ?>" autocomplete="off">
                 <input type="hidden" name="_wpnonce" value="<?php echo sanitize_key( wp_create_nonce( 'blnotifier_scan_single' ) ); ?>">
                 <input type="hidden" name="page" value="<?php echo esc_html( BLNOTIFIER_TEXTDOMAIN ); ?>">
-                <input type="hidden" name="tab" value="<?php echo esc_attr( $tab ); ?>">
+                <input type="hidden" name="tab" value="<?php echo esc_attr( $blnotifier_tab ); ?>">
                 <input type="hidden" name="scan_source" id="scan-source-field" value="text">
 
                 <div class="bln-scan-option">
@@ -48,15 +48,15 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                     <div id="bln-scan-picker">
                         <select id="bln-scan-picker-post-type" class="blnotifier-select-field">
                             <option value=""><?php echo esc_html__( 'Choose a Post Type...', 'broken-link-notifier' ); ?></option>
-                            <?php foreach ( (new BLNOTIFIER_OMITS)->get_scannable_post_type_choices() as $key => $label ) : ?>
-                                <option value="<?php echo esc_attr( $key ); ?>" <?php selected( $selected_post_type, $key ); ?>><?php echo esc_html( $label ); ?></option>
+                            <?php foreach ( (new BLNOTIFIER_OMITS)->get_scannable_post_type_choices() as $blnotifier_key => $blnotifier_label ) : ?>
+                                <option value="<?php echo esc_attr( $blnotifier_key ); ?>" <?php selected( $blnotifier_selected_post_type, $blnotifier_key ); ?>><?php echo esc_html( $blnotifier_label ); ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <select id="bln-scan-picker-post" class="blnotifier-select-field" <?php echo !$selected_post_type ? 'disabled' : ''; ?>>
-                            <?php if ( $selected_post_type ) : ?>
+                        <select id="bln-scan-picker-post" class="blnotifier-select-field" <?php echo !$blnotifier_selected_post_type ? 'disabled' : ''; ?>>
+                            <?php if ( $blnotifier_selected_post_type ) : ?>
                                 <?php
-                                $picker_posts = get_posts( [
-                                    'post_type'      => $selected_post_type,
+                                $blnotifier_picker_posts = get_posts( [
+                                    'post_type'      => $blnotifier_selected_post_type,
                                     'post_status'    => [ 'publish', 'private', 'draft', 'pending' ],
                                     'posts_per_page' => -1,
                                     'orderby'        => 'title',
@@ -65,8 +65,8 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                                 ] );
                                 ?>
                                 <option value=""><?php echo esc_html__( 'Choose a Page...', 'broken-link-notifier' ); ?></option>
-                                <?php foreach ( $picker_posts as $picker_post_id ) : ?>
-                                    <option value="<?php echo absint( $picker_post_id ); ?>" <?php selected( $selected_post_id, $picker_post_id ); ?>><?php echo esc_html( get_the_title( $picker_post_id ) ?: esc_html__( '(no title)', 'broken-link-notifier' ) ); ?></option>
+                                <?php foreach ( $blnotifier_picker_posts as $blnotifier_picker_post_id ) : ?>
+                                    <option value="<?php echo absint( $blnotifier_picker_post_id ); ?>" <?php selected( $blnotifier_selected_post_id, $blnotifier_picker_post_id ); ?>><?php echo esc_html( get_the_title( $blnotifier_picker_post_id ) ?: esc_html__( '(no title)', 'broken-link-notifier' ) ); ?></option>
                                 <?php endforeach; ?>
                             <?php else : ?>
                                 <option value=""><?php echo esc_html__( 'Choose a Post Type First...', 'broken-link-notifier' ); ?></option>
@@ -81,8 +81,8 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                 <div class="bln-scan-option">
                     <label for="url-search-input" class="bln-scan-option-label"><?php echo esc_html__( 'Enter a URL, Post ID, or Title', 'broken-link-notifier' ); ?></label>
                     <div id="bln-scan-search-wrap">
-                        <input type="text" id="url-search-input" autocomplete="off" value="<?php echo esc_attr( $s_display ); ?>">
-                        <input type="hidden" name="scan" id="url-search-value" value="<?php echo esc_attr( $s ); ?>">
+                        <input type="text" id="url-search-input" autocomplete="off" value="<?php echo esc_attr( $blnotifier_s_display ); ?>">
+                        <input type="hidden" name="scan" id="url-search-value" value="<?php echo esc_attr( $blnotifier_s ); ?>">
                         <div id="bln-scan-suggestions"></div>
                         <button type="submit" id="url-search-button" class="blnotifier-button"><?php echo esc_html__( 'Scan Now', 'broken-link-notifier' ); ?></button>
                     </div>
@@ -92,34 +92,34 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
 
         <?php
         // Results
-        if ( $s != '' ) {
+        if ( $blnotifier_s != '' ) {
 
             // Get the post id
-            if ( is_numeric( $s ) ) {
-                $post_id = $s;
-                $permalink = get_the_permalink( $s );
+            if ( is_numeric( $blnotifier_s ) ) {
+                $blnotifier_post_id = $blnotifier_s;
+                $blnotifier_permalink = get_the_permalink( $blnotifier_s );
             } else {
-                $post_id = url_to_postid( $s );
-                $permalink = $s;
+                $blnotifier_post_id = url_to_postid( $blnotifier_s );
+                $blnotifier_permalink = $blnotifier_s;
             }
 
             // Scanning for
-            if ( $post_title = get_the_title( $post_id ) ) {
-                $permalink = add_query_arg( 'blinks', 'true', $permalink );
-                $display_s = '<a href="'.$permalink.'" target="_blank">'.$post_title.'</a>';
-                $found = true;
+            if ( $blnotifier_post_title = get_the_title( $blnotifier_post_id ) ) {
+                $blnotifier_permalink = add_query_arg( 'blinks', 'true', $blnotifier_permalink );
+                $blnotifier_display_s = '<a href="'.$blnotifier_permalink.'" target="_blank">'.$blnotifier_post_title.'</a>';
+                $blnotifier_found = true;
             } else {
-                $display_s = $s;
-                $found = false;
+                $blnotifier_display_s = $blnotifier_s;
+                $blnotifier_found = false;
             }
             ?>
             <br><br><br>
             <h2><?php
             /* translators: %s: post title or URL being scanned. */
-            printf( esc_html__( 'Content Scan Results for "%s"', 'broken-link-notifier' ), wp_kses_post( $display_s ) );
+            printf( esc_html__( 'Content Scan Results for "%s"', 'broken-link-notifier' ), wp_kses_post( $blnotifier_display_s ) );
             ?></h2>
-            <?php $remote_fetch_enabled = filter_var( get_option( 'blnotifier_remote_fetch_links' ), FILTER_VALIDATE_BOOLEAN ); ?>
-            <?php if ( $remote_fetch_enabled ) : ?>
+            <?php $blnotifier_remote_fetch_enabled = filter_var( get_option( 'blnotifier_remote_fetch_links' ), FILTER_VALIDATE_BOOLEAN ); ?>
+            <?php if ( $blnotifier_remote_fetch_enabled ) : ?>
                 <p><em><?php echo esc_html__( 'Links were also fetched from the live published page, in addition to its stored content.', 'broken-link-notifier' ); ?></em></p>
             <?php else : ?>
                 <p><em><?php echo esc_html__( 'Does not include links in the <code>&#x3c;header&#x3e;</code> or <code>&#x3c;footer&#x3e;</code>. Also, remember that links will not include content if it is hidden behind conditional logic.', 'broken-link-notifier' ); ?></em></p>
@@ -127,16 +127,16 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
             <br><br>
             <?php
             // If found
-            if ( $found ) {
+            if ( $blnotifier_found ) {
 
                 // HELPERS
-                $HELPERS = new BLNOTIFIER_HELPERS;
+                $blnotifier_HELPERS = new BLNOTIFIER_HELPERS;
                 
                 // Get the content
-                $get_the_content = get_the_content( null, false, $post_id );
+                $blnotifier_get_the_content = get_the_content( null, false, $blnotifier_post_id );
 
                 // Redirects from shortcodes
-                if ( strpos( $get_the_content, '[redirect_this_page') !== false ) {
+                if ( strpos( $blnotifier_get_the_content, '[redirect_this_page') !== false ) {
                     ?>
                     <em><?php echo esc_html__( 'This page is only redirecting to another page. Try a different page.', 'broken-link-notifier' ); ?></em>
                     <?php
@@ -145,49 +145,49 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                 } else {
 
                     global $post;
-                    $scanned_post = get_post( $post_id );
-                    $original_post = $post;
-                    if ( $scanned_post ) {
-                        $post = $scanned_post;
+                    $blnotifier_scanned_post = get_post( $blnotifier_post_id );
+                    $blnotifier_original_post = $post;
+                    if ( $blnotifier_scanned_post ) {
+                        $post = $blnotifier_scanned_post;
                         setup_postdata( $post );
                     }
 
-                    $content = apply_filters( 'the_content', $get_the_content );
+                    $blnotifier_content = apply_filters( 'the_content', $blnotifier_get_the_content );
 
-                    if ( $scanned_post ) {
-                        $post = $original_post;
+                    if ( $blnotifier_scanned_post ) {
+                        $post = $blnotifier_original_post;
                         wp_reset_postdata();
                     }
 
-                    if ( $content ) {
+                    if ( $blnotifier_content ) {
                     
                     // Get the links
-                    $links = $HELPERS->extract_links( $content );
+                    $blnotifier_links = $blnotifier_HELPERS->extract_links( $blnotifier_content );
 
                     // Merge in remotely fetched links, if enabled
                     if ( filter_var( get_option( 'blnotifier_remote_fetch_links' ), FILTER_VALIDATE_BOOLEAN ) ) {
-                        $remote_links = $HELPERS->get_remote_page_links( $post_id );
-                        $links = $HELPERS->merge_and_dedupe_links( $links, $remote_links );
+                        $blnotifier_remote_links = $blnotifier_HELPERS->get_remote_page_links( $blnotifier_post_id );
+                        $blnotifier_links = $blnotifier_HELPERS->merge_and_dedupe_links( $blnotifier_links, $blnotifier_remote_links );
                     }
 
                     // Did we find any
-                    if ( !empty( $links ) ) {
+                    if ( !empty( $blnotifier_links ) ) {
 
                         // Edit buttons
-                        $buttons = [
-                            '<a class="blnotifier-button view" href="'.$permalink.'" target="_blank">'.esc_html__( 'View', 'broken-link-notifier' ).'</a>',
-                            '<a class="blnotifier-button edit" href="'.add_query_arg( [ 'post' => $post_id, 'action' => 'edit' ], admin_url( 'post.php' ) ).'">'.esc_html__( 'Edit', 'broken-link-notifier' ).'</a>',
+                        $blnotifier_buttons = [
+                            '<a class="blnotifier-button view" href="'.$blnotifier_permalink.'" target="_blank">'.esc_html__( 'View', 'broken-link-notifier' ).'</a>',
+                            '<a class="blnotifier-button edit" href="'.add_query_arg( [ 'post' => $blnotifier_post_id, 'action' => 'edit' ], admin_url( 'post.php' ) ).'">'.esc_html__( 'Edit', 'broken-link-notifier' ).'</a>',
                         ];
                         if ( is_plugin_active( 'cornerstone/cornerstone.php' ) ) {
-                            $buttons[] = '<a class="blnotifier-button edit-in-cornerstone" href="'.home_url( '/cornerstone/edit/'.$post_id ).'">'.esc_html__( 'Edit in Cornerstone', 'broken-link-notifier' ).'</a>';
+                            $blnotifier_buttons[] = '<a class="blnotifier-button edit-in-cornerstone" href="'.home_url( '/cornerstone/edit/'.$blnotifier_post_id ).'">'.esc_html__( 'Edit in Cornerstone', 'broken-link-notifier' ).'</a>';
                         }
                         ?>
                         <div class="above-table-cont">
                             <div class="page-count">
-                                <strong><?php echo esc_html__( 'Total Links Found:', 'broken-link-notifier' ); ?></strong> <?php echo absint( count( $links ) ); ?>
+                                <strong><?php echo esc_html__( 'Total Links Found:', 'broken-link-notifier' ); ?></strong> <?php echo absint( count( $blnotifier_links ) ); ?>
                             </div>
                             <div class="page-actions">
-                                <?php echo wp_kses_post( implode( ' ', $buttons ) ); ?>
+                                <?php echo wp_kses_post( implode( ' ', $blnotifier_buttons ) ); ?>
                             </div>
                         </div>
                         <?php
@@ -207,42 +207,42 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                             </thead>
                         <?php
                         // Iter
-                        foreach ( $links as $link ) {
+                        foreach ( $blnotifier_links as $blnotifier_link ) {
 
                             // Include find
-                            if ( $link != '' ) {
-                                $incl_find = ' | <a href="'.add_query_arg( 'blink', $link, $s ).'" target="_blank">'.esc_html__( 'Find', 'broken-link-notifier' ).'</a>';
+                            if ( $blnotifier_link != '' ) {
+                                $blnotifier_incl_find = ' | <a href="'.add_query_arg( 'blink', $blnotifier_link, $blnotifier_s ).'" target="_blank">'.esc_html__( 'Find', 'broken-link-notifier' ).'</a>';
                             } else {
-                                $incl_find = '';
+                                $blnotifier_incl_find = '';
                             }
 
                             // Link it
-                            if ( str_starts_with( $link, '/' ) && !str_starts_with( $link, '//' ) ) {
-                                $check_link = home_url().$link;
+                            if ( str_starts_with( $blnotifier_link, '/' ) && !str_starts_with( $blnotifier_link, '//' ) ) {
+                                $blnotifier_check_link = home_url().$blnotifier_link;
                             } else {
-                                $check_link = $link;
+                                $blnotifier_check_link = $blnotifier_link;
                             }
-                            if ( filter_var( $check_link, FILTER_VALIDATE_URL ) && str_starts_with( $check_link, 'http' ) ) {
-                                $link = '<a href="'.$link.'" target="_blank">'.$link.'</a>';
+                            if ( filter_var( $blnotifier_check_link, FILTER_VALIDATE_URL ) && str_starts_with( $blnotifier_check_link, 'http' ) ) {
+                                $blnotifier_link = '<a href="'.$blnotifier_link.'" target="_blank">'.$blnotifier_link.'</a>';
                             }
 
                             // The title
-                            if ( $this_post_id = url_to_postid( $check_link ) ) {
-                                $incl_title = get_the_title( $this_post_id );
+                            if ( $blnotifier_this_post_id = url_to_postid( $blnotifier_check_link ) ) {
+                                $blnotifier_incl_title = get_the_title( $blnotifier_this_post_id );
                             } else {
-                                $incl_title = '';
+                                $blnotifier_incl_title = '';
                             }
 
                             // The row
                             ?>
-                            <tr class="link-row pending" data-link="<?php echo esc_html( $check_link ); ?>">
-                                <td class="link"><?php echo wp_kses_post( $link ); ?></td>
-                                <td><?php echo esc_html( $incl_title ); ?></td>
+                            <tr class="link-row pending" data-link="<?php echo esc_html( $blnotifier_check_link ); ?>">
+                                <td class="link"><?php echo wp_kses_post( $blnotifier_link ); ?></td>
+                                <td><?php echo esc_html( $blnotifier_incl_title ); ?></td>
                                 <td class="type dotdotdot"><em><?php echo esc_html__( 'Pending', 'broken-link-notifier' ); ?></em></td>
                                 <td class="code"></td>
                                 <td class="text"></td>
                                 <td class="speed"></td>
-                                <td class="actions"><a class="omit-link" href="#">Omit</a><?php echo wp_kses_post( $incl_find ); ?></td>
+                                <td class="actions"><a class="omit-link" href="#">Omit</a><?php echo wp_kses_post( $blnotifier_incl_find ); ?></td>
                             </tr>
                             <?php
                         }
@@ -267,16 +267,16 @@ $tab = (new BLNOTIFIER_HELPERS)->get_tab();
                         
                         // If cornerstone
                         if ( is_plugin_active( 'cornerstone/cornerstone.php' ) ) {
-                            $incl_solution = sprintf(
+                            $blnotifier_incl_solution = sprintf(
                                 /* translators: %s: URL for editing the page in Cornerstone. */
                                 __( ' If you know there are links on the page, try <a href="%s" target="_blank">editing the page in Cornerstone</a> and resaving it. Sometimes the content is saved correctly after editing it outside of Cornerstone, so resaving in Cornerstone helps repopulate the data where we can read the links.', 'broken-link-notifier' ),
-                                esc_url( home_url( '/cornerstone/edit/' . $post_id ) )
+                                esc_url( home_url( '/cornerstone/edit/' . $blnotifier_post_id ) )
                             );
                         } else {
-                            $incl_solution = '';
+                            $blnotifier_incl_solution = '';
                         }
                         ?>
-                        <em><strong><?php echo esc_html__( 'No links found.', 'broken-link-notifier' ); ?></strong><?php echo esc_html( $incl_solution ); ?></em>
+                        <em><strong><?php echo esc_html__( 'No links found.', 'broken-link-notifier' ); ?></strong><?php echo esc_html( $blnotifier_incl_solution ); ?></em>
                         <?php
                     }
 

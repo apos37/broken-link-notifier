@@ -156,9 +156,11 @@ class BLNOTIFIER_EXPORT {
             $where_values[] = $type;
         }
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
         $rows = !empty( $where_values )
-            ? $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC", $where_values ), ARRAY_A ) // phpcs:ignore
-            : $wpdb->get_results( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC", ARRAY_A ); // phpcs:ignore
+            ? $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC", $where_values ), ARRAY_A )
+            : $wpdb->get_results( "SELECT * FROM $table_name $where_sql ORDER BY created_at ASC", ARRAY_A );
+        // phpcs:enable
 
         if ( $scope !== 'all' && !empty( $rows ) ) {
             $LINK_BROWSER = new BLNOTIFIER_LINK_BROWSER;
@@ -245,9 +247,11 @@ class BLNOTIFIER_EXPORT {
 
         $order_by = "ORDER BY CASE WHEN link LIKE 'http://%' THEN 1 WHEN link LIKE 'https://%' THEN 2 ELSE 0 END ASC, link ASC";
 
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
         $rows = !empty( $where_values )
-            ? $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql $order_by", $where_values ) ) // phpcs:ignore
-            : $wpdb->get_results( "SELECT * FROM $table_name $where_sql $order_by" ); // phpcs:ignore
+            ? $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name $where_sql $order_by", $where_values ) )
+            : $wpdb->get_results( "SELECT * FROM $table_name $where_sql $order_by" );
+        // phpcs:enable
 
         $links = [];
         foreach ( $rows as $row ) {
@@ -323,6 +327,7 @@ class BLNOTIFIER_EXPORT {
      * @param array $data
      */
     protected function output_csv( array $data, array $headers ) {
+        // phpcs:disable WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- streaming a CSV directly to the HTTP response via php://output; WP_Filesystem has no equivalent for this stream and cannot be used here.
         $output = fopen( 'php://output', 'w' );
 
         // Convert the headers
@@ -334,7 +339,7 @@ class BLNOTIFIER_EXPORT {
             } else {
                 $header_row[] = ucwords( $key );
             }
-        }
+        } // End foreach()
 
         // Add headers from array keys
         fputcsv( $output, $header_row );
@@ -345,12 +350,13 @@ class BLNOTIFIER_EXPORT {
             foreach ( $header_keys as $key ) {
                 $value = isset( $row[ $key ] ) ? $row[ $key ] : '';
                 $escaped_row[] = $this->escape_csv_value( $value );
-            }
+            } // End foreach()
 
             fputcsv( $output, $escaped_row );
-        }
+        } // End foreach()
 
         fclose( $output );
+        // phpcs:enable
     } // End output_csv()
 
 }

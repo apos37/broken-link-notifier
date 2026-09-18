@@ -1,9 +1,9 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly    
 
-$is_enabled = apply_filters( 'blnotifier_enable_legacy_multiscan', false ) || (new BLNOTIFIER_HELPERS)->is_test_mode();
+$blnotifier_is_enabled = apply_filters( 'blnotifier_enable_legacy_multiscan', false ) || (new BLNOTIFIER_HELPERS)->is_test_mode();
 
-if ( !$is_enabled ) {
+if ( !$blnotifier_is_enabled ) {
     ?>
     <div class="blnotifier-box">
         <div class="blnotifier-box-body">
@@ -33,7 +33,7 @@ if ( !$is_enabled ) {
 }
 
 // Initiate
-$HELPERS = new BLNOTIFIER_HELPERS;
+$BLNOTIFIER_HELPERS = new BLNOTIFIER_HELPERS;
 ?>
 
 <div class="blnotifier-box">
@@ -49,9 +49,9 @@ $HELPERS = new BLNOTIFIER_HELPERS;
         </p>
         <ul>
             <?php
-            foreach ( $HELPERS->get_suggested_offsite_checkers() as $name => $url ) {
+            foreach ( $BLNOTIFIER_HELPERS->get_suggested_offsite_checkers() as $blnotifier_name => $blnotifier_url ) {
                 ?>
-                <li><a href="<?php echo esc_url( $url ); ?>" target="_blank"><?php echo esc_html( $name ); ?></a></li>
+                <li><a href="<?php echo esc_url( $blnotifier_url ); ?>" target="_blank"><?php echo esc_html( $blnotifier_name ); ?></a></li>
                 <?php
             }
             ?>
@@ -59,20 +59,20 @@ $HELPERS = new BLNOTIFIER_HELPERS;
         <br>
         <p><?php echo esc_html__( 'The way we do it is by loading your WP List Tables for individual post types, checking one set of pages at a time. We also ignore the header and footer during the process since it\'s unlikely to be an issue. The scan runs on AJAX in the background, too, so you can see the results as they happen. Give it a try!', 'broken-link-notifier' ); ?></p>
         <?php
-        $post_types = get_option( 'blnotifier_post_types' );
-        $post_types = !empty( $post_types ) ? array_keys( $post_types ) : [ 'post', 'page' ];
-        foreach ( $post_types as $post_type ) {
-            $count = $HELPERS->count_posts_by_status( 'publish', $post_type );
-            $post_type_name = $HELPERS->get_post_type_name( $post_type );
-            $url = add_query_arg( [
+        $blnotifier_post_types = get_option( 'blnotifier_post_types' );
+        $blnotifier_post_types = !empty( $blnotifier_post_types ) ? array_keys( $blnotifier_post_types ) : [ 'post', 'page' ];
+        foreach ( $blnotifier_post_types as $blnotifier_post_type ) {
+            $blnotifier_count = $BLNOTIFIER_HELPERS->count_posts_by_status( 'publish', $blnotifier_post_type );
+            $blnotifier_post_type_name = $BLNOTIFIER_HELPERS->get_post_type_name( $blnotifier_post_type );
+            $blnotifier_url = add_query_arg( [
                 'post_status' => 'publish',
-                'post_type'   => $post_type,
+                'post_type'   => $blnotifier_post_type,
                 'mode'        => 'list',
                 'blinks'      => 'true',
                 '_wpnonce'    => wp_create_nonce( 'blnotifier_blinks' )
             ], admin_url( 'edit.php' ) );
             ?>
-            <a href="<?php echo esc_url( $url ); ?>" target="_blank" class="scan-button blnotifier-button" style="margin-right: 10px;">Scan <?php echo esc_html( $post_type_name ); ?>  (<?php echo absint( $count ); ?>)</a>
+            <a href="<?php echo esc_url( $blnotifier_url ); ?>" target="_blank" class="scan-button blnotifier-button" style="margin-right: 10px;">Scan <?php echo esc_html( $blnotifier_post_type_name ); ?>  (<?php echo absint( $blnotifier_count ); ?>)</a>
             <?php
         }
         ?>

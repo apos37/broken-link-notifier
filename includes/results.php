@@ -947,7 +947,7 @@ class BLNOTIFIER_RESULTS {
 
         // Rate limit per IP only for non-link-managers
         if ( !$user_can_manage ) {
-            $ip = $_SERVER[ 'REMOTE_ADDR' ];
+            $ip = isset( $_SERVER[ 'REMOTE_ADDR' ] ) ? sanitize_text_field( wp_unslash( $_SERVER[ 'REMOTE_ADDR' ] ) ) : '';
             $transient_key = 'bln_rate_' . md5( $ip );
             if ( get_transient( $transient_key ) ) {
                 $result = [
@@ -1582,9 +1582,8 @@ class BLNOTIFIER_RESULTS {
 
         $filter   = isset( $_REQUEST[ 'filter' ] ) ? sanitize_key( wp_unslash( $_REQUEST[ 'filter' ] ) ) : 'all';
         $page     = isset( $_REQUEST[ 'page' ] ) ? absint( wp_unslash( $_REQUEST[ 'page' ] ) ) : 1;
-        $per_page = isset( $_REQUEST[ 'per_page' ] ) ? absint( wp_unslash( $_REQUEST[ 'per_page' ] ) ) : absint( get_option( 'blnotifier_per_page', 50 ) );
         $page     = max( 1, $page );
-        $per_page = isset( $_REQUEST[ 'per_page' ] ) ? $this->sanitize_per_page( wp_unslash( $_REQUEST[ 'per_page' ] ) ) : $this->sanitize_per_page( get_option( 'blnotifier_per_page', 25 ) );
+        $per_page = isset( $_REQUEST[ 'per_page' ] ) ? $this->sanitize_per_page( absint( wp_unslash( $_REQUEST[ 'per_page' ] ) ) ) : $this->sanitize_per_page( get_option( 'blnotifier_per_page', 25 ) );
 
         update_option( 'blnotifier_per_page', $per_page );
 
@@ -1612,10 +1611,10 @@ class BLNOTIFIER_RESULTS {
         // No internal/external scope: simple SQL pagination
         if ( $scope === 'all' ) {
 
-            $count_query = "SELECT COUNT(*) FROM $table_name $where_sql";
-
             // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table_name is a hardcoded prefix + fixed name, not user input; $where_sql is built from a fixed literal, not user input; type value is bound via prepare() when present.
-            $total = !empty( $where_values ) ? (int) $wpdb->get_var( $wpdb->prepare( $count_query, $where_values ) ) : (int) $wpdb->get_var( $count_query );
+            $total = !empty( $where_values )
+                ? (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $table_name $where_sql", $where_values ) )
+                : (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name $where_sql" );
 
             $offset = ( $page - 1 ) * $per_page;
             $query_values = array_merge( $where_values, [ $per_page, $offset ] );
