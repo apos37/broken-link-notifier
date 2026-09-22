@@ -38,7 +38,7 @@ $blnotifier_plugin_data = get_file_data( __FILE__, [
 
 // Versions
 define( 'BLNOTIFIER_VERSION', $blnotifier_plugin_data[ 'version' ] );
-define( 'BLNOTIFIER_SCRIPT_VERSION', time() ); // TODO: Use time() for development, change to BLNOTIFIER_VERSION for production
+define( 'BLNOTIFIER_SCRIPT_VERSION', BLNOTIFIER_VERSION ); // TODO: Use time() for development, change to BLNOTIFIER_VERSION for production
 define( 'BLNOTIFIER_MIN_PHP_VERSION', $blnotifier_plugin_data[ 'requires_php' ] );
 
 // Names

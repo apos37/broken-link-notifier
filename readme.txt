@@ -108,7 +108,7 @@ We recommend using our [website support forum](https://pluginrx.com/support/plug
 
 
 == Demo ==
-https://youtu.be/gM9Qy0HLplU
+https://youtu.be/9jibvCcCzcg
 
 == Screenshots ==
 1. Page load scan results on back-end
