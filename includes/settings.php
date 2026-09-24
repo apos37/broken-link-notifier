@@ -1366,7 +1366,11 @@ class BLNOTIFIER_SETTINGS {
 
             if ( $callback_name === 'field_checkbox' ) {
                 $value = isset( $_POST[ $name ] ) ? 'yes' : '';
-                update_option( $name, $value );
+                if ( get_option( $name, null ) === null ) {
+                    add_option( $name, $value );
+                } else {
+                    update_option( $name, $value );
+                }
 
             } elseif ( $callback_name === 'field_checkboxes' || $callback_name === 'field_status_codes' ) {
                 $value = isset( $_POST[ $name ] ) && is_array( $_POST[ $name ] ) ? wp_unslash( $_POST[ $name ] ) : []; // phpcs:ignore

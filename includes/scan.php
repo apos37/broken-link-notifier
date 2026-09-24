@@ -266,16 +266,17 @@ class BLNOTIFIER_SCAN {
             ];
 
             if ( $tab === 'scan-multi' ) {
-                $localize_data[ 'text' ] = [
+                $localize_data[ 'text' ] = array_merge( $localize_data[ 'text' ], [
                     'scanning_complete' => __( 'Scanning Complete', 'broken-link-notifier' )
-                ];
+                ] );
             } elseif ( $tab === 'scan-single' ) {
-                $localize_data[ 'text' ] = [
+                $localize_data[ 'text' ] = array_merge( $localize_data[ 'text' ], [
                     'title_broken'      => __( "If the link works fine and it's still being flagged as broken, then there is an issue with the page's response headers and there's nothing we can do about it. You may use the Omit option on the right to omit it from future scans.", 'broken-link-notifier' ),
                     'title_warning'     => __( "Warnings mean the link was found, but they may be unsecure or slow to respond. If you are getting too many warnings due to timeouts, try increasing your timeout in Settings. This will just result in longer wait times, but with more accuracy.", 'broken-link-notifier' ),
                     'title_405'         => __( "405 Method Not Allowed indicates that the target resource doesn't support checking for header responses using our method, but is still telling us that the page exists which is what we actually want to know. So it's fine; nothing to worry about.", 'broken-link-notifier' ),
-                    'scanning_complete' => __( 'Scanning links complete.', 'broken-link-notifier' )
-                ];
+                    'scanning_complete' => __( 'Scanning links complete.', 'broken-link-notifier' ),
+                    'redirect'          => __( 'Redirect', 'broken-link-notifier' ),
+                ] );
             }
 
             wp_localize_script( $handle, 'blnotifier_'.str_replace( '-', '_', $tab ), $localize_data );

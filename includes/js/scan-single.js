@@ -27,6 +27,23 @@ jQuery( $ => {
         } )
     }
 
+    // Render the redirect hops for a link row
+    const renderRedirects = ( row, redirects ) => {
+        if ( !redirects.length ) {
+            return;
+        }
+
+        const list = $( '<ol class="bln-redirect-hops"></ol>' );
+
+        redirects.forEach( hop => {
+            const isWeb = /^https?:\/\//i.test( hop.url );
+            const target = isWeb ? $( '<a target="_blank" rel="noopener"></a>' ).attr( 'href', hop.url ) : $( '<span></span>' );
+            list.append( $( '<li></li>' ).text( `${hop.code} → ` ).append( target.text( hop.url ) ) );
+        } );
+
+        row.find( 'td.link' ).append( $( '<span class="bln-redirect-pill"></span>' ).text( blnotifier_scan_single.text.redirect ) ).append( list );
+    }
+
     // Scan all link on a post
     const scanLinks = async () => {
         console.log( `Scanning links started...` );
@@ -45,6 +62,7 @@ jQuery( $ => {
             var statusType;
             var statusText;
             var statusCode;
+            var statusRedirects;
 
             // Get the link
             const link = linkRow.data( 'link' );
@@ -59,10 +77,12 @@ jQuery( $ => {
                     statusType = data.status.type;
                     statusText = data.status.text;
                     statusCode = data.status.code;
+                    statusRedirects = data.status.redirects || [];
                 } else {
                     statusType = 'error';
                     statusText = blnotifier_scan_single.text.please_try_again;
                     statusCode = 'ERR_FAILED';
+                    statusRedirects = [];
                 }
 
             // If no link, skip it
@@ -70,6 +90,7 @@ jQuery( $ => {
                 statusType = 'good';
                 statusText = blnotifier_scan_single.text.skipping_missing_links;
                 statusCode = '200';
+                statusRedirects = [];
             }
             
             // Update table
@@ -91,6 +112,7 @@ jQuery( $ => {
             }
             linkRow.find( '.code' ).html( statusCode );
             linkRow.find( '.text' ).text( statusText );
+            renderRedirects( linkRow, statusRedirects );
             const end = performance.now();
             const seconds = (end - start) / 1000;
             linkRow.find( '.speed' ).text( seconds.toFixed(2) + ' sec' );

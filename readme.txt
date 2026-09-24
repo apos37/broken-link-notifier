@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.0
+Stable tag: 2.0.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -122,6 +122,14 @@ https://youtu.be/9jibvCcCzcg
 9. Settings
 
 == Changelog ==
+= 2.0.0.1 =
+* Security: Redirect destinations are now validated against internal and reserved addresses on every hop when checking links (props Amin Guliyev via WPScan)
+* Update: Page Scan now shows a Redirect label and each redirect hop under links that redirect
+* Fix: Internal links to posts that are not published or private (drafts, scheduled posts, custom statuses) showing as good without being checked
+* Fix: "Undefined" showing in the Status column while a link is being scanned on Page Scan
+* Fix: "Please try again." and "Skipping missing links" text also not displaying on Page Scan
+* Fix: Checkboxes that default to enabled (such as Enable Emailing) could not be turned off and saved on a fresh install
+
 = 2.0.0 =
 * Update: Complete visual redesign — new shared header, navigation, colors, and content containers to match the rest of the PluginRx plugin family, including inheriting theme colors from Admin Help Docs when installed
 * Update: Added a new Site Scan tab — a two-step scanner that discovers every link on your site, then checks them all for broken links and warnings, with live progress and a summary linking to Results

@@ -1110,6 +1110,54 @@ class BLNOTIFIER_HELPERS {
 
 
     /**
+     * Request a URL, validating every redirect hop with is_url_unsafe()
+     *
+     * @param string $url
+     * @param array $args
+     * @return array|WP_Error
+     */
+    protected function safe_remote_request( $url, $args, &$redirects = [] ) {
+        $max_redirects = absint( $args[ 'redirection' ] ?? 5 );
+        $args[ 'redirection' ] = 0;
+        $original = $url;
+        $hops = 0;
+        $track = $this->user_can_manage_broken_links();
+
+        while ( true ) {
+            $unsafe = $this->is_url_unsafe( $url );
+            if ( $unsafe ) {
+                $unsafe[ 'link' ] = $original;
+                return new WP_Error( 'blnotifier_unsafe', $unsafe[ 'text' ], $unsafe );
+            }
+
+            $response = wp_remote_request( $url, $args );
+            if ( is_wp_error( $response ) ) {
+                return $response;
+            }
+
+            $location = wp_remote_retrieve_header( $response, 'location' );
+            if ( is_array( $location ) ) {
+                $location = reset( $location );
+            }
+
+            if ( ! $location || ! in_array( wp_remote_retrieve_response_code( $response ), [ 301, 302, 303, 307, 308 ], true ) ) {
+                return $response;
+            }
+
+            if ( $hops >= $max_redirects ) {
+                return $max_redirects ? new WP_Error( 'http_request_failed', __( 'Too many redirects', 'broken-link-notifier' ) ) : $response;
+            }
+
+            $hops++;
+            $url = WP_Http::make_absolute_url( $location, $url );
+            if ( $track ) {
+                $redirects[] = [ 'code' => absint( wp_remote_retrieve_response_code( $response ) ), 'url' => esc_url_raw( $url ) ?: sanitize_text_field( $url ) ];
+            }
+        }
+    } // End safe_remote_request()
+
+
+    /**
      * Determine if a URL is unsafe and return reason if so.
      *
      * @param string $url
@@ -1218,12 +1266,6 @@ class BLNOTIFIER_HELPERS {
             $link = $url;
         }
 
-        // Block SSRF to private/reserved ranges
-        $unsafe = $this->is_url_unsafe( $link );
-        if ( $unsafe ) {
-            return apply_filters( 'blnotifier_status', $unsafe );
-        }
-
         // Check if from youtube
         if ( $watch_url = $this->is_youtube_link( $link ) ) {
             $link = 'https://www.youtube.com/oembed?format=json&url='.$watch_url;
@@ -1241,7 +1283,13 @@ class BLNOTIFIER_HELPERS {
         ], $url );
 
         // Check the link
-        $response = wp_remote_get( $link, $http_request_args );
+        $redirects = [];
+        $response = $this->safe_remote_request( $link, $http_request_args, $redirects );
+        if ( is_wp_error( $response ) && $response->get_error_code() === 'blnotifier_unsafe' ) {
+            $unsafe = $response->get_error_data();
+            $unsafe[ 'redirects' ] = $redirects;
+            return apply_filters( 'blnotifier_status', $unsafe );
+        }
         if ( !is_wp_error( $response ) ) {
             $code = wp_remote_retrieve_response_code( $response );    
             $error = 'Unknown';
@@ -1286,10 +1334,11 @@ class BLNOTIFIER_HELPERS {
 
         // Filter status
         $status = apply_filters( 'blnotifier_status', [
-            'type' => $type,
-            'code' => $code,
-            'text' => ( $code !== 0 && ( isset( $codes[ $code ] ) && $codes[ $code ][ 'msg' ] != '' ) ) ? $codes[ $code ][ 'msg' ] : $error,
-            'link' => $url
+            'type'      => $type,
+            'code'      => $code,
+            'text'      => ( $code !== 0 && ( isset( $codes[ $code ] ) && $codes[ $code ][ 'msg' ] != '' ) ) ? $codes[ $code ][ 'msg' ] : $error,
+            'link'      => $url,
+            'redirects' => $redirects
         ] );
 
         // Return the array
@@ -1414,8 +1463,9 @@ class BLNOTIFIER_HELPERS {
                 ];
             }
            
-            // Check locally first
-            if ( !url_to_postid( $link ) ) {                
+            // Only published and private posts are trusted locally; any other status (draft, pending, future, custom) is checked by request
+            $local_post_id = url_to_postid( $link );
+            if ( !$local_post_id || !in_array( get_post_status( $local_post_id ), [ 'publish', 'private' ], true ) ) {     
 
                 // It may be redirected or an archive page, so let's check status anyway
                 $status = $this->check_url_status_code( $link );

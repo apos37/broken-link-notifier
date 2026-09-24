@@ -65,6 +65,7 @@ function blnotifier_run_uninstall() {
         'scan_footer',
         'show_in_console',
         'cache',
+        'clear_cache_tools',
         'editable_roles',
         'post_types',
         'status_codes',
