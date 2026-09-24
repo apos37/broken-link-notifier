@@ -129,6 +129,7 @@ https://youtu.be/9jibvCcCzcg
 * Fix: "Undefined" showing in the Status column while a link is being scanned on Page Scan
 * Fix: "Please try again." and "Skipping missing links" text also not displaying on Page Scan
 * Fix: Checkboxes that default to enabled (such as Enable Emailing) could not be turned off and saved on a fresh install
+* Fix: Database error logged on the Settings page when link caching is disabled
 
 = 2.0.0 =
 * Update: Complete visual redesign — new shared header, navigation, colors, and content containers to match the rest of the PluginRx plugin family, including inheriting theme colors from Admin Help Docs when installed

@@ -1099,9 +1099,7 @@ class BLNOTIFIER_SETTINGS {
      * @return void
      */
     public function field_clear_cache( $args ) {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'blnotifier_cache';
-        $count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM $table_name" ); // phpcs:ignore
+        $count = (new BLNOTIFIER_CACHE)->get_count();
         ?>
         <div class="blnotifier-backup-tools">
             <button type="button" id="blnotifier-clear-cache" class="blnotifier-button"><?php echo esc_html__( 'Clear Cache', 'broken-link-notifier' ); ?></button>
@@ -1221,9 +1219,7 @@ class BLNOTIFIER_SETTINGS {
             wp_send_json_error( [ 'msg' => __( 'Unauthorized.', 'broken-link-notifier' ) ] );
         }
 
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'blnotifier_cache';
-        $wpdb->query( "TRUNCATE TABLE $table_name" ); // phpcs:ignore
+        (new BLNOTIFIER_CACHE)->clear();
 
         wp_send_json_success();
     } // End ajax_clear_cache()

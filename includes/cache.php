@@ -209,4 +209,36 @@ class BLNOTIFIER_CACHE {
         );
     } // End set_cached_link()
 
+
+    /**
+     * Count the cached links
+     *
+     * @return int
+     */
+    public function get_count() {
+        if ( $this->cache_time_in_seconds === 0 ) {
+            return 0;
+        }
+
+        global $wpdb;
+
+        return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$this->table}" ); // phpcs:ignore
+    } // End get_count()
+
+
+    /**
+     * Clear the cache
+     *
+     * @return void
+     */
+    public function clear() {
+        if ( $this->cache_time_in_seconds === 0 ) {
+            return;
+        }
+
+        global $wpdb;
+
+        $wpdb->query( "TRUNCATE TABLE {$this->table}" ); // phpcs:ignore
+    } // End clear()
+
 }
