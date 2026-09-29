@@ -83,9 +83,6 @@ class BLNOTIFIER_OMITS {
         // Move search box to the right subheader
         add_action( 'blnotifier_subheader_right', [ $this, 'render_search_box' ] );
 
-        // Remove the Screen Options tab on these screens
-        add_filter( 'screen_options_show_screen', [ $this, 'hide_screen_options' ], 10, 2 );
-
         // Rename "Name"/"Description" to "URL"/"Notes" on the Omitted Links/Pages screens
         add_filter( 'gettext', [ $this, 'rename_field_labels' ], 10, 3 );
         add_filter( 'gettext_with_context', [ $this, 'rename_field_labels_with_context' ], 10, 4 );
@@ -232,21 +229,6 @@ class BLNOTIFIER_OMITS {
         </form>
         <?php
     } // End render_search_box()
-
-
-    /**
-     * Hide the Screen Options tab on the Omitted Links/Pages screens
-     *
-     * @param boolean $show_screen
-     * @param WP_Screen $screen
-     * @return boolean
-     */
-    public function hide_screen_options( $show_screen, $screen ) {
-        if ( isset( $screen->id ) && ( $screen->id === 'edit-omit-links' || $screen->id === 'edit-omit-pages' ) ) {
-            return false;
-        }
-        return $show_screen;
-    } // End hide_screen_options()
 
 
     /**

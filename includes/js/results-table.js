@@ -8,6 +8,7 @@ jQuery( $ => {
     let currentFilter = 'all';
     let verifyingActive = false;
     let verifyPaused = false;
+    let verifiedLinkIds = new Set();
 
     const updateStatusCounts = ( counts ) => {
         $( '.bln-status-filter' ).each( function() {
@@ -41,7 +42,9 @@ jQuery( $ => {
     const fetchTable = ( page = 1 ) => {
         const perPage = getPerPage();
 
-        $( '#bln-results-table tbody' ).html( '<tr><td colspan="7"><em>' + blnotifier_results_table.text.loading + '</em></td></tr>' );
+        const colCount = $( '#bln-results-table thead tr' ).first().children().length;
+
+        $( '#bln-results-table tbody' ).html( '<tr><td colspan="' + colCount + '"><em>' + blnotifier_results_table.text.loading + '</em></td></tr>' );
 
         $.post( ajaxUrl, {
             action: 'blnotifier_results_table',
@@ -244,8 +247,15 @@ jQuery( $ => {
                 return;
             }
 
-            const link = linkSpan.dataset.link;
             const linkID = linkSpan.dataset.linkId;
+
+            if ( verifiedLinkIds.has( linkID ) ) {
+                continue;
+            }
+
+            verifiedLinkIds.add( linkID );
+
+            const link = linkSpan.dataset.link;
             const code = linkSpan.dataset.code;
             const type = linkSpan.dataset.type;
             const sourceID = linkSpan.dataset.sourceId;
@@ -330,6 +340,7 @@ jQuery( $ => {
         if ( label === blnotifier_results_table.text.verify_link_statuses ) {
             verifyingActive = true;
             verifyPaused = false;
+            verifiedLinkIds = new Set();
             button.text( blnotifier_results_table.text.pause_verification );
             verifyVisibleRows();
         } else {

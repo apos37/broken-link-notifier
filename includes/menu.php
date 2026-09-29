@@ -80,6 +80,9 @@ class BLNOTIFIER_MENU {
         // Add the header
         add_action( 'in_admin_header', [ $this, 'admin_header' ] );
 
+        // Remove the Screen Options tab on all of our screens
+        add_filter( 'screen_options_show_screen', [ $this, 'hide_screen_options' ], 10, 2 );
+
         // Enqueue script
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_theme_assets' ] );
 
@@ -231,6 +234,22 @@ class BLNOTIFIER_MENU {
             include BLNOTIFIER_PLUGIN_INCLUDES_PATH.'header.php';
         }
     } // End admin_header()
+
+
+    /**
+     * Hide the Screen Options tab on all of our screens
+     *
+     * @param boolean $show_screen
+     * @param WP_Screen $screen
+     * @return boolean
+     */
+    public function hide_screen_options( $show_screen, $screen ) {
+        $our_screens = [ 'toplevel_page_'.BLNOTIFIER_TEXTDOMAIN, 'edit-omit-links', 'edit-omit-pages' ];
+        if ( isset( $screen->id ) && in_array( $screen->id, $our_screens, true ) ) {
+            return false;
+        }
+        return $show_screen;
+    } // End hide_screen_options()
 
 
     /**

@@ -164,11 +164,30 @@
 
 .term-php .form-field p.description {
     margin: 8px 0 0 0;
-    max-width: 500px;
 }
 
 .term-php .edit-tag-actions {
     margin: 0;
+}
+
+.edit-tags-php .form-field p.description,
+.term-php .form-field p.description,
+.edit-tags-php .form-field #description-description,
+.term-php .form-field #description-description,
+.edit-tags-php .form-field #name-description,
+.term-php .form-field #name-description {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.edit-tags-php .form-field #name-description,
+.term-php .form-field #name-description {
+    margin-top: 10px !important;
+}
+
+.edit-tags-php .form-field #description-description,
+.term-php .form-field #description-description{
+    margin-top: 6px !important;
 }
 
 /* Update button */

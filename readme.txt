@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.0.1
+Stable tag: 2.0.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -122,6 +122,15 @@ https://youtu.be/9jibvCcCzcg
 9. Settings
 
 == Changelog ==
+= 2.0.0.2 =
+* Fix: Browser extension links (moz-extension, safari-extension, safari-web-extension, webkit-masked-url) that a visitor's browser add-ons insert into the page were being reported as broken; they are now skipped
+* Fix: URL scheme matching is now case-insensitive, so a scheme like MAILTO: or Tel: is recognized and skipped
+* Fix: Broken links were being recorded for sources that do not exist (such as malformed URLs with a double slash); sources must now be a published post or page, or the homepage, and the page-load scan no longer runs on 404 pages
+* Update: Removed the Screen Options tab from all Broken Link Notifier pages
+* Tweak: Adjusted field description styles on Omitted Links/Pages
+* Fix: Verify Link Statuses on the Results page re-verified the same links again after the table refreshed
+* Fix: The loading row on the Results table did not span all columns
+
 = 2.0.0.1 =
 * Security: Redirect destinations are now validated against internal and reserved addresses on every hop when checking links (props Amin Guliyev via WPScan)
 * Update: Page Scan now shows a Redirect label and each redirect hop under links that redirect

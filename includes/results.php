@@ -725,7 +725,7 @@ class BLNOTIFIER_RESULTS {
      */
     public function render_rows( $links ) {
         if ( empty( $links ) ) {
-            echo '<tr><td colspan="7"><em>' . esc_html__( 'No results found.', 'broken-link-notifier' ) . '</em></td></tr>'; // phpcs:ignore
+            echo '<tr><td colspan="8"><em>' . esc_html__( 'No results found.', 'broken-link-notifier' ) . '</em></td></tr>'; // phpcs:ignore
             return;
         }
 
@@ -992,8 +992,8 @@ class BLNOTIFIER_RESULTS {
                 $post_id  = url_to_postid( $clean_url );
             }
 
-            // If it's not a post/page and it's not the homepage, it's likely an archive page, 404 or invalid
-            if ( ! $post_id && $source_url !== trailingslashit( $site_url ) && $source_url !== $site_url ) {
+            // If it's not a real post/page and it's not the homepage, it's likely an archive page, 404 or invalid
+            if ( !( new BLNOTIFIER_HELPERS )->is_valid_source( $source_url, $post_id ) ) {
                 $result = [
                     'type' => 'success',
                     'msg'  => __( 'Skipping because source URL is not a valid post or page.', 'broken-link-notifier' )
@@ -1806,7 +1806,7 @@ class BLNOTIFIER_RESULTS {
     public function front_script_enqueuer() {
         // Only if
         $HELPERS = new BLNOTIFIER_HELPERS;
-        if ( is_admin() || (new BLNOTIFIER_OMITS)->is_omitted( get_the_permalink(), 'pages' ) || in_array( get_post_type(), $HELPERS->get_omitted_pageload_post_types() ) || $HELPERS->is_frontend_scanning_paused() ) {
+        if ( is_admin() || is_404() || (new BLNOTIFIER_OMITS)->is_omitted( get_the_permalink(), 'pages' ) || in_array( get_post_type(), $HELPERS->get_omitted_pageload_post_types() ) || $HELPERS->is_frontend_scanning_paused() ) {
             return;
         }
 
