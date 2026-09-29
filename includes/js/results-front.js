@@ -97,6 +97,10 @@ jQuery( $ => {
             success: function( response ) {
                 // Success
                 if ( response.type == 'success' ) {
+                    if ( typeof response.broken_count !== 'undefined' ) {
+                        $( '#wp-admin-bar-blnotifier-notify .ab-count' ).text( response.broken_count ).toggleClass( 'blnotifier-count-indicator', response.broken_count > 0 );
+                    }
+
                     if ( blnotifier_front_end.show_in_console ) {
                         const brokenCount = response.results && response.results.broken ? Object.values( response.results.broken ).reduce( ( sum, arr ) => sum + arr.length, 0 ) : 0;
                         const warningCount = response.results && response.results.warning ? Object.values( response.results.warning ).reduce( ( sum, arr ) => sum + arr.length, 0 ) : 0;

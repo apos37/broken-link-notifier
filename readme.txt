@@ -130,6 +130,7 @@ https://youtu.be/9jibvCcCzcg
 * Tweak: Adjusted field description styles on Omitted Links/Pages
 * Fix: Verify Link Statuses on the Results page re-verified the same links again after the table refreshed
 * Fix: The loading row on the Results table did not span all columns
+* Update: The admin bar broken link count now updates live on the front end when a page scan finds new broken links
 
 = 2.0.0.1 =
 * Security: Redirect destinations are now validated against internal and reserved addresses on every hop when checking links (props Amin Guliyev via WPScan)

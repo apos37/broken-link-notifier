@@ -1185,6 +1185,11 @@ class BLNOTIFIER_RESULTS {
             // translators: 1: total scan time in seconds, 2: average seconds per link.
             $result[ 'timing' ] = sprintf( __( 'Results were generated in %1$s seconds (%2$s/link)', 'broken-link-notifier' ), $total_time, $sec_per_link );
 
+            // Count broken links if the user has permission
+            if ( $user_can_manage ) {
+                $result[ 'broken_count' ] = $HELPERS->count_broken_links();
+            }
+
         // Nope
         } else {
             $result[ 'type' ] = 'error';
