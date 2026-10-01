@@ -135,14 +135,9 @@
     margin-bottom: 24px;
 }
 
-.term-php .form-field label {
-    flex: 0 0 200px;
-    font-weight: 600;
-    padding-top: 8px;
-}
-
 .term-php .form-field input[type="text"],
 .term-php .form-field textarea {
+    background: yellow;
     padding: 8px 10px;
     font-size: 13px;
     line-height: 1.4;
@@ -272,4 +267,28 @@
 
 .tablenav .actions {
     padding: 0 8px 9px 0;
+}
+
+/* Edit term: fixed label column so fields align across rows */
+
+.term-php #edittag .form-table,
+.term-php #edittag .form-table tbody {
+    display: block;
+    width: 100%;
+}
+
+.term-php #edittag .form-table tr.form-field {
+    margin: 0 0 24px 0;
+}
+
+.term-php #edittag .form-table th {
+    flex: 0 0 200px;
+    width: 200px;
+    padding: 0;
+}
+
+.term-php #edittag .form-table td {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
 }

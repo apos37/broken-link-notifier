@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.0.2
+Stable tag: 2.0.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -122,6 +122,9 @@ https://youtu.be/9jibvCcCzcg
 9. Settings
 
 == Changelog ==
+= 2.0.0.3 =
+* Tweak: Updated a few minor styling issues
+
 = 2.0.0.2 =
 * Fix: Browser extension links (moz-extension, safari-extension, safari-web-extension, webkit-masked-url) that a visitor's browser add-ons insert into the page were being reported as broken; they are now skipped
 * Fix: URL scheme matching is now case-insensitive, so a scheme like MAILTO: or Tel: is recognized and skipped
