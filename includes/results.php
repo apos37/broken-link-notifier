@@ -784,7 +784,6 @@ class BLNOTIFIER_RESULTS {
                 $source_actions[] = '<span class="scan"><a class="scan-page" href="'.(new BLNOTIFIER_MENU)->get_plugin_page( 'scan-single' ).'&scan='.$source_url.'&_wpnonce='.$scan_nonce.'" target="_blank">' . __( 'Scan Page', 'broken-link-notifier' ) . '</a></span>';
                 $source_actions[] = '<span class="edit"><a href="'.get_edit_post_link( $source_id ).'">' . __( 'Edit Page', 'broken-link-notifier' ) . '</a></span>';
                 if ( get_option( 'blnotifier_enable_delete_source' ) && current_user_can( 'delete_post', $source_id ) ) {
-                    $delete_nonce = wp_create_nonce( 'blnotifier_delete_source' );
                     $source_actions[] = '<span class="delete"><a href="#" class="delete-source" data-source-title="'.$source_title.'" data-source-id="'.$source_id.'">' . __( 'Trash Page', 'broken-link-notifier' ) . '</a></span>';
                 }
             }
