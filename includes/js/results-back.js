@@ -53,6 +53,30 @@ jQuery( $ => {
 
 
     /**
+     * LINK ELEMENT HELPERS
+     */
+
+    const getSafeHref = ( link ) => {
+        try {
+            return [ 'http:', 'https:', 'mailto:', 'tel:' ].includes( new URL( link, window.location.origin ).protocol ) ? link : '';
+        } catch ( e ) {
+            return '';
+        }
+    };
+
+    const buildLinkElement = ( link ) => {
+        let anchor = $( '<a class="link-url" target="_blank" rel="noopener"></a>' ).text( link );
+        let href = getSafeHref( link );
+
+        if ( href ) {
+            anchor.attr( 'href', href );
+        }
+
+        return anchor;
+    };
+
+
+    /**
      * REPLACE LINK
      */
 
@@ -68,7 +92,7 @@ jQuery( $ => {
         let currentLink = linkElement.text();
         
         // Create an input field with the current link value
-        let inputField = $( `<input type="text" class="edit-link-input" value="${currentLink}" />` );
+        let inputField = $( '<input type="text" class="edit-link-input" />' ).val( currentLink );
     
         // Replace the link with the input field
         linkElement.replaceWith( inputField );
@@ -96,12 +120,12 @@ jQuery( $ => {
     
         // If the new link is empty, revert to the original
         if ( newLink === '' || newLink === oldLink || !sourceID ) {
-            inputField.replaceWith( `<a href="${oldLink}" class="link-url" target="_blank" rel="noopener">${oldLink}</a>` );
+            inputField.replaceWith( buildLinkElement( oldLink ) );
             return;
         }
     
         // Create a new link element with the updated text
-        let newLinkElement = $( `<a href="${newLink}" class="link-url" target="_blank" rel="noopener">${newLink}</a>` );
+        let newLinkElement = buildLinkElement( newLink );
     
         // Replace the input field with the new link
         inputField.replaceWith( newLinkElement );
@@ -141,7 +165,7 @@ jQuery( $ => {
                     // Update the type
                     $( `#link-${linkID} .bln-type` ).addClass( 'fixed' ).text( 'Replaced' );
                     $( `#link-${linkID} .type .code` ).remove();
-                    $( `#link-${linkID} .type .message` ).html( `${blnotifier_back_end.text.link_replace}<br>${blnotifier_back_end.text.old_link}: ${oldLink}` );
+                    $( `#link-${linkID} .type .message` ).empty().append( document.createTextNode( blnotifier_back_end.text.link_replace ), $( '<br>' ), document.createTextNode( `${blnotifier_back_end.text.old_link}: ${oldLink}` ) );
 
                     // Remove omit link action
                     $( `#link-${linkID} .link .row-actions .clear-result` ).remove();
@@ -164,13 +188,13 @@ jQuery( $ => {
                     alert( 'Update Failed: ' + errorMsg );
                     
                     // Revert the link text in the UI since the DB didn't update
-                    newLinkElement.replaceWith( `<a href="${oldLink}" class="link-url" target="_blank" rel="noopener">${oldLink}</a>` );
+                    newLinkElement.replaceWith( buildLinkElement( oldLink ) );
                 }
             },
             error: function() {
                 alert( blnotifier_back_end.text.server_request_failed );
                 // Revert the link text in the UI
-                newLinkElement.replaceWith( `<a href="${oldLink}" class="link-url" target="_blank" rel="noopener">${oldLink}</a>` );
+                newLinkElement.replaceWith( buildLinkElement( oldLink ) );
             }
         } );
     }

@@ -3,9 +3,8 @@
  * Plugin Name:         Broken Link Notifier
  * Plugin URI:          https://pluginrx.com/plugin/broken-link-notifier/
  * Description:         Get notified when someone loads a page with a broken link
- * Version:             2.0.0.3
+ * Version:             2.0.0.4
  * Requires at least:   6.0
- * Tested up to:        7.1
  * Requires PHP:        7.4
  * Author:              PluginRx
  * Author URI:          https://pluginrx.com/

@@ -776,15 +776,15 @@ class BLNOTIFIER_RESULTS {
             // Actions for source
             $source_actions = [];
             if ( $source_id ) {
-                $source_actions[] = '<span class="view"><a href="'.add_query_arg( 'blink', $link->link, get_permalink( $source_id ) ).'" target="_blank">' . __( 'View Page', 'broken-link-notifier' ) . '</a></span>';
+                $source_actions[] = '<span class="view"><a href="'.esc_url( add_query_arg( 'blink', $link->link, get_permalink( $source_id ) ) ).'" target="_blank">' . __( 'View Page', 'broken-link-notifier' ) . '</a></span>';
                 if ( !(new BLNOTIFIER_OMITS)->is_omitted( $source_url, 'pages' ) ) {
-                    $source_actions[] = '<span class="omit"><a class="omit-page" href="#" data-link="'.$source_url.'">' . __( 'Omit Source', 'broken-link-notifier' ) . '</a></span>';
+                    $source_actions[] = '<span class="omit"><a class="omit-page" href="#" data-link="'.esc_attr( $source_url ).'">' . __( 'Omit Source', 'broken-link-notifier' ) . '</a></span>';
                 }
                 $scan_nonce = wp_create_nonce( 'blnotifier_scan_single' );
-                $source_actions[] = '<span class="scan"><a class="scan-page" href="'.(new BLNOTIFIER_MENU)->get_plugin_page( 'scan-single' ).'&scan='.$source_url.'&_wpnonce='.$scan_nonce.'" target="_blank">' . __( 'Scan Page', 'broken-link-notifier' ) . '</a></span>';
-                $source_actions[] = '<span class="edit"><a href="'.get_edit_post_link( $source_id ).'">' . __( 'Edit Page', 'broken-link-notifier' ) . '</a></span>';
+                $source_actions[] = '<span class="scan"><a class="scan-page" href="'.esc_url( add_query_arg( [ 'scan' => $source_url, '_wpnonce' => $scan_nonce ], (new BLNOTIFIER_MENU)->get_plugin_page( 'scan-single' ) ) ).'" target="_blank">' . __( 'Scan Page', 'broken-link-notifier' ) . '</a></span>';
+                $source_actions[] = '<span class="edit"><a href="'.esc_url( get_edit_post_link( $source_id ) ).'">' . __( 'Edit Page', 'broken-link-notifier' ) . '</a></span>';
                 if ( get_option( 'blnotifier_enable_delete_source' ) && current_user_can( 'delete_post', $source_id ) ) {
-                    $source_actions[] = '<span class="delete"><a href="#" class="delete-source" data-source-title="'.$source_title.'" data-source-id="'.$source_id.'">' . __( 'Trash Page', 'broken-link-notifier' ) . '</a></span>';
+                    $source_actions[] = '<span class="delete"><a href="#" class="delete-source" data-source-title="'.esc_attr( $source_title ).'" data-source-id="'.absint( $source_id ).'">' . __( 'Trash Page', 'broken-link-notifier' ) . '</a></span>';
                 }
             }
             ?>
@@ -919,9 +919,9 @@ class BLNOTIFIER_RESULTS {
     
         // Get the source and links
         $source_url    = isset( $_REQUEST[ 'source_url' ] ) ? filter_var( wp_unslash( $_REQUEST[ 'source_url' ] ), FILTER_SANITIZE_URL ) : '';
-        $header_links  = isset( $_REQUEST[ 'header_links' ] ) ? wp_unslash( $_REQUEST[ 'header_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-        $content_links = isset( $_REQUEST[ 'content_links' ] ) ? wp_unslash( $_REQUEST[ 'content_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-        $footer_links  = isset( $_REQUEST[ 'footer_links' ] ) ? wp_unslash( $_REQUEST[ 'footer_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        $header_links  = isset( $_REQUEST[ 'header_links' ] ) ? (array) wp_unslash( $_REQUEST[ 'header_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        $content_links = isset( $_REQUEST[ 'content_links' ] ) ? (array) wp_unslash( $_REQUEST[ 'content_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+        $footer_links  = isset( $_REQUEST[ 'footer_links' ] ) ? (array) wp_unslash( $_REQUEST[ 'footer_links' ] ) : []; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
         // Permissions
         $user_can_manage = (new BLNOTIFIER_HELPERS)->user_can_manage_broken_links();
@@ -959,6 +959,11 @@ class BLNOTIFIER_RESULTS {
             }
             set_transient( $transient_key, 1, 10 ); // 10-second cooldown
         }
+
+        // Drop anything that is not a plain-string link
+        $header_links  = $this->filter_reported_links( $header_links );
+        $content_links = $this->filter_reported_links( $content_links );
+        $footer_links  = $this->filter_reported_links( $footer_links );
 
         // Make sure we have a source URL
         if ( $source_url ) {
@@ -1198,6 +1203,28 @@ class BLNOTIFIER_RESULTS {
         // Echo the result or redirect
         self::send_ajax_or_redirect( $result );
     } // End ajax_blinks()
+
+
+    /**
+     * Keep only reported links that are plain strings without markup-breaking characters
+     *
+     * @param array $links
+     * @return array
+     */
+    public function filter_reported_links( $links ) {
+        return array_values( array_filter( $links, [ $this, 'is_reportable_link' ] ) );
+    } // End filter_reported_links()
+
+
+    /**
+     * Check a single reported link
+     *
+     * @param mixed $link
+     * @return bool
+     */
+    public function is_reportable_link( $link ) {
+        return is_string( $link ) && ! preg_match( '/[\x00-\x1F\x7F<>"`]/', $link );
+    } // End is_reportable_link()
 
 
     /**

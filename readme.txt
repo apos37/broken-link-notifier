@@ -4,7 +4,7 @@ Tags: broken, link, links, checker, notify
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.0.3
+Stable tag: 2.0.0.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
@@ -122,6 +122,13 @@ https://youtu.be/9jibvCcCzcg
 9. Settings
 
 == Changelog ==
+= 2.0.0.4 =
+* Security: Fixed a stored DOM-based cross-site scripting issue where a link reported through the public front-end scanner could run script in an administrator's session when using Replace Link on the Results page (props Kevin Whelan/Wordfence)
+* Security: Links reported through the front-end scanner are now rejected if they are not plain text or contain control characters, angle brackets, double quotes or backticks (props Kevin Whelan/Wordfence)
+* Security: Link and message output in the Replace Link action is now built with safe DOM methods, and only http, https, mailto and tel links are made clickable
+* Security: Escaped the Omit Source, Scan Page, View Page and Trash Page row action attributes on the Results page
+* Fix: A non-array value sent to the front-end link report no longer causes a fatal error on PHP 8
+
 = 2.0.0.3 =
 * Tweak: Updated a few minor styling issues
 
